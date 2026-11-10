@@ -1,0 +1,148 @@
+% Generado por generar_diccionario.py a partir de ../scripts/brazo_4gdl.sql: no editar a mano
+\subsection*{\codigo{sistema}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & SMALLSERIAL & no & PK & identificador (clave sustituta)\\
+nombre & VARCHAR(60) & no & UQ & nombre de la planta\\
+tipo & VARCHAR(40) & no &  & tipo de planta\\
+plc & VARCHAR(60) & no &  & PLC que la controla\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{eje}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & SMALLSERIAL & no & PK & identificador (clave sustituta)\\
+sistema\_id & SMALLINT & no & FK$\to$sistema & \\
+codigo & CHAR(1) & no &  & Z (base), X, Y, G (garra)\\
+nombre & VARCHAR(40) & no &  & nombre del grado de libertad\\
+tipo\_mov & VARCHAR(12) & no & CHECK & rotacional, lineal o binario\\
+unidad & VARCHAR(8) & no &  & unidad de la posición\\
+pulsos\_unidad & NUMERIC(10,4) & sí &  & NULL para la garra\\
+lazo\_isa & SMALLINT & no &  & número de lazo ISA (101 a 104)\\
+\midrule \multicolumn{5}{l}{\small Restricciones de tabla: \texttt{UNIQUE (sistema\_id, codigo)}}\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{punto\_io}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & SMALLSERIAL & no & PK & identificador (clave sustituta)\\
+sistema\_id & SMALLINT & no & FK$\to$sistema & \\
+eje\_id & SMALLINT & sí & FK$\to$eje & NULL: señal general del panel\\
+direccion & VARCHAR(8) & no &  & I0.1, Q0.5 ...\\
+tag\_isa & VARCHAR(16) & no & UQ & tag ISA-5.1 de la señal\\
+tipo\_senal & VARCHAR(4) & no & CHECK & DI, DO o PTO\\
+descripcion & VARCHAR(120) & no &  & qué hace la señal\\
+\midrule \multicolumn{5}{l}{\small Restricciones de tabla: \texttt{UNIQUE (sistema\_id, direccion)}}\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{variable}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & SMALLSERIAL & no & PK & identificador (clave sustituta)\\
+eje\_id & SMALLINT & no & FK$\to$eje & \\
+tag\_isa & VARCHAR(16) & no & UQ & tag ISA-5.1 de la variable\\
+clase & CHAR(2) & no & CHECK & PV, MV o DV\\
+nombre & VARCHAR(80) & no &  & nombre de la magnitud\\
+unidad & VARCHAR(8) & no &  & unidad de ingeniería\\
+rango\_min & DOUBLE PRECISION & no &  & mínimo admisible (lo usa el trigger)\\
+rango\_max & DOUBLE PRECISION & no &  & máximo admisible (lo usa el trigger)\\
+\midrule \multicolumn{5}{l}{\small Restricciones de tabla: \texttt{CHECK (rango\_min < rango\_max)}}\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{programa\_plc}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & SMALLSERIAL & no & PK & identificador (clave sustituta)\\
+nombre & VARCHAR(40) & no & UQ & nombre del programa ladder\\
+perfil\_app & VARCHAR(12) & no & UQ & gemelo, cargado, monitor\\
+firma & VARCHAR(40) & sí &  & valores de memoria que lo identifican\\
+descripcion & VARCHAR(160) & sí &  & qué hace\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{alarma}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & SMALLSERIAL & no & PK & identificador (clave sustituta)\\
+codigo & VARCHAR(24) & no & UQ & código corto de la alarma\\
+severidad & SMALLINT & no & CHECK & 1 aviso, 2 falla, 3 crítica\\
+descripcion & VARCHAR(160) & no &  & significado\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{rol}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & SMALLSERIAL & no & PK & identificador (clave sustituta)\\
+nombre & VARCHAR(16) & no & UQ & observador u operador\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{usuario}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & SERIAL & no & PK & identificador (clave sustituta)\\
+nombre & VARCHAR(32) & no & UQ & nombre de ingreso\\
+rol\_id & SMALLINT & no & FK$\to$rol & rol del usuario\\
+clave\_hash & VARCHAR(200) & no &  & PBKDF2, igual que usuarios.json de la app\\
+creado\_en & TIMESTAMPTZ & no & DEFAULT now() & fecha de alta\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{sesion}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & BIGSERIAL & no & PK & identificador (clave sustituta)\\
+usuario\_id & INTEGER & sí & FK$\to$usuario & NULL: usuario inexistente\\
+nombre\_usado & VARCHAR(32) & no &  & nombre que se escribió\\
+ip & INET & no &  & dirección IP del equipo\\
+instante & TIMESTAMPTZ & no & DEFAULT now() & momento del intento\\
+exito & BOOLEAN & no &  & ingreso aceptado o no\\
+fin & TIMESTAMPTZ & sí &  & cierre de la sesión\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{ciclo\_operacion}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & BIGSERIAL & no & PK & identificador (clave sustituta)\\
+sistema\_id & SMALLINT & no & FK$\to$sistema & planta\\
+programa\_id & SMALLINT & sí & FK$\to$programa\_plc & programa reconocido en el PLC\\
+modo & VARCHAR(12) & no & CHECK & simulacion, local o red\\
+inicio & TIMESTAMPTZ & no & DEFAULT now() & inicio del ciclo\\
+fin & TIMESTAMPTZ & sí &  & fin (NULL: en curso)\\
+\midrule \multicolumn{5}{l}{\small Restricciones de tabla: \texttt{CHECK (fin IS NULL OR fin >= inicio)}}\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{muestra}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & BIGSERIAL & no & PK & identificador (clave sustituta)\\
+ciclo\_id & BIGINT & no & FK$\to$ciclo\_operacion & ciclo en que se tomó\\
+variable\_id & SMALLINT & no & FK$\to$variable & variable medida\\
+instante & TIMESTAMPTZ & no &  & marca de tiempo\\
+valor & DOUBLE PRECISION & no &  & valor en la unidad de la variable\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{estado\_io}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & BIGSERIAL & no & PK & identificador (clave sustituta)\\
+ciclo\_id & BIGINT & no & FK$\to$ciclo\_operacion & ciclo\\
+punto\_id & SMALLINT & no & FK$\to$punto\_io & señal que cambió\\
+instante & TIMESTAMPTZ & no &  & marca de tiempo\\
+valor & BOOLEAN & no &  & nuevo estado (0/1)\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{orden}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & BIGSERIAL & no & PK & identificador (clave sustituta)\\
+ciclo\_id & BIGINT & no & FK$\to$ciclo\_operacion & ciclo\\
+usuario\_id & INTEGER & sí & FK$\to$usuario & NULL: PC del laboratorio (local)\\
+instante & TIMESTAMPTZ & no & DEFAULT now() & marca de tiempo\\
+tipo & VARCHAR(16) & no &  & homing, mover, garra, detener...\\
+aceptada & BOOLEAN & no &  & si la app la ejecutó\\
+motivo & VARCHAR(200) & sí &  & motivo del rechazo\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{orden\_parametro}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+orden\_id & BIGINT & no & FK$\to$orden & orden\\
+eje\_id & SMALLINT & no & FK$\to$eje & eje de destino\\
+valor & DOUBLE PRECISION & no &  & destino en la unidad del eje\\
+\midrule \multicolumn{5}{l}{\small Restricciones de tabla: \texttt{PRIMARY KEY (orden\_id, eje\_id)}}\\
+\bottomrule \end{longtable}
+\subsection*{\codigo{evento\_alarma}}
+\begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule \textrm{\textbf{Columna}} & \textrm{\textbf{Tipo}} & \textbf{Nulo} & \textbf{Restricción} & \textbf{Descripción}\\ \midrule
+id & BIGSERIAL & no & PK & identificador (clave sustituta)\\
+alarma\_id & SMALLINT & no & FK$\to$alarma & alarma del catálogo\\
+ciclo\_id & BIGINT & no & FK$\to$ciclo\_operacion & ciclo\\
+instante & TIMESTAMPTZ & no & DEFAULT now() & marca de tiempo\\
+activa & BOOLEAN & no &  & se activa (1) o se normaliza (0)\\
+detalle & VARCHAR(200) & sí &  & texto adicional\\
+\bottomrule \end{longtable}
