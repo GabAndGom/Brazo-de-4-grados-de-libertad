@@ -1,0 +1,91 @@
+% Informe de avance del laboratorio 7: control LQR, dashboard web y control de acceso por roles (RBAC)
+% Compilar desde esta carpeta: pdflatex informe_lab07.tex (dos veces)
+\documentclass[a4paper,11pt]{article}
+\input{../informe_comun}
+
+\begin{document}
+\portada{7}{Control óptimo LQR, dashboard analítico y seguridad por roles (informe de avance)}{martes 24 de noviembre de 2026}{martes 8 de diciembre de 2026}{semanas 16 y 17}
+
+\tableofcontents
+\newpage
+
+\nota{\textbf{Informe de avance al 12/11/2026.} El laboratorio 7 empieza el 24/11/2026. Este documento registra lo que ya está hecho y que la guía pide (el control de acceso por roles), el análisis de viabilidad del LQR con la planta actual y el plan para el dashboard.}
+
+\section{Objetivos}
+\begin{itemize}
+\item \textbf{ETN-902 / ETN-1034}: discretizar las matrices de estado, calcular la ganancia óptima $K$ (LQR) y programar $u(k) = -Kx(k) + K_r r(k)$ en el PLC.
+\item \textbf{ETN-1000}: programar el dashboard web conectado a PostgreSQL y el control de acceso por roles (RBAC) en la vista del usuario.
+\end{itemize}
+
+\section{ETN-902 / ETN-1034: viabilidad del control LQR}
+\subsection{Requisitos del LQR}
+El LQR minimiza $J = \sum_k \mathbf{x}^T Q \mathbf{x} + \mathbf{u}^T R \mathbf{u}$ y exige que el par $(G, H)$ sea estabilizable y que el estado $\mathbf{x}(k)$ se mida o se estime.
+
+\subsection{Situación de la planta}
+Del laboratorio 5 (\codigo{espacio\_estados\_brazo.py}):
+\begin{itemize}
+\item $G = I$, $H = T_sB(\kappa)$ con $\operatorname{rango} H = 2$ en cualquier estado de los relés: los tres ejes \emph{no} son controlables a la vez porque X e Y comparten un solo tren de pulsos;
+\item no hay sensor continuo: el estado no es medible y solo se conoce por la cuenta de pulsos, que es la propia entrada integrada.
+\end{itemize}
+\aviso{Con el hardware actual \textbf{no se puede implementar un LQR de los tres ejes}. Un LQR por eje (base, o un carro con su relé cerrado) es posible en teoría, pero sin medir la posición real sería un lazo cerrado sobre una estimación, no sobre la planta. No se presentan ganancias $K$ ni pruebas de sobreimpulso.}
+
+\subsection{Cambios necesarios}
+\begin{enumerate}
+\item Un encoder por eje (o regla lineal), leído con los contadores rápidos HSC del S7-200, para medir $\mathbf{x}(k)$.
+\item Un tren de pulsos independiente para X e Y (otra CPU o un módulo de posicionamiento), para que $\operatorname{rango} H = 3$.
+\item Con eso, para un eje: $x(k+1) = x(k) + bT_s\,u(k)$; con $Q = q$, $R = \rho$, la ecuación de Riccati discreta da una ganancia escalar $K$ y $K_r = K$ para seguimiento sin error en régimen.
+\end{enumerate}
+
+\section{ETN-1000: control de acceso por roles (RBAC)}
+\subsection{Implementación}
+La aplicación del gemelo ya tiene control de acceso por roles para el acceso por red (manuales de uso y manual técnico, sección de acceso):
+\begin{itemize}
+\item \textbf{Roles}: \emph{observador} (solo ve el brazo en vivo) y \emph{operador} (además lo manda). La guía nombra «Público General» e «Investigador»; ambos corresponden al observador.
+\item \textbf{Autenticación}: usuario y contraseña con hash PBKDF2 (200\,000 iteraciones); al ingresar, el servidor entrega un \emph{token} de sesión aleatorio en una cookie y lo valida en cada petición.
+\item \textbf{Restricción en la vista}: para el observador, los controles de movimiento, garra y mando se ocultan y deshabilitan; solo ve las curvas y el modelo 3D.
+\item \textbf{Restricción en el servidor} (lo importante): aunque alguien fuerce la petición desde el navegador, el servidor rechaza las órdenes de un observador.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=6.2cm, width=0.32\linewidth, keepaspectratio]{remoto_login.jpg}\hfill
+\includegraphics[height=6.2cm, width=0.32\linewidth, keepaspectratio]{remoto_observador.jpg}\hfill
+\includegraphics[height=6.2cm, width=0.32\linewidth, keepaspectratio]{remoto_operador.jpg}
+\caption{Ingreso, vista del observador (sin controles) y vista del operador (con controles).}
+\end{figure}
+
+\subsection{Pruebas de seguridad realizadas}
+\begin{center}\small
+\begin{tabularx}{\linewidth}{>{\raggedright}X >{\raggedright\arraybackslash}p{6.4cm}}
+\toprule
+\textbf{Prueba} & \textbf{Respuesta del servidor}\\
+\midrule
+Petición a la API sin token o con token vencido & 401 «sesión vencida: vuelva a ingresar»\\
+Observador que intenta mover o tomar el mando & 403 «su usuario es observador: solo puede ver el brazo»\\
+Operador sin el mando que intenta mover & rechazado\\
+Orden de movimiento sin homing & rechazada\\
+Acceso al menú de administración desde la red & 403 «solo desde la PC del laboratorio»\\
+\bottomrule
+\end{tabularx}
+\end{center}
+Estas pruebas se hicieron con la app en modo simulado y en la red local (manual técnico, capítulo 13).
+
+\section{ETN-1000: dashboard analítico (plan)}
+\begin{itemize}
+\item \textbf{Datos}: las 14 consultas de \codigo{database/scripts/consultas\_kpi.sql} ya responden a cada elemento de los mockups (tiempo encendido, ciclos completados, sensores, alarmas activas, historial de sesiones, series de tiempo).
+\item \textbf{Frontend}: se propone agregar una vista \emph{Dashboard} a la app existente (gráficos con Chart.js), con los mismos roles: el observador solo lee.
+\item \textbf{KPI de Eficiencia Homeostática}: la guía no da su fórmula. Para el brazo se propone el porcentaje de tiempo en operación sin alarmas,
+\[
+\eta_H = 1 - \frac{\sum \text{tiempo con alarma activa}}{\text{tiempo total en operación}},
+\]
+calculable con \codigo{v\_ciclo} y \codigo{evento\_alarma}. Debe acordarse con el docente.
+\end{itemize}
+
+\section{Entregables (Definition of Done)}
+\begin{dod}
+Código LQR en el PLC & \falta & no viable con el hardware actual (sección 2)\\
+Frontend del dashboard conectado a PostgreSQL & \falta & consultas listas; falta la base instalada y la vista\\
+Certificado de seguridad RBAC & \parcial & roles, tokens y pruebas implementados (sección 3); falta el informe formal de pruebas con tokens inválidos ejecutado por el auxiliar\\
+\end{dod}
+
+\end{document}

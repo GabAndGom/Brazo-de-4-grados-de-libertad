@@ -1,0 +1,57 @@
+* cb2d9e6 (HEAD -> main) Reorganiza la gestión II/2026 según las guías de laboratorio
+* 0d80af7 Evaluación de las 8 guías: tareas del docente y entregables frente a lo realizado
+* 565f8f4 Base de datos: documento completo (E-R, modelo lógico, normalización, DFD, diccionario), pruebas de reglas y consultas del dashboard
+* 07fa0c9 Planos v2.0 (laboratorio 2): P&ID ISA-5.1 y esquema eléctrico IEC 60617 con las correcciones Kaizen
+* d7b30bb Acceso por red: el saludo TLS se hace en el hilo de cada conexión con tiempo límite; una conexión muda ya no bloquea a los demás
+* 5954bd0 Rediseño de la app con un sistema de diseño (contraste AA, objetivos de 44 px, escala 4/8), QR de acceso rápido, instalación como aplicación (PWA) en la app y en la página; casilla del relé solo en la simulación de la página
+* d1e1fae Manual técnico completo del brazo: planta, drivers, ladder red por red, cinemática y jacobiano, PPI, aplicaciones, base de datos 3FN y cumplimiento de guías; programa original y script SQL
+* 1e6118f Guía completa del brazo (planta, ladder de los dos programas, modelado y software); manuales de Linux y Windows para la app unificada
+* 8b12a90 App del gemelo unificada para Linux y Windows: menú de modos (simulación, operación local, operación por red), usuarios desde el menú, puerto serie y certificado multiplataforma
+* 05f5215 Documento de arquitectura y desarrollo del gemelo digital: páginas, protocolo PPI y modos de mando
+* 53bcf59 Manual: guía visual de la app local y del acceso remoto, usuarios y solución de problemas; aviso de solo lectura según el rol
+* c07fceb Gemelo: la pestaña Cartesiano propone el punto alcanzable más cercano; JS/CSS sin caché vieja
+* 539e652 Gemelo: registrar órdenes rechazadas por rol o por estado del brazo
+* a88b209 Gemelo: reconexión que recuerda dirección y velocidad del PLC; pausa entre tramas PPI a 9,6 kbit/s
+* db42a45 Quitar el aviso de modelo aproximado de la seccion Modelo 3D
+* 5979e92 Gemelo: acceso desde la red local con usuarios (observador/operador), HTTPS propio, mando exclusivo y paro para operadores
+* d52cfa5 Pagina publicada: brazo real solo lectura (control solo en la app local y en simulacion); la API rechaza ordenes de otros origenes
+* f5dbb4d Gemelo: homing y garra segun el selector del panel, modelo sin saltos, base mas suave en el programa del PLC, manual actualizado
+* 4db439a Gemelo: estimacion de X/Y/base corregida (jog del panel), autocalibracion, calibracion de la base y lectura combinada
+* 9839120 App de escritorio autonoma del gemelo digital (ventana GTK/WebKit, three.js incluido, accesos de menu)
+* c010671 Gemelo digital: app en Python (PPI) que sigue y manda el brazo real, programa del PLC y manual
+* 878e8bc Prueba de comunicacion PPI y mapeo de finales de carrera confirmado en la planta
+* 0a3c9fc Analisis del programa BRAZO MIGUEL ROBADO (PTO directo, homing e interfaz V1000/V1001)
+* 32fb8eb Drivers JMC 2M542-N a 1000 pulsos/rev, carro X de 170 mm y homing como el programa del PLC
+* 66ae64b PTO compartido: X e Y se mueven a la vez, a la misma velocidad
+* 1c14707 Página publicada en Cloudflare Pages: brazo-4gdl-gemelo-digital.pages.dev
+* 6b2de8b Repositorio nuevo: Brazo-4GDL-gemelo-digital
+* e6f937d Nuevo estilo visual de la página: "plano técnico"
+* 3b9687d Planilla de medición imprimible con esquemas acotados
+* 1602075 Homing real: carro X hacia atrás y carro Y hacia abajo
+* 64405c1 Varilla 13 y postes 14 en el plano central del brazo
+* 7cf0d60 Corrige la vista superior del modelo 3D
+* a696225 Garra con dedos horizontales, como en las fotos de la planta
+* 7805a3a Corrige el modelo 3D con la foto de perfil del manual y la ficha del fabricante
+* 4511b19 Cinemática, modelo 3D articulado y visor controlable en la página
+* 2feec8a (origin/main, origin/HEAD) Actualiza enlaces a la página publicada en Cloudflare Pages
+* b17fd8f Prepara el catálogo para Cloudflare Pages (límite de 25 MB por archivo)
+* e44fb84 Agrega fotos reales de la planta y completa el README
+* 1006e77 Create pages.yml
+* 272e309 Reorganiza el repositorio y agrega la página del proyecto
+* 1d3ccc9 Add files via upload
+* 5ba8759 Create .gitkeep
+* 7672471 archivos para pagina web
+* c59fe8f Add files via upload
+* ba78f02 Create INFORMES
+* 2c7e2f7 Agregando mis nuevos archivos
+* f1dc1fb Update README.md
+* d31d2b4 docs(normas): incorporacion de documentos de normativa ANSI/ISA-S5.1 e IEC 60617
+* f838b05 Actualizacion readme
+* 7e5b6fe docs: organizacion de guias de laboratorio
+* 0171eb4 docs: organizacion modular de documentacion tecnica y exclusion de videos pesados
+*   ac8ab17 Merge branch 'main' of https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad
+|\  
+| * ad096df (origin/feature/planos-v2-kaizen, origin/feature/ladder-s7200-homing, origin/feature/db-y-supervision, feature/planos-v2-kaizen, feature/ladder-s7200-homing, feature/db-y-supervision) feat(repo): inicializacion de estructura modular, .gitignore, README y guia PDF
+| * 547a71d Revise README for project clarity and detail
+| * e5092eb Initial commit
+* 0f463d8 Adición de planos P&ID iniciales en formato DWG y manuales técnicos del Lab 1

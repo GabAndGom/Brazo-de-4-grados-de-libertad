@@ -1,0 +1,164 @@
+% Informe del laboratorio 5: gemelo digital, discretización, propiedades estructurales y triggers de seguridad
+% Compilar desde esta carpeta: pdflatex informe_lab05.tex (dos veces)
+\documentclass[a4paper,11pt]{article}
+\input{../informe_comun}
+
+\begin{document}
+\portada{5}{Gemelo digital, discretización y lógica de seguridad del servidor · cierre de la fase 2}{martes 29 de septiembre de 2026}{martes 27 de octubre de 2026}{semanas 9 a 13}
+
+\tableofcontents
+\newpage
+
+\section{Objetivos}
+\begin{itemize}
+\item \textbf{ETN-902}: construir el gemelo digital de la planta, discretizarlo con retención de orden cero y justificar el periodo de muestreo $T_s$.
+\item \textbf{ETN-1034}: simular el modelo en espacio de estados y certificar su controlabilidad y observabilidad.
+\item \textbf{ETN-1000}: programar en PL/pgSQL la función y el trigger \codigo{verificar\_limites\_variables()} que aíslen las variables fuera de límite, registren la alerta y cambien el estado de la planta, y probarlos inyectando datos erróneos.
+\end{itemize}
+
+\section{ETN-902: gemelo digital y discretización}
+\subsection{El gemelo digital del brazo}
+El gemelo se construyó como una aplicación propia (Python + navegador) en lugar de Simulink, porque además de simular debía conectarse al PLC real por PPI y servir de interfaz de operación. Tiene tres partes:
+\begin{itemize}
+\item \textbf{Modelo geométrico 3D} del brazo con su cinemática directa e inversa (manual técnico, capítulo 8).
+\item \textbf{PLC simulado} que reproduce el programa \codigo{brazo\_gemelo} (mismos pasos, tiempos y códigos de error), para probar todo sin hardware.
+\item \textbf{Estimador} de posición a partir de los pulsos y de las entradas del PLC, para operar también con el programa original.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.48\linewidth]{modelo_3d_isometrica.png}\hfill
+\includegraphics[width=0.48\linewidth, height=5.2cm, keepaspectratio]{gemelo_simulacion.jpg}
+\caption{Modelo 3D del brazo (izquierda) y el gemelo en modo simulación dentro de la aplicación (derecha).}
+\end{figure}
+
+\subsection{Validación frente a la planta}
+\begin{center}\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{6cm} >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Prueba} & \textbf{Resultado}\\
+\midrule
+Geometría del modelo frente a fotos del manual y de la planta & diferencia menor a 5~mm en los pivotes\\
+Estimador frente al programa original (\codigo{pruebas\_estimador.py}) & error máximo de 1,35~mm en X e Y\\
+Cinemática directa seguida de inversa en toda la grilla & devuelve la misma posición de los carros\\
+Posición con el programa \codigo{brazo\_gemelo} cargado & exacta al pulso mientras el motor no pierda pasos\\
+\bottomrule
+\end{tabularx}
+\end{center}
+Con un recorrido de 170~mm, el error máximo de 1,35~mm equivale a un ajuste del $1 - 1{,}35/170 = 99{,}2\%$ en posición, por encima del 95\% que pide la guía. \textbf{Advertencia}: este índice compara el estimador con la cuenta de pulsos del PLC, no con una medición independiente de la garra. Falta medir con calibre la posición real en varios puntos (pendiente en el manual técnico) y presentar el índice de ajuste frente a esa medición.
+
+\subsection{Discretización con retención de orden cero}
+Del laboratorio 4, cada eje es un integrador: $G(s) = b/s$, con $b = 9{,}17\cdot10^{-5}$~rad/Hz en la base y $b = 0{,}005$~mm/Hz en los carros. Con ZOH:
+\[
+G(z) = (1 - z^{-1})\,\mathcal{Z}\left\{\frac{b}{s^2}\right\} = (1 - z^{-1})\frac{b\,T_s\,z}{(z-1)^2} = \frac{b\,T_s}{z - 1}.
+\]
+En espacio de estados, como $A = 0$: $G = e^{AT_s} = I$ y $H = \int_0^{T_s} e^{A\tau}d\tau\,B = T_s B$, es decir
+\[
+\mathbf{x}(k+1) = \mathbf{x}(k) + T_s\,B(\kappa)\,\mathbf{u}(k),
+\]
+que es exactamente la ecuación de diferencias que ejecuta el estimador del gemelo: la posición nueva es la anterior más los pulsos del periodo divididos entre los pulsos por unidad.
+
+\subsection{Selección del periodo de muestreo}
+La regla $\tau/10 \le T_s \le \tau/4$ supone un polo con constante de tiempo $\tau$. El modelo identificable del brazo no tiene polo (integrador) y la dinámica mecánica no se pudo medir (laboratorio 4), así que \textbf{no se puede aplicar la regla todavía}. Los límites reales del sistema son:
+\begin{itemize}
+\item \textbf{Actuación}: el programa del PLC envía paquetes de 100 pulsos; a 4~kHz cada paquete dura 25~ms. Un periodo de control menor no puede cambiar la acción a mitad de paquete.
+\item \textbf{Comunicación}: cada lectura PPI a 9600~bit/s tarda unos 155~ms (medido). Es el periodo mínimo con el que la PC ve la planta.
+\end{itemize}
+Por eso se propone $T_s = 25$~ms para un control ejecutado en el PLC (interrupción temporizada, laboratorio 6) y $T_s \approx 155$~ms como periodo de supervisión desde la PC. Cuando se mida $\tau$ con un sensor continuo, se debe verificar que $25~\text{ms} \le \tau/4$.
+
+\section{ETN-1034: propiedades estructurales}
+El script \codigo{espacio\_estados\_brazo.py} (y su equivalente \codigo{espacio\_estados\_brazo.m} para MATLAB) calcula las matrices de controlabilidad $M_C = [B\;AB\;A^2B]$ y observabilidad $M_O = [C;\,CA;\,CA^2]$. Resultados (salida completa en \codigo{salida\_espacio\_estados.txt}):
+
+\begin{center}\small
+\begin{tabular}{l c l}
+\toprule
+\textbf{Modo de los relés} & $\operatorname{rango} M_C$ & \textbf{Conclusión}\\
+\midrule
+K1 cerrado (tren a X) & 2 & no controlable: Y no recibe pulsos\\
+K2 cerrado (tren a Y) & 2 & no controlable: X no recibe pulsos\\
+K1 y K2 cerrados & 2 & no controlable: X e Y solo con la misma velocidad\\
+ninguno & 1 & solo la base\\
+conmutando K1 $\leftrightarrow$ K2 & 3 & todos los estados alcanzables por conmutación\\
+\midrule
+\textbf{Salida} & $\operatorname{rango} M_O$ & \\
+\midrule
+$C = J(q_0)$ (posición de la garra) & 3 & observable si se midiera la posición\\
+sensores reales (finales, inductivo) & -- & salidas binarias: no observable en continuo\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Interpretación.} Con $A = 0$, $M_C$ se reduce a $[B\;0\;0]$ y su rango es el de $B$. Como X e Y comparten la salida Q0.1, en ningún modo fijo se pueden mover los tres ejes de forma independiente: el sistema \emph{no es apto para realimentación de estados} con la estructura actual. Se vuelve completamente alcanzable conmutando los relés (así trabaja el programa \codigo{brazo\_gemelo}: un tramo común y luego el resto del eje más largo). Para el control avanzado de la fase 3 hace falta: (1) un segundo tren de pulsos o un driver por salida, para que $B$ tenga rango 3, y (2) un sensor continuo de posición, para que la planta sea observable.
+
+\section{ETN-1000: lógica del servidor (PL/pgSQL)}
+\subsection{Trigger de seguridad}
+La función \codigo{verificar\_limites\_variables()} se ejecuta antes de cada \codigo{INSERT} o \codigo{UPDATE} en la tabla de telemetría (\codigo{muestra}). Si el valor sale del rango de su variable:
+\begin{enumerate}
+\item registra la alerta \codigo{limite\_variable} en la tabla de alertas (\codigo{evento\_alarma}) con \codigo{clock\_timestamp()}, la hora UTC real con microsegundos;
+\item cambia el estado lógico de la planta a falso (\codigo{sistema.en\_operacion = false});
+\item desvía el dato: devuelve \codigo{NULL} y la muestra no se guarda.
+\end{enumerate}
+\begin{lstlisting}[style=sql, caption={Función y trigger (\codigo{database/scripts/brazo\_4gdl.sql}).}]
+CREATE FUNCTION verificar_limites_variables() RETURNS trigger AS $$
+DECLARE
+    r variable%ROWTYPE;
+BEGIN
+    SELECT * INTO r FROM variable WHERE id = NEW.variable_id;
+    IF NEW.valor < r.rango_min OR NEW.valor > r.rango_max THEN
+        INSERT INTO evento_alarma (alarma_id, ciclo_id, instante, activa, detalle)
+        SELECT a.id, NEW.ciclo_id, clock_timestamp(), true,
+               format('%s = %s %s fuera de [%s, %s]', r.tag_isa, NEW.valor, r.unidad, r.rango_min, r.rango_max)
+        FROM alarma a WHERE a.codigo = 'limite_variable';
+        UPDATE sistema SET en_operacion = false
+        WHERE id = (SELECT sistema_id FROM ciclo_operacion WHERE id = NEW.ciclo_id);
+        RAISE WARNING 'muestra descartada: % = % % fuera de [%, %]',
+            r.tag_isa, NEW.valor, r.unidad, r.rango_min, r.rango_max;
+        RETURN NULL;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER muestra_en_rango BEFORE INSERT OR UPDATE ON muestra
+    FOR EACH ROW EXECUTE FUNCTION verificar_limites_variables();
+\end{lstlisting}
+
+\paragraph{Por qué \codigo{RETURN NULL}.} Si el trigger lanzara una excepción, PostgreSQL desharía toda la transacción, \emph{incluida la alerta}: la falla quedaría sin registro. Con \codigo{RETURN NULL} se omite solo la fila de la muestra y la alerta y el cambio de estado se conservan. Es un comportamiento determinista: el mismo dato inválido produce siempre la misma alerta.
+
+\paragraph{Umbrales.} Los límites son los recorridos físicos de la planta, guardados en \codigo{variable}: base de $-263°$ a $263°$, carros X e Y de 0 a 170~mm, trenes de 0 a 20\,000~Hz (máximo del PTO de la CPU 224). Una muestra fuera de ese rango indica un error del estimador, una pérdida de referencia o un dato corrupto: es la «colisión angular del brazo» que menciona la guía.
+
+\subsection{Pruebas de inyección}
+El script \codigo{database/scripts/prueba\_reglas.sql} inyecta valores erróneos dentro de una transacción que se deshace al final:
+\begin{center}\small
+\begin{tabularx}{\linewidth}{c >{\raggedright}X >{\raggedright\arraybackslash}p{5.6cm}}
+\toprule
+\textbf{Nº} & \textbf{Inyección} & \textbf{Resultado esperado}\\
+\midrule
+1 & ZI-102 = 85~mm & la muestra se guarda\\
+2 & ZI-102 = 250~mm & descartada, alerta registrada, planta fuera de operación\\
+3 & valor nulo & rechazada por NOT NULL\\
+4 & ciclo en modo «turbo» & rechazado por CHECK\\
+5 & variable inexistente (999) & rechazada por la clave foránea\\
+6 & tag ZS-101 repetido & rechazado por UNIQUE\\
+7 & borrar ZI-102 con historial & impedido por ON DELETE RESTRICT\\
+\bottomrule
+\end{tabularx}
+\end{center}
+\aviso{Las pruebas están escritas y su sintaxis está validada con el analizador de PostgreSQL (\codigo{pglast}), pero \textbf{no se ejecutaron} porque PostgreSQL no está instalado en la PC del laboratorio. La resiliencia del backend queda demostrada en el diseño, no en una ejecución.}
+
+\section{Entregables (Definition of Done)}
+\begin{dod}
+Archivos de simulación (.slx / .m) con el gemelo y el rango de matrices & \parcial & gemelo en la app (\codigo{gemelo-digital/}), \codigo{espacio\_estados\_brazo.m} y \codigo{.py}; no hay modelo \codigo{.slx} de Simulink\\
+Script SQL de lógica de servidor (PL/pgSQL) & \cumple & \codigo{database/scripts/brazo\_4gdl.sql} y \codigo{prueba\_reglas.sql}; falta ejecutarlo\\
+Informe de cierre de fase 2 & \cumple & este informe, con el del laboratorio 4\\
+Firma del escudo de seguridad del docente & \falta & pendiente de la revisión del docente\\
+\end{dod}
+
+\section{Conclusiones}
+\begin{enumerate}
+\item El gemelo digital reproduce la geometría con menos de 5~mm de error y el estimador sigue al PLC con un error máximo de 1,35~mm; falta contrastarlo con una medición independiente.
+\item La discretización con ZOH de un integrador da $\mathbf{x}(k+1) = \mathbf{x}(k) + T_sB\mathbf{u}(k)$, la misma ecuación que ya ejecuta el estimador.
+\item El análisis estructural muestra el límite de la planta: con un solo tren de pulsos para X e Y y sin sensores continuos, el sistema no es controlable en ningún modo fijo ni observable. El control por realimentación de estados de la fase 3 requiere cambios de hardware.
+\item El trigger de seguridad cumple la lógica que pide la guía (desviar, alertar y detener) y está listo para ejecutarse.
+\end{enumerate}
+
+\end{document}
