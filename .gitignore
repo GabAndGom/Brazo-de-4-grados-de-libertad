@@ -17,6 +17,9 @@ web/data/
 *.synctex.gz
 *.fls
 *.fdb_latexmk
+*.lof
+*.lot
+*.lol
 
 # Temporales y de bloqueo de AutoCAD / Office
 *.bak

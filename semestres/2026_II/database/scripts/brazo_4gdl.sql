@@ -25,12 +25,13 @@ CREATE TABLE sistema (
     id          SMALLSERIAL PRIMARY KEY,
     nombre      VARCHAR(60)  NOT NULL UNIQUE,
     tipo        VARCHAR(40)  NOT NULL,
-    plc         VARCHAR(60)  NOT NULL
+    plc         VARCHAR(60)  NOT NULL,
+    en_operacion BOOLEAN     NOT NULL DEFAULT true      -- false: un trigger detectó una variable fuera de límite
 );
 
 CREATE TABLE eje (
     id              SMALLSERIAL PRIMARY KEY,
-    sistema_id      SMALLINT     NOT NULL REFERENCES sistema(id),
+    sistema_id      SMALLINT     NOT NULL REFERENCES sistema(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     codigo          CHAR(1)      NOT NULL,              -- Z (base), X, Y, G (garra)
     nombre          VARCHAR(40)  NOT NULL,
     tipo_mov        VARCHAR(12)  NOT NULL CHECK (tipo_mov IN ('rotacional', 'lineal', 'binario')),
@@ -42,8 +43,8 @@ CREATE TABLE eje (
 
 CREATE TABLE punto_io (                                 -- señales del PLC (entidad PUNT_I/O)
     id              SMALLSERIAL PRIMARY KEY,
-    sistema_id      SMALLINT     NOT NULL REFERENCES sistema(id),
-    eje_id          SMALLINT     REFERENCES eje(id),    -- NULL: señal general del panel
+    sistema_id      SMALLINT     NOT NULL REFERENCES sistema(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    eje_id          SMALLINT     REFERENCES eje(id) ON DELETE RESTRICT ON UPDATE CASCADE,    -- NULL: señal general del panel
     direccion       VARCHAR(8)   NOT NULL,              -- I0.1, Q0.5 ...
     tag_isa         VARCHAR(16)  NOT NULL UNIQUE,
     tipo_senal      VARCHAR(4)   NOT NULL CHECK (tipo_senal IN ('DI', 'DO', 'PTO')),
@@ -53,7 +54,7 @@ CREATE TABLE punto_io (                                 -- señales del PLC (ent
 
 CREATE TABLE variable (                                 -- magnitudes continuas (entidad VARIABLE_PROCESO)
     id              SMALLSERIAL PRIMARY KEY,
-    eje_id          SMALLINT     NOT NULL REFERENCES eje(id),
+    eje_id          SMALLINT     NOT NULL REFERENCES eje(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     tag_isa         VARCHAR(16)  NOT NULL UNIQUE,
     clase           CHAR(2)      NOT NULL CHECK (clase IN ('PV', 'MV', 'DV')),
     nombre          VARCHAR(80)  NOT NULL,
@@ -87,14 +88,14 @@ CREATE TABLE rol (
 CREATE TABLE usuario (
     id          SERIAL PRIMARY KEY,
     nombre      VARCHAR(32)  NOT NULL UNIQUE,
-    rol_id      SMALLINT     NOT NULL REFERENCES rol(id),
+    rol_id      SMALLINT     NOT NULL REFERENCES rol(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     clave_hash  VARCHAR(200) NOT NULL,                   -- PBKDF2, igual que usuarios.json de la app
     creado_en   TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
 CREATE TABLE sesion (                                    -- registro de ingresos (logs)
     id          BIGSERIAL PRIMARY KEY,
-    usuario_id  INTEGER      REFERENCES usuario(id),     -- NULL: usuario inexistente
+    usuario_id  INTEGER      REFERENCES usuario(id) ON DELETE RESTRICT ON UPDATE CASCADE,     -- NULL: usuario inexistente
     nombre_usado VARCHAR(32) NOT NULL,
     ip          INET         NOT NULL,
     instante    TIMESTAMPTZ  NOT NULL DEFAULT now(),
@@ -105,8 +106,8 @@ CREATE TABLE sesion (                                    -- registro de ingresos
 -- ---------------------------------------------------------------- operación
 CREATE TABLE ciclo_operacion (                           -- cada vez que se elige un modo en la app
     id          BIGSERIAL PRIMARY KEY,
-    sistema_id  SMALLINT     NOT NULL REFERENCES sistema(id),
-    programa_id SMALLINT     REFERENCES programa_plc(id),
+    sistema_id  SMALLINT     NOT NULL REFERENCES sistema(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    programa_id SMALLINT     REFERENCES programa_plc(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     modo        VARCHAR(12)  NOT NULL CHECK (modo IN ('simulacion', 'local', 'red')),
     inicio      TIMESTAMPTZ  NOT NULL DEFAULT now(),
     fin         TIMESTAMPTZ,
@@ -115,8 +116,8 @@ CREATE TABLE ciclo_operacion (                           -- cada vez que se elig
 
 CREATE TABLE muestra (                                   -- telemetría de variables continuas
     id          BIGSERIAL PRIMARY KEY,
-    ciclo_id    BIGINT           NOT NULL REFERENCES ciclo_operacion(id),
-    variable_id SMALLINT         NOT NULL REFERENCES variable(id),
+    ciclo_id    BIGINT           NOT NULL REFERENCES ciclo_operacion(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    variable_id SMALLINT         NOT NULL REFERENCES variable(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     instante    TIMESTAMPTZ      NOT NULL,
     valor       DOUBLE PRECISION NOT NULL
 );
@@ -124,8 +125,8 @@ CREATE INDEX muestra_variable_instante ON muestra (variable_id, instante);
 
 CREATE TABLE estado_io (                                 -- cambios de las señales digitales
     id          BIGSERIAL PRIMARY KEY,
-    ciclo_id    BIGINT      NOT NULL REFERENCES ciclo_operacion(id),
-    punto_id    SMALLINT    NOT NULL REFERENCES punto_io(id),
+    ciclo_id    BIGINT      NOT NULL REFERENCES ciclo_operacion(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    punto_id    SMALLINT    NOT NULL REFERENCES punto_io(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     instante    TIMESTAMPTZ NOT NULL,
     valor       BOOLEAN     NOT NULL
 );
@@ -133,8 +134,8 @@ CREATE INDEX estado_io_punto_instante ON estado_io (punto_id, instante);
 
 CREATE TABLE orden (                                     -- acción de control (entidad ACCION_CONT)
     id          BIGSERIAL PRIMARY KEY,
-    ciclo_id    BIGINT       NOT NULL REFERENCES ciclo_operacion(id),
-    usuario_id  INTEGER      REFERENCES usuario(id),     -- NULL: PC del laboratorio (local)
+    ciclo_id    BIGINT       NOT NULL REFERENCES ciclo_operacion(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    usuario_id  INTEGER      REFERENCES usuario(id) ON DELETE RESTRICT ON UPDATE CASCADE,     -- NULL: PC del laboratorio (local)
     instante    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     tipo        VARCHAR(16)  NOT NULL CHECK (tipo IN ('homing', 'mover', 'garra', 'detener', 'velocidad',
                                                        'iniciar', 'emergencia', 'rearmar', 'mando')),
@@ -143,38 +144,53 @@ CREATE TABLE orden (                                     -- acción de control (
 );
 
 CREATE TABLE orden_parametro (                           -- destinos de una orden, uno por eje (1FN)
-    orden_id    BIGINT           NOT NULL REFERENCES orden(id) ON DELETE CASCADE,
-    eje_id      SMALLINT         NOT NULL REFERENCES eje(id),
+    orden_id    BIGINT           NOT NULL REFERENCES orden(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    eje_id      SMALLINT         NOT NULL REFERENCES eje(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     valor       DOUBLE PRECISION NOT NULL,
     PRIMARY KEY (orden_id, eje_id)
 );
 
 CREATE TABLE evento_alarma (
     id          BIGSERIAL PRIMARY KEY,
-    alarma_id   SMALLINT     NOT NULL REFERENCES alarma(id),
-    ciclo_id    BIGINT       NOT NULL REFERENCES ciclo_operacion(id),
+    alarma_id   SMALLINT     NOT NULL REFERENCES alarma(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    ciclo_id    BIGINT       NOT NULL REFERENCES ciclo_operacion(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     instante    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     activa      BOOLEAN      NOT NULL,
     detalle     VARCHAR(200)
 );
 
 -- ---------------------------------------------------------------- reglas
--- Trigger: una muestra fuera del rango de su variable no entra (pide la guía de laboratorio 1).
-CREATE FUNCTION validar_muestra() RETURNS trigger AS $$
+-- Trigger de seguridad (guías 1 y 5): verificar_limites_variables() se ejecuta antes de cada
+-- INSERT o UPDATE en muestra (la tabla de histórico de telemetría). Si el valor sale del rango de
+-- su variable:
+--   1. registra la alerta en evento_alarma (registro de alertas) con clock_timestamp(), que es
+--      la hora real de la inserción en UTC con microsegundos;
+--   2. pone la planta fuera de operación (sistema.en_operacion = false);
+--   3. desvía el dato: devuelve NULL, así la muestra no se guarda pero la alerta sí.
+-- No usa RAISE EXCEPTION porque la excepción desharía también el registro de la alerta.
+-- Los valores nulos y las variables inexistentes los detienen NOT NULL y la clave foránea.
+CREATE FUNCTION verificar_limites_variables() RETURNS trigger AS $$
 DECLARE
     r variable%ROWTYPE;
 BEGIN
     SELECT * INTO r FROM variable WHERE id = NEW.variable_id;
     IF NEW.valor < r.rango_min OR NEW.valor > r.rango_max THEN
-        RAISE EXCEPTION 'muestra fuera de rango para % (%): % no está en [%, %]',
-            r.tag_isa, r.unidad, NEW.valor, r.rango_min, r.rango_max;
+        INSERT INTO evento_alarma (alarma_id, ciclo_id, instante, activa, detalle)
+        SELECT a.id, NEW.ciclo_id, clock_timestamp(), true,
+               format('%s = %s %s fuera de [%s, %s]', r.tag_isa, NEW.valor, r.unidad, r.rango_min, r.rango_max)
+        FROM alarma a WHERE a.codigo = 'limite_variable';
+        UPDATE sistema SET en_operacion = false
+        WHERE id = (SELECT sistema_id FROM ciclo_operacion WHERE id = NEW.ciclo_id);
+        RAISE WARNING 'muestra descartada: % = % % fuera de [%, %]',
+            r.tag_isa, NEW.valor, r.unidad, r.rango_min, r.rango_max;
+        RETURN NULL;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER muestra_en_rango BEFORE INSERT OR UPDATE ON muestra
-    FOR EACH ROW EXECUTE FUNCTION validar_muestra();
+    FOR EACH ROW EXECUTE FUNCTION verificar_limites_variables();
 
 -- Vista: duración de cada ciclo (se calcula, no se guarda: 3FN)
 CREATE VIEW v_ciclo AS
@@ -243,7 +259,8 @@ INSERT INTO alarma (codigo, severidad, descripcion) VALUES
     ('sin_homing', 1, 'orden de movimiento sin referencia'),
     ('ocupado', 1, 'orden con un movimiento en curso'),
     ('falla_homing', 3, 'homing sin sensor o con tiempo excedido'),
-    ('posicion_incierta', 2, 'tramo interrumpido: hace falta un nuevo homing');
+    ('posicion_incierta', 2, 'tramo interrumpido: hace falta un nuevo homing'),
+    ('limite_variable', 3, 'una variable medida salió de su rango seguro: la muestra se descartó y la planta quedó fuera de operación');
 
 INSERT INTO rol (nombre) VALUES ('observador'), ('operador');
 

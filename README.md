@@ -6,9 +6,9 @@
 
 Sistemas de Control II (ETN-902) · Aplicación de Técnicas de Control (ETN-1034) · Bases de Datos (ETN-1000)
 
-Versión con **gemelo digital**: cinemática, modelo 3D articulado y simulador web. Parte de [Brazo-de-4-grados-de-libertad](https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad), con todo su historial.
+Repositorio de la escuadra del brazo de 4 GDL: auditoría, planos v2.0, base de datos, programas del PLC, **gemelo digital** (cinemática, modelo 3D y operación local y remota) e informes de los 8 laboratorios.
 
-[![Página](https://img.shields.io/badge/Página-Ver%20documentación-f08a24?style=for-the-badge)](https://brazo-4gdl-gemelo-digital.pages.dev/)
+[![Página](https://img.shields.io/badge/Página-Ver%20documentación-f08a24?style=for-the-badge)](https://brazo-4gdl.pages.dev/)
 [![PLC](https://img.shields.io/badge/PLC-S7--200%20CPU%20224-00646E?style=for-the-badge&logo=siemens)](#ficha-técnica-del-hardware)
 [![Gestión](https://img.shields.io/badge/Gestión-II%2F2026-2f7fc1?style=for-the-badge)](#avance-por-semestre)
 [![Normas](https://img.shields.io/badge/Normas-ISA%20S5.1%20·%20IEC%2060617-8b1e1e?style=for-the-badge)](global/normativas)
@@ -35,7 +35,7 @@ El **XK-JS1-1** es un brazo manipulador didáctico de 4 grados de libertad: desp
 
 El brazo **no tiene encoders**. El PLC estima la posición contando pulsos (`q_est = q0 + Np·Δq`), y solo recibe referencias discretas de los finales de carrera (X, Y) y del sensor inductivo (Z). Por eso el sistema trabaja en **lazo abierto con supervisión discreta**: la acción de control mueve el eje, pero la posición real no vuelve al controlador (`u(t) → y(t)`, pero `y(t) ↛ u(t)`).
 
-En la gestión II/2026 el brazo es una de las cuatro plantas del **laboratorio integrado** de ETN-902, ETN-1034 y ETN-1000. El trabajo sigue el ciclo de vida del desarrollo de sistemas con mejora continua **Kaizen**. Este repositorio reúne los informes, planos, programas, datasheets y la base de datos del proyecto, que también se pueden consultar en la **[página del proyecto](https://brazo-4gdl-gemelo-digital.pages.dev/)**.
+En la gestión II/2026 el brazo es una de las cuatro plantas del **laboratorio integrado** de ETN-902, ETN-1034 y ETN-1000. El trabajo sigue el ciclo de vida del desarrollo de sistemas con mejora continua **Kaizen**. Este repositorio reúne los informes, planos, programas, datasheets y la base de datos del proyecto, que también se pueden consultar en la **[página del proyecto](https://brazo-4gdl.pages.dev/)**.
 
 ## Ficha técnica del hardware
 
@@ -116,7 +116,7 @@ Todo lo anterior depende de varios **SUPUESTOS** que hay que medir en la planta:
 - Ecuaciones resumidas: [cinematica_y_modelo_3d.md](semestres/2026_II/modelo-3d/cinematica_y_modelo_3d.md).
 - Medidas: [levantamiento](semestres/2026_II/modelo-3d/levantamiento/levantamiento_medidas.md).
 
-En la [página](https://brazo-4gdl-gemelo-digital.pages.dev/#modelo3d) el modelo se controla desde el navegador:
+En la [página](https://brazo-4gdl.pages.dev/#modelo3d) el modelo se controla desde el navegador:
 
 - Control articular y cartesiano (cinemática inversa con trayectoria interpolada).
 - Homing simulado y telemetría de pulsos y E/S.
@@ -142,7 +142,7 @@ flowchart LR
 ```
 
 <p align="center">
-  <img src="semestres/2026_II/diagramas/diagrama_bloques_fenomenologico.png" width="720" alt="Diagrama de bloques fenomenológico"><br>
+  <img src="semestres/2026_II/documentacion/manuales_inversa/diagrama_bloques_fenomenologico.png" width="720" alt="Diagrama de bloques fenomenológico"><br>
   <sub>Diagrama de bloques fenomenológico: lazo abierto con supervisión discreta.</sub>
 </p>
 
@@ -178,18 +178,26 @@ flowchart LR
     DB -->|históricos| UI
 ```
 
-El modelo entidad-relación preliminar está en [`semestres/2026_II/base-de-datos/modelo`](semestres/2026_II/base-de-datos/modelo), y los mockups de la interfaz local en [`semestres/2026_II/base-de-datos`](semestres/2026_II/base-de-datos).
+El modelo entidad-relación preliminar está en [`semestres/2026_II/database/modelo`](semestres/2026_II/database/modelo), y los mockups de la interfaz local en [`semestres/2026_II/database`](semestres/2026_II/database).
 
 ## Avance por semestre
 
 ### II-2026 (en curso)
 
-| Laboratorio | Tema | Entregables |
+Cada laboratorio tiene su carpeta en [`semestres/2026_II/laboratorios/`](semestres/2026_II/laboratorios) con el informe y el índice de sus entregables. La evaluación de las tareas del docente está en [`evaluacion_tareas_docente.xlsx`](semestres/2026_II/laboratorios/evaluacion_tareas_docente.xlsx).
+
+| Lab | Tema | Informe |
 |---|---|---|
-| [Guía 1](semestres/2026_II/guias/guia_laboratorio_1.pdf) · [Informe 1](semestres/2026_II/informes/informe_1_auditoria_y_requerimientos.pdf) | Auditoría y levantamiento de requerimientos | Ficha técnica unificada, reporte de discrepancias Kaizen, diagrama de bloques fenomenológico, arquitectura de datos y modelo E-R preliminar |
-| [Guía 2](semestres/2026_II/guias/guia_laboratorio_2.pdf) | Semanas 3 y 4 (18 ago - 1 sep) | Mockups y organigrama del sistema (ETN-1000) |
-| [Guía 3](semestres/2026_II/guias/guia_laboratorio_3.pdf) | Semanas 5 y 6 (1 - 15 sep) | En curso |
-| Guía 5 (complemento) · [Informe](semestres/2026_II/modelo-3d/informe/informe_cinematica_modelo_3d.pdf) | Gemelo digital geométrico | Levantamiento de medidas, cinemática directa e inversa, espacio de trabajo, modelo 3D y simulador en la página |
+| [Guía 1](semestres/2026_II/guias/guia_laboratorio_1.pdf) | Auditoría Kaizen y levantamiento de requerimientos | [Informe 1](semestres/2026_II/documentacion/manuales_inversa/informe_1_auditoria_y_requerimientos.pdf) |
+| [Guía 2](semestres/2026_II/guias/guia_laboratorio_2.pdf) | Planos v2.0 (ISA-5.1 / IEC 60617) y mockups | [Informe 2](semestres/2026_II/laboratorios/lab02_planos_e_interfaces/informe_lab02.pdf) |
+| [Guía 3](semestres/2026_II/guias/guia_laboratorio_3.pdf) | Git/GitHub y modelo relacional (cierre de la fase 1) | [Informe 3](semestres/2026_II/laboratorios/lab03_git_y_modelo_er/informe_lab03.pdf) |
+| [Guía 4](semestres/2026_II/guias/guia_laboratorio_4.pdf) | Identificación, espacio de estados y base física | [Informe 4](semestres/2026_II/laboratorios/lab04_identificacion_y_ddl/informe_lab04.pdf) |
+| [Guía 5](semestres/2026_II/guias/guia_laboratorio_5.pdf) | Gemelo digital, discretización y triggers (cierre de la fase 2) | [Informe 5](semestres/2026_II/laboratorios/lab05_gemelo_y_triggers/informe_lab05.pdf) |
+| [Guía 6](semestres/2026_II/guias/guia_laboratorio_6.pdf) | Control discreto y middleware (en curso) | [Informe 6](semestres/2026_II/laboratorios/lab06_control_discreto_y_middleware/informe_lab06.pdf) |
+| [Guía 7](semestres/2026_II/guias/guia_laboratorio_7.pdf) | LQR, dashboard y roles (avance) | [Informe 7](semestres/2026_II/laboratorios/lab07_lqr_dashboard_y_rbac/informe_lab07.pdf) |
+| [Guía 8](semestres/2026_II/guias/guia_laboratorio_8.pdf) | Modbus, API REST y cierre (avance) | [Informe 8](semestres/2026_II/laboratorios/lab08_modbus_api_y_cierre/informe_lab08.pdf) |
+
+Documentos de apoyo: [manual técnico](semestres/2026_II/gemelo-digital/manual/tecnico/manual_tecnico.pdf), [base de datos](semestres/2026_II/database/documentacion/base_datos_brazo.pdf), [cinemática y modelo 3D](semestres/2026_II/modelo-3d/informe/informe_cinematica_modelo_3d.pdf), [planos v2.0](semestres/2026_II/documentacion/planos_isa).
 
 **Discrepancias Kaizen** encontradas entre el plano histórico y la planta real:
 
@@ -224,9 +232,14 @@ En el mantenimiento preventivo se resoldaron conexiones de los finales de carrer
 │
 ├── semestres/
 │   ├── 2026_I/               informes/ · planos/electrico · planos/pid
-│   └── 2026_II/              guias/ · informes/ · planos/ · diagramas/ ·
-│                             base-de-datos/ · programas-plc/ · hmi/ ·
-│                             pruebas/ · evidencias/ · modelo-3d/
+│   └── 2026_II/              organizado según las guías de laboratorio:
+│       ├── guias/            guías 1 a 8 del docente
+│       ├── laboratorios/     lab01 ... lab08: informe y entregables de cada guía
+│       ├── documentacion/    planos_isa/ (P&ID y eléctrico) · manuales_inversa/ (auditoría)
+│       ├── database/         scripts/ (SQL) · modelo/ · mockups/ · documentacion/
+│       ├── gemelo-digital/   app (middleware Python), programa del PLC, manuales
+│       ├── programas-plc/    programa original del PLC
+│       └── modelo-3d/        levantamiento, cinemática e informe
 │
 ├── config/                   Títulos, descripciones, semestres, equipo y videos de la página
 ├── scripts/build-catalog.js  Genera el catálogo de la página
@@ -248,9 +261,9 @@ La guía completa está en **[CONTRIBUTING.md](CONTRIBUTING.md)**. En resumen:
 
 ## Página web
 
-**https://brazo-4gdl-gemelo-digital.pages.dev/**
+**https://brazo-4gdl.pages.dev/**
 
-Está alojada en **Cloudflare Pages** (gratis), en el proyecto `brazo-4gdl-gemelo-digital`. En cada push a `main`, Cloudflare clona el repositorio, ejecuta `node scripts/build-catalog.js` (que recorre `global/` y `semestres/` y genera el catálogo; carpeta de salida `/`) y publica el sitio en uno o dos minutos. El estado de cada despliegue aparece junto al commit en GitHub. El workflow [`.github/workflows/pages.yml`](.github/workflows/pages.yml) queda como alternativa para publicar en GitHub Pages. La página muestra la ficha técnica con fotos, los documentos por subsistema, semestre y categoría, los programas, una galería y un explorador de carpetas. PDF, imágenes, Markdown y código se abren ahí mismo.
+Está alojada en **Cloudflare Pages** (gratis), en el proyecto `brazo-4gdl`. La app del gemelo digital usa además la copia publicada en https://brazo-4gdl-gemelo-digital.pages.dev/ para el acceso remoto. En cada push a `main`, Cloudflare clona el repositorio, ejecuta `node scripts/build-catalog.js` (que recorre `global/` y `semestres/` y genera el catálogo; carpeta de salida `/`) y publica el sitio en uno o dos minutos. El estado de cada despliegue aparece junto al commit en GitHub. El workflow [`.github/workflows/pages.yml`](.github/workflows/pages.yml) queda como alternativa para publicar en GitHub Pages. La página muestra la ficha técnica con fotos, los documentos por subsistema, semestre y categoría, los programas, una galería y un explorador de carpetas. PDF, imágenes, Markdown y código se abren ahí mismo.
 
 > Cloudflare no publica archivos de más de 25 MB: si se sube uno, la página lo descarga directamente desde GitHub.
 

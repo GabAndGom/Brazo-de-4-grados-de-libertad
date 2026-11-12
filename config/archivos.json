@@ -229,7 +229,7 @@
     "descripcion": "Semanas 5 y 6 (1 - 15 de septiembre).",
     "orden": 3
   },
-  "semestres/2026_II/informes/informe_1_auditoria_y_requerimientos.pdf": {
+  "semestres/2026_II/documentacion/manuales_inversa/informe_1_auditoria_y_requerimientos.pdf": {
     "titulo": "Informe 1 - Auditoría y levantamiento de requerimientos",
     "descripcion": "Laboratorio integrado 1 (ETN-902 / ETN-1034 / ETN-1000), entregado el 25 de agosto de 2026.",
     "subsistemas": [
@@ -241,7 +241,7 @@
       6
     ]
   },
-  "semestres/2026_II/planos/electrico/brazo_electrico_historico.dwg": {
+  "semestres/2026_II/documentacion/planos_isa/electrico/brazo_electrico_historico.dwg": {
     "titulo": "Plano eléctrico histórico",
     "descripcion": "AutoCAD. Plano eléctrico del brazo tal como se encontró (Laboratorio 1).",
     "subsistemas": [
@@ -252,7 +252,7 @@
       5
     ]
   },
-  "semestres/2026_II/planos/pid/brazo_pid_historico.dwg": {
+  "semestres/2026_II/documentacion/planos_isa/pid/brazo_pid_historico.dwg": {
     "titulo": "P&ID histórico",
     "descripcion": "AutoCAD. P&ID del brazo tal como se encontró (Laboratorio 1).",
     "subsistemas": [
@@ -263,19 +263,19 @@
       5
     ]
   },
-  "semestres/2026_II/base-de-datos/": {
+  "semestres/2026_II/database/": {
     "subsistemas": [
       6
     ]
   },
-  "semestres/2026_II/base-de-datos/mockups/lab2_mockups_y_organigrama.pdf": {
+  "semestres/2026_II/database/mockups/lab2_mockups_y_organigrama.pdf": {
     "titulo": "Mockups y organigrama del sistema",
     "descripcion": "Base de Datos (ETN-1000), Laboratorio 2: interfaz local sin HMI física."
   },
-  "semestres/2026_II/base-de-datos/interfaz/interfaz_local_1.png": {
+  "semestres/2026_II/database/interfaz/interfaz_local_1.png": {
     "titulo": "Interfaz local - captura 1"
   },
-  "semestres/2026_II/base-de-datos/interfaz/interfaz_local_2.png": {
+  "semestres/2026_II/database/interfaz/interfaz_local_2.png": {
     "titulo": "Interfaz local - captura 2"
   },
   "global/fotos-planta/brazo_vista_general.jpg": {
@@ -380,7 +380,7 @@
     ],
     "orden": 11
   },
-  "semestres/2026_II/diagramas/diagrama_bloques_fenomenologico.png": {
+  "semestres/2026_II/documentacion/manuales_inversa/diagrama_bloques_fenomenologico.png": {
     "titulo": "Diagrama de bloques fenomenológico",
     "descripcion": "Lazo abierto con supervisión discreta (Informe 1, II-2026).",
     "subsistemas": [
@@ -391,7 +391,7 @@
       5
     ]
   },
-  "semestres/2026_II/planos/electrico/brazo_electrico_historico_vista.jpg": {
+  "semestres/2026_II/documentacion/planos_isa/electrico/brazo_electrico_historico_vista.jpg": {
     "titulo": "Plano eléctrico histórico (vista)",
     "descripcion": "Imagen del plano heredado usado en la auditoría Kaizen.",
     "subsistemas": [
@@ -402,7 +402,7 @@
       5
     ]
   },
-  "semestres/2026_II/base-de-datos/modelo/modelo_er_preliminar.png": {
+  "semestres/2026_II/database/modelo/modelo_er_preliminar.png": {
     "titulo": "Modelo entidad-relación preliminar",
     "descripcion": "Borrador del modelo E-R (Informe 1, II-2026)."
   },
@@ -529,5 +529,120 @@
   "semestres/2026_II/modelo-3d/levantamiento/generar_esquema_medidas.py": {
     "titulo": "Generador de los esquemas acotados",
     "descripcion": "Dibuja las vistas lateral y superior con las cotas de web/js/cinematica.js."
+  },
+  "semestres/2026_II/guias/guia_laboratorio_4.pdf": {
+    "titulo": "Guía de laboratorio 4",
+    "descripcion": "Identificación por caja negra, espacio de estados y estructura física de la base (semanas 7 y 8)."
+  },
+  "semestres/2026_II/guias/guia_laboratorio_5.pdf": {
+    "titulo": "Guía de laboratorio 5",
+    "descripcion": "Gemelo digital, discretización y triggers PL/pgSQL (semanas 9 a 13)."
+  },
+  "semestres/2026_II/guias/guia_laboratorio_6.pdf": {
+    "titulo": "Guía de laboratorio 6",
+    "descripcion": "Control discreto en el PLC y middleware de telemetría (semanas 14 y 15)."
+  },
+  "semestres/2026_II/guias/guia_laboratorio_7.pdf": {
+    "titulo": "Guía de laboratorio 7",
+    "descripcion": "LQR, dashboard web y control de acceso por roles (semanas 16 y 17)."
+  },
+  "semestres/2026_II/guias/guia_laboratorio_8.pdf": {
+    "titulo": "Guía de laboratorio 8",
+    "descripcion": "Modbus, API REST y cierre del proyecto (semanas 18 a 20)."
+  },
+  "semestres/2026_II/laboratorios/lab02_planos_e_interfaces/informe_lab02.pdf": {
+    "titulo": "Informe 2 - Planos v2.0 e interfaces",
+    "descripcion": "P&ID ISA-5.1 y esquema eléctrico IEC 60617 versión 2.0, mockups y cuadro de campos.",
+    "subsistemas": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  "semestres/2026_II/laboratorios/lab03_git_y_modelo_er/informe_lab03.pdf": {
+    "titulo": "Informe 3 - Git y modelo relacional",
+    "descripcion": "Estructura del repositorio, ramas, historial, modelo E-R y lógico en 3FN; cierre de la fase 1.",
+    "subsistemas": [
+      6
+    ]
+  },
+  "semestres/2026_II/laboratorios/lab04_identificacion_y_ddl/informe_lab04.pdf": {
+    "titulo": "Informe 4 - Espacio de estados y DDL",
+    "descripcion": "Modelo analítico en espacio de estados del brazo y estructura física de la base con integridad referencial.",
+    "subsistemas": [
+      1,
+      2,
+      6
+    ]
+  },
+  "semestres/2026_II/laboratorios/lab05_gemelo_y_triggers/informe_lab05.pdf": {
+    "titulo": "Informe 5 - Gemelo, discretización y triggers",
+    "descripcion": "Validación del gemelo, discretización ZOH, controlabilidad y observabilidad, trigger de seguridad; cierre de la fase 2.",
+    "subsistemas": [
+      1,
+      2,
+      5,
+      6
+    ]
+  },
+  "semestres/2026_II/laboratorios/lab06_control_discreto_y_middleware/informe_lab06.pdf": {
+    "titulo": "Informe 6 - Control discreto y middleware",
+    "descripcion": "Control en el PLC, supervisión por eventos y middleware PPI con API JSON (en curso).",
+    "subsistemas": [
+      5,
+      6
+    ]
+  },
+  "semestres/2026_II/laboratorios/lab07_lqr_dashboard_y_rbac/informe_lab07.pdf": {
+    "titulo": "Informe 7 - LQR, dashboard y RBAC (avance)",
+    "descripcion": "Viabilidad del LQR, control de acceso por roles implementado y plan del dashboard.",
+    "subsistemas": [
+      5,
+      6
+    ]
+  },
+  "semestres/2026_II/laboratorios/lab08_modbus_api_y_cierre/informe_lab08.pdf": {
+    "titulo": "Informe 8 - Modbus, API REST y cierre (avance)",
+    "descripcion": "Plan de integración Modbus, API REST de históricos y estado del cierre del proyecto.",
+    "subsistemas": [
+      5,
+      6
+    ]
+  },
+  "semestres/2026_II/laboratorios/evaluacion_tareas_docente.xlsx": {
+    "titulo": "Evaluación de las tareas del docente",
+    "descripcion": "Cada tarea del docente de las guías 1 a 8, lo realizado y su porcentaje de avance."
+  },
+  "semestres/2026_II/database/documentacion/base_datos_brazo.pdf": {
+    "titulo": "Base de datos del brazo",
+    "descripcion": "Modelo E-R, modelo lógico, normalización, DFD, reglas, diccionario de datos e instalación.",
+    "subsistemas": [
+      6
+    ]
+  },
+  "semestres/2026_II/documentacion/planos_isa/pid/brazo_pid_v2.pdf": {
+    "titulo": "P&ID versión 2.0",
+    "descripcion": "ISA-5.1-2009, lazos 100 a 104, con la tabla de cambios Kaizen.",
+    "subsistemas": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "semestres/2026_II/documentacion/planos_isa/electrico/brazo_electrico_v2.pdf": {
+    "titulo": "Esquema eléctrico versión 2.0",
+    "descripcion": "IEC 60617, hoja 1 potencia y hoja 2 mando del PLC, con referencias cruzadas.",
+    "subsistemas": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
   }
 }

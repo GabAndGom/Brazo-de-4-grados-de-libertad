@@ -1,18 +1,18 @@
 # Cómo aportar al repositorio
 
-Guía para el equipo: dónde poner cada archivo y cómo hacer que aparezca bien en la [página del proyecto](https://brazo-4gdl-gemelo-digital.pages.dev/).
+Guía para el equipo: dónde poner cada archivo y cómo hacer que aparezca bien en la [página del proyecto](https://brazo-4gdl.pages.dev/).
 
 ## 1. Dónde va cada cosa
 
 | Qué es | Dónde va |
 |---|---|
-| Informe de laboratorio | `semestres/2026_II/informes/` |
+| Informe de laboratorio | `semestres/2026_II/laboratorios/labNN_.../` |
 | Guía de laboratorio | `semestres/2026_II/guias/` |
-| Plano eléctrico (`.dwg`, `.pdf`) | `semestres/2026_II/planos/electrico/` |
-| P&ID (`.dwg`, `.pdf`) | `semestres/2026_II/planos/pid/` |
+| Plano eléctrico (`.dwg`, `.pdf`) | `semestres/2026_II/documentacion/planos_isa/electrico/` |
+| P&ID (`.dwg`, `.pdf`) | `semestres/2026_II/documentacion/planos_isa/pid/` |
 | Programa del PLC (`.mwp`, `.awl`) | `semestres/2026_II/programas-plc/` |
 | HMI, SCADA, comunicación | `semestres/2026_II/hmi/` |
-| Base de datos (modelo, `.sql`, mockups) | `semestres/2026_II/base-de-datos/` |
+| Base de datos (modelo, `.sql`, mockups) | `semestres/2026_II/database/` |
 | Datos de ensayos | `semestres/2026_II/pruebas/` |
 | Fotos del laboratorio | `semestres/2026_II/evidencias/` |
 | Medidas, cinemática e informe del modelo 3D | `semestres/2026_II/modelo-3d/` |
@@ -40,7 +40,7 @@ GitHub no guarda carpetas vacías: para crear una carpeta nueva, subir junto con
   | Garra | `garra`, `efector`, `solenoide` |
   | Potencia y mando | `driver`, `fuente`, `disyuntor`, `rele_`, `botonera` |
   | PLC S7-200 | `plc`, `s7-200`, `map_serv`, y los `.mwp` / `.awl` |
-  | Datos y HMI | `base-de-datos`, `hmi`, `interfaz`, `mockup`, `scada`, `.sql` |
+  | Datos y HMI | `database`, `hmi`, `interfaz`, `mockup`, `scada`, `.sql` |
 
 - Y lo clasifica por la carpeta y el nombre: `guia` → Guías, carpeta `electrico` → Planos eléctricos, carpeta `pid` o `p&id` en el nombre → P&ID, `mockup` → Mockups.
 
@@ -56,7 +56,7 @@ GitHub no guarda carpetas vacías: para crear una carpeta nueva, subir junto con
 
 ```bash
 git pull
-git add semestres/2026_II/informes/informe_2_modelado.pdf
+git add semestres/2026_II/laboratorios/lab02_planos_e_interfaces/informe_lab02.pdf
 git commit -m "Informe 2: modelado del brazo"
 git push
 ```
@@ -70,7 +70,7 @@ La página se actualiza sola en uno o dos minutos (el estado del despliegue de C
 Sin configurar nada, la página usa el nombre del archivo como título. Para ponerle un título y una descripción:
 
 ```json
-"semestres/2026_II/informes/informe_2_modelado.pdf": {
+"semestres/2026_II/laboratorios/lab02_planos_e_interfaces/informe_lab02.pdf": {
   "titulo": "Informe 2 - Modelado del brazo",
   "descripcion": "Cinemática directa e inversa y función de transferencia de los ejes.",
   "subsistemas": [1, 2]

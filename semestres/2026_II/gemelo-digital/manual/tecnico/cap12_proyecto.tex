@@ -3,36 +3,34 @@
 
 \section{Repositorios}
 \begin{itemize}
-\item \textbf{Brazo-de-4-grados-de-libertad} (GitHub, \codigo{GabAndGom}): repositorio original del equipo, con el material de los semestres anteriores (2026\_I) y del actual.
-\item \textbf{Brazo-4GDL-gemelo-digital} (GitHub, \codigo{GabAndGom}): derivado del anterior con todo su historial, agrega el gemelo digital. Publica la página en \url{https://brazo-4gdl-gemelo-digital.pages.dev}.
+\item \textbf{Brazo-de-4-grados-de-libertad} (GitHub, \codigo{GabAndGom}): repositorio principal del equipo, con el material de la gestión anterior (2026\_I), todo el trabajo actual organizado según las guías y los informes de los laboratorios. Publica la página en \url{https://brazo-4gdl.pages.dev}.
+\item \textbf{Brazo-4GDL-gemelo-digital} (GitHub, \codigo{GabAndGom}): copia de trabajo donde se desarrolló el gemelo digital; su página (\url{https://brazo-4gdl-gemelo-digital.pages.dev}) es la que usa la app para el acceso remoto.
 \end{itemize}
 Regla del equipo: en el repositorio original no se modifica el material de la gestión I/2026; el trabajo nuevo va en \codigo{semestres/2026\_II/}.
 
 \section{Árbol del repositorio}
 \begin{lstlisting}
-Brazo-4GDL-gemelo-digital/
+Brazo-de-4-grados-de-libertad/
 |-- index.html, web/            pagina publicada: estilos, JS, imagenes
 |   `-- js/  cinematica.js  modelo3d.js  conexion-plc.js  app.js
 |-- scripts/build-catalog.js    genera el catalogo de archivos de la pagina
 |-- config/                     titulos, semestres, videos (JSON)
 |-- .github/workflows/pages.yml publicacion en GitHub Pages
 |-- global/                     material que no depende del semestre
-|   |-- componentes/            imagenes de cada componente
-|   |-- datasheets/             PLC, drivers, sensores, reles
-|   |-- fotos-planta/           fotos del brazo y del tablero
-|   |-- manuales/               manual del fabricante, referencia ladder, MAP_SERV
+|   |-- componentes/  datasheets/  fotos-planta/  manuales/
 |   |-- modelo-3d/              brazo_xk-js1-1.glb y su generador
 |   |-- normativas/             ISA-5.1, IEC 60617
-|   |-- plantillas/             plantilla LaTeX de informes
-|   `-- programas-plc/          programa del fabricante, libreria MAP_SERV
+|   `-- plantillas/  programas-plc/
 `-- semestres/
     |-- 2026_I/                 gestion anterior (no se modifica)
-    `-- 2026_II/
-        |-- guias/              guias de laboratorio 1, 2 y 3
-        |-- informes/           informe 1 (auditoria y requerimientos)
-        |-- diagramas/          diagrama de bloques fenomenologico
-        |-- planos/electrico/, planos/pid/   planos .dwg (historico)
-        |-- base-de-datos/      mockups, modelo E-R, scripts SQL, interfaz
+    `-- 2026_II/                organizada segun las guias de laboratorio
+        |-- guias/              guias de laboratorio 1 a 8
+        |-- laboratorios/       lab01 ... lab08: informe y entregables de cada guia
+        |   `-- evaluacion_tareas_docente.xlsx
+        |-- documentacion/
+        |   |-- planos_isa/     P&ID y electrico: historicos y v2.0 (.dwg .dxf .pdf)
+        |   `-- manuales_inversa/  informe de auditoria (fichas), diagrama de bloques
+        |-- database/           scripts/ (SQL), modelo/, mockups/, interfaz/, documentacion/
         |-- modelo-3d/          levantamiento, cinematica, informe y figuras
         |-- programas-plc/      programa original de secuencias (.awl, .mwp)
         |-- gemelo-digital/
@@ -47,9 +45,9 @@ Brazo-4GDL-gemelo-digital/
 \toprule
 \textbf{Carpeta pedida en la guía 3} & \textbf{Equivalente en el repositorio}\\
 \midrule
-\codigo{/documentacion/planos\_isa/} & \codigo{semestres/2026\_II/planos/} (eléctrico y P\&ID)\\
-\codigo{/documentacion/manuales\_inversa/} & \codigo{semestres/2026\_II/informes/}, \codigo{modelo-3d/levantamiento/}, \codigo{global/datasheets/}\\
-\codigo{/database/scripts/} & \codigo{semestres/2026\_II/base-de-datos/scripts/}\\
+\codigo{/documentacion/planos\_isa/} & \codigo{semestres/2026\_II/documentacion/planos\_isa/} (eléctrico y P\&ID)\\
+\codigo{/documentacion/manuales\_inversa/} & \codigo{semestres/2026\_II/documentacion/manuales\_inversa/} (y \codigo{modelo-3d/levantamiento/}, \codigo{global/datasheets/})\\
+\codigo{/database/scripts/} & \codigo{semestres/2026\_II/database/scripts/}\\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -88,7 +86,7 @@ Los datos propios de cada PC (\codigo{usuarios.json}, \codigo{tls\_*.pem}, \codi
 
 \begin{lstlisting}
 git checkout -b feature/planos-v2-kaizen         # rama aislada para un componente
-git add semestres/2026_II/planos/electrico/brazo_electrico_v2.dwg
+git add semestres/2026_II/documentacion/planos_isa/electrico/brazo_electrico_v2.dwg
 git commit -m "Plano electrico v2.0: DIR+ de X e Y y garra corregidos"
 git push origin feature/planos-v2-kaizen           # luego: Pull Request en GitHub
 git log --oneline --graph                          # historial para el informe

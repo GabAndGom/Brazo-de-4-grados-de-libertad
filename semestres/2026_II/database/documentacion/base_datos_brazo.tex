@@ -91,7 +91,7 @@ Las tres guías del laboratorio integrado reparten el trabajo de la base de dato
 1 & Levantamiento de las necesidades de datos de la planta & Sección \ref{sec:requerimientos} & \cumple\\
 1 & Modelo E-R y normalización (1FN, 2FN, 3FN) & Secciones \ref{sec:er}, \ref{sec:logico} y \ref{sec:normalizacion} & \cumple\\
 1 & SQL puro (DDL y DML): tablas, llaves primarias y foráneas, índices para búsquedas por marca de tiempo & Sección \ref{sec:script}, \archivo{scripts/brazo\_4gdl.sql} & \cumple\\
-1 & Triggers PL/pgSQL que impidan datos nulos o fuera de rango & Sección \ref{sec:reglas}, \archivo{scripts/prueba\_reglas.sql} & \cumple\ (sintaxis validada, sin ejecutar)\\
+1 y 5 & Triggers PL/pgSQL que impidan datos nulos o fuera de rango, registren la alerta y cambien el estado de la planta & Sección \ref{sec:reglas}, \archivo{scripts/prueba\_reglas.sql} & \cumple\ (sintaxis validada, sin ejecutar)\\
 1 & Instalar PostgreSQL en la PC del laboratorio & Sección \ref{sec:instalar} & \falta\\
 1 & Middleware que lea la planta e inserte en PostgreSQL & Sección \ref{sec:flujo} (lectura PPI hecha; inserción propuesta) & \parcial\\
 1 & KPIs en el dashboard web & Sección \ref{sec:consultas}, \archivo{scripts/consultas\_kpi.sql} & \parcial\ (consultas listas)\\
@@ -200,7 +200,7 @@ DV & -- & carga en la garra, fricción, pérdida de pasos & -- & sin sensor: no 
 \nota{\textbf{Sobre las DV.} La base ya acepta la clase \codigo{DV} en \codigo{variable.clase}, pero la planta no tiene ningún sensor que mida una perturbación: el brazo trabaja en lazo abierto, sin encoders. Por eso no se cargó ninguna fila DV con un rango inventado. Cuando se agregue un sensor (por ejemplo, una celda de carga en la garra o un encoder que permita medir la pérdida de pasos), basta con insertar la variable con su tag, unidad y rango: el resto del modelo no cambia.}
 
 \subsection{Alarmas}
-Las ocho alarmas del catálogo salen de los mensajes de error que ya produce la app y de los avisos del programa del PLC:
+Las nueve alarmas del catálogo salen de los mensajes de error que ya produce la app, de los avisos del programa del PLC y del trigger de seguridad:
 \begin{center}\small
 \begin{tabular}{>{\ttfamily}l c l}
 \toprule
@@ -214,6 +214,7 @@ sin\_homing & 1 & orden de movimiento sin referencia\\
 ocupado & 1 & orden con un movimiento en curso\\
 falla\_homing & 3 & homing sin sensor o con tiempo excedido\\
 posicion\_incierta & 2 & tramo interrumpido: hace falta un nuevo homing\\
+limite\_variable & 3 & una variable medida salió de su rango seguro (la registra el trigger)\\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -389,7 +390,7 @@ El modelo lógico lleva cada entidad a una tabla de PostgreSQL. En las figuras, 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.55\linewidth, trim=0 360 0 0, clip]{modelo_er_preliminar.png}
-\caption{Modelo E-R preliminar del equipo (\codigo{base-de-datos/modelo/}).}
+\caption{Modelo E-R preliminar del equipo (\codigo{database/modelo/}).}
 \end{figure}
 
 El modelo preliminar ya tenía las entidades correctas, pero guardaba datos que rompen las formas normales: \emph{Pos\_x.y.z} (tres valores en un atributo), \emph{valor} de la acción de control (uno por eje), \emph{Duración} (se calcula con el inicio y el fin) y la alerta ligada a la variable en lugar del ciclo.
@@ -575,9 +576,9 @@ DDL · catálogos & \codigo{sistema}, \codigo{eje}, \codigo{punto\_io}, \codigo{
 DDL · seguridad & \codigo{rol}, \codigo{usuario}, \codigo{sesion}\\
 DDL · operación & \codigo{ciclo\_operacion}, \codigo{muestra}, \codigo{estado\_io}, \codigo{orden}, \codigo{orden\_parametro}, \codigo{evento\_alarma}\\
 Índices & \codigo{muestra(variable\_id, instante)} y \codigo{estado\_io(punto\_id, instante)}\\
-Reglas & función \codigo{validar\_muestra()} y trigger \codigo{muestra\_en\_rango}\\
+Reglas & claves foráneas con \codigo{ON DELETE RESTRICT ON UPDATE CASCADE}; función \codigo{verificar\_limites\_variables()} y trigger \codigo{muestra\_en\_rango}\\
 Vistas & \codigo{v\_ciclo} (duración) y \codigo{v\_ultima\_posicion}\\
-DML · datos de la planta & 1 sistema, 4 ejes, 22 señales, 5 variables, 3 programas, 8 alarmas, 2 roles\\
+DML · datos de la planta & 1 sistema, 4 ejes, 22 señales, 5 variables, 3 programas, 9 alarmas, 2 roles\\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -595,12 +596,12 @@ CREATE INDEX muestra_variable_instante ON muestra (variable_id, instante);
 
 \paragraph{Por qué ese índice.} Casi todas las consultas del dashboard piden «la variable $V$ entre $t_1$ y $t_2$» o «el último valor de $V$». Un índice B-tree con \codigo{variable\_id} primero y \codigo{instante} después deja todas las muestras de una variable juntas y ordenadas por tiempo, así que PostgreSQL encuentra el intervalo sin recorrer la tabla. El orden de las columnas importa: al revés, el índice serviría para buscar por tiempo, pero mezclaría todas las variables.
 
-\paragraph{Validación.} No hay PostgreSQL en la PC donde se escribió el script. Se validó su sintaxis con \codigo{pglast}, que usa el analizador sintáctico del propio PostgreSQL: las 30 sentencias del script, las 14 consultas y las 10 sentencias de la prueba, más el cuerpo PL/pgSQL del trigger y de los bloques \codigo{DO}, se reconocen sin errores. Falta ejecutarlo en un servidor real (sección \ref{sec:instalar}).
+\paragraph{Validación.} No hay PostgreSQL en la PC donde se escribió el script. Se validó su sintaxis con \codigo{pglast}, que usa el analizador sintáctico del propio PostgreSQL: las 30 sentencias del script, las 14 consultas y las 11 sentencias de la prueba, más el cuerpo PL/pgSQL del trigger y de los bloques \codigo{DO}, se reconocen sin errores. Falta ejecutarlo en un servidor real (sección \ref{sec:instalar}).
 
 % =====================================================================
 \section{Reglas de integridad}\label{sec:reglas}
 
-La guía 1 pide que la base impida datos nulos o fuera de rango. Hay cinco barreras, de la más simple a la más específica:
+La guía 1 pide que la base impida datos nulos o fuera de rango, y la guía 5, que un trigger aísle la variable fuera de límite, registre la alerta y cambie el estado de la planta. Hay cinco barreras, de la más simple a la más específica:
 
 \begin{center}\small
 \begin{tabularx}{\linewidth}{>{\raggedright}p{2.8cm} >{\raggedright}X >{\raggedright\arraybackslash}p{4.4cm}}
@@ -609,14 +610,14 @@ La guía 1 pide que la base impida datos nulos o fuera de rango. Hay cinco barre
 \midrule
 \codigo{NOT NULL} & dejar vacío un dato obligatorio & una muestra sin valor o sin instante\\
 \codigo{CHECK} & valores fuera de una lista o rango fijo & \codigo{modo = 'turbo'}; severidad 5; \codigo{fin < inicio}\\
-\codigo{REFERENCES} (FK) & referencias a filas que no existen & una muestra de la variable 999\\
+\codigo{REFERENCES} (FK) & referencias a filas que no existen; borrar un dato con historial (\codigo{ON DELETE RESTRICT}) & una muestra de la variable 999; borrar ZI-102 con muestras\\
 \codigo{UNIQUE} & duplicados & dos señales con el tag ZS-101\\
-Trigger & valores fuera del rango de \emph{esa} variable & X = 250 mm (el carro llega a 170)\\
+Trigger & valores fuera del rango de \emph{esa} variable: los descarta, registra la alerta y saca la planta de operación & X = 250 mm (el carro llega a 170)\\
 \bottomrule
 \end{tabularx}
 \end{center}
 
-El rango no se puede escribir como un \codigo{CHECK} de la tabla \codigo{muestra}, porque depende de otra tabla (\codigo{variable}): por eso es un trigger.
+El rango no se puede escribir como un \codigo{CHECK} de la tabla \codigo{muestra}, porque depende de otra tabla (\codigo{variable}): por eso es un trigger. Todas las claves foráneas declaran \codigo{ON DELETE RESTRICT ON UPDATE CASCADE} (guía 4): no se puede borrar un catálogo que ya tiene historial, y un cambio de clave se propaga. La única excepción es \codigo{orden\_parametro}, que se borra con su orden (\codigo{ON DELETE CASCADE}).
 
 \begin{figure}[H]
 \centering
@@ -626,38 +627,50 @@ El rango no se puede escribir como un \codigo{CHECK} de la tabla \codigo{muestra
 \node[cajab, below=of n] (t) {trigger \codigo{BEFORE}: busca \codigo{rango\_min} y \codigo{rango\_max} de la variable};
 \node[diamond, draw, aspect=2.4, fill=naranja!12, below=of t, align=center, inner sep=1pt] (d) {¿mín $\le$ valor $\le$ máx?};
 \node[cajan, below left=6mm and 6mm of d] (ok) {la fila se guarda};
-\node[caja, fill=rojo!12, below right=6mm and 6mm of d, text width=5cm] (no) {\codigo{RAISE EXCEPTION}: la fila no entra y la app recibe «muestra fuera de rango para ZI-102 (mm)\dots»};
+\node[caja, fill=rojo!12, below right=6mm and 6mm of d, text width=5.6cm, align=left] (no) {1. alerta \codigo{limite\_variable} en \codigo{evento\_alarma}\\2. \codigo{sistema.en\_operacion = false}\\3. \codigo{RETURN NULL}: la muestra no se guarda};
 \draw[flecha] (i) -- (n); \draw[flecha] (n) -- (t); \draw[flecha] (t) -- (d);
 \draw[flecha] (d) -| node[above, pos=0.2]{sí} (ok); \draw[flecha] (d) -| node[above, pos=0.2]{no} (no);
 \end{tikzpicture}
 \caption{Camino de una muestra hasta la tabla.}
 \end{figure}
 
-\begin{lstlisting}[style=sql, caption={Trigger de rango (\codigo{brazo\_4gdl.sql}).}]
-CREATE FUNCTION validar_muestra() RETURNS trigger AS $$
+\begin{lstlisting}[style=sql, caption={Trigger de seguridad (\codigo{brazo\_4gdl.sql}).}]
+CREATE FUNCTION verificar_limites_variables() RETURNS trigger AS $$
 DECLARE
     r variable%ROWTYPE;
 BEGIN
     SELECT * INTO r FROM variable WHERE id = NEW.variable_id;
     IF NEW.valor < r.rango_min OR NEW.valor > r.rango_max THEN
-        RAISE EXCEPTION 'muestra fuera de rango para % (%): % no está en [%, %]',
-            r.tag_isa, r.unidad, NEW.valor, r.rango_min, r.rango_max;
+        INSERT INTO evento_alarma (alarma_id, ciclo_id, instante, activa, detalle)
+        SELECT a.id, NEW.ciclo_id, clock_timestamp(), true,
+               format('%s = %s %s fuera de [%s, %s]', r.tag_isa, NEW.valor, r.unidad, r.rango_min, r.rango_max)
+        FROM alarma a WHERE a.codigo = 'limite_variable';
+        UPDATE sistema SET en_operacion = false
+        WHERE id = (SELECT sistema_id FROM ciclo_operacion WHERE id = NEW.ciclo_id);
+        RAISE WARNING 'muestra descartada: % = % % fuera de [%, %]',
+            r.tag_isa, NEW.valor, r.unidad, r.rango_min, r.rango_max;
+        RETURN NULL;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER muestra_en_rango BEFORE INSERT OR UPDATE ON muestra
-    FOR EACH ROW EXECUTE FUNCTION validar_muestra();
+    FOR EACH ROW EXECUTE FUNCTION verificar_limites_variables();
 \end{lstlisting}
 
-El script \archivo{scripts/prueba\_reglas.sql} prueba un caso válido y las cinco barreras dentro de una transacción que se deshace al final (no deja datos). Por cada caso imprime «prueba $n$ correcta» o «FALLÓ»:
+\paragraph{Por qué \codigo{RETURN NULL} y no \codigo{RAISE EXCEPTION}.} Una excepción deshace toda la transacción, incluida la alerta que el trigger acaba de registrar: la falla quedaría sin rastro. Al devolver \codigo{NULL}, PostgreSQL omite solo la fila de la muestra y conserva la alerta y el cambio de estado. \codigo{clock\_timestamp()} da la hora real del instante de la inserción, en UTC y con microsegundos (\codigo{now()} daría la hora de inicio de la transacción).
+
+\paragraph{Nombres de la guía 5.} La guía nombra las tablas \codigo{historico\_telemetria} y \codigo{registro\_alertas}; en este modelo son \codigo{muestra} y \codigo{evento\_alarma}, que ya existían con esa función en el modelo 3FN. El trigger sí lleva el nombre que pide la guía.
+
+El script \archivo{scripts/prueba\_reglas.sql} prueba un caso válido, las cinco barreras y la restricción de borrado dentro de una transacción que se deshace al final (no deja datos). Por cada caso imprime «prueba $n$ correcta» o «FALLÓ»:
 \begin{enumerate}
 \item una muestra de 85 mm en ZI-102 entra;
-\item una de 250 mm la rechaza el trigger;
+\item una de 250 mm la descarta el trigger, que registra la alerta y deja la planta fuera de operación;
 \item una sin valor la rechaza NOT NULL;
 \item un ciclo en modo «turbo» lo rechaza CHECK;
 \item una muestra de una variable inexistente la rechaza la clave foránea;
-\item un tag repetido lo rechaza UNIQUE.
+\item un tag repetido lo rechaza UNIQUE;
+\item borrar la variable ZI-102, que ya tiene muestras, lo impide \codigo{ON DELETE RESTRICT}.
 \end{enumerate}
 
 \subsection*{Vistas}
@@ -884,7 +897,7 @@ psql -h localhost -U brazo -d brazo4gdl -f scripts/consultas_kpi.sql
 \subsection{Windows}
 \begin{enumerate}
 \item Instalar PostgreSQL con el instalador oficial (\url{https://www.postgresql.org/download/windows/}); dejar marcadas las \emph{Command Line Tools} y anotar la contraseña del usuario \codigo{postgres}.
-\item Abrir \emph{SQL Shell (psql)} o una consola en la carpeta \codigo{base-de-datos} y ejecutar:
+\item Abrir \emph{SQL Shell (psql)} o una consola en la carpeta \codigo{database} y ejecutar:
 \end{enumerate}
 \begin{lstlisting}[language=bash]
 createdb -U postgres brazo4gdl
@@ -897,7 +910,7 @@ psql -U postgres -d brazo4gdl -f scripts\prueba_reglas.sql
 \item \codigo{brazo\_4gdl.sql} termina con \codigo{COMMIT} y sin errores;
 \item \codigo{\textbackslash dt} lista las 15 tablas y \codigo{\textbackslash dv} las dos vistas;
 \item \codigo{SELECT count(*) FROM punto\_io;} devuelve 22;
-\item \codigo{prueba\_reglas.sql} imprime seis avisos «prueba $n$ correcta» y ningún «FALLÓ».
+\item \codigo{prueba\_reglas.sql} imprime siete avisos «prueba $n$ correcta» (más el resultado de la prueba 1) y ningún «FALLÓ».
 \end{itemize}
 
 \subsection{Modelo en una herramienta CASE}\label{sec:case}
@@ -910,12 +923,12 @@ La guía 3 sugiere pgModeler o MySQL Workbench. El modelo se escribió directame
 \toprule
 \textrm{\textbf{Ruta (desde \texttt{semestres/2026\_II/})}} & \textbf{Contenido}\\
 \midrule
-base-de-datos/scripts/brazo\_4gdl.sql & DDL, trigger, vistas y datos de la planta\\
-base-de-datos/scripts/prueba\_reglas.sql & prueba de las reglas de integridad\\
-base-de-datos/scripts/consultas\_kpi.sql & consultas del dashboard\\
-base-de-datos/modelo/ & modelo E-R preliminar del equipo\\
-base-de-datos/mockups/ & mockups y organigrama (Lab 2)\\
-base-de-datos/documentacion/ & este documento y el generador del diccionario\\
+database/scripts/brazo\_4gdl.sql & DDL, trigger, vistas y datos de la planta\\
+database/scripts/prueba\_reglas.sql & prueba de las reglas de integridad\\
+database/scripts/consultas\_kpi.sql & consultas del dashboard\\
+database/modelo/ & modelo E-R preliminar del equipo\\
+database/mockups/ & mockups y organigrama (Lab 2)\\
+database/documentacion/ & este documento y el generador del diccionario\\
 planos/pid/, planos/electrico/ & planos v2.0 de donde salen los tags\\
 gemelo-digital/app/ & middleware (lectura PPI, roles, registro)\\
 \bottomrule

@@ -14,14 +14,25 @@ INSERT INTO muestra (ciclo_id, variable_id, instante, valor)
 SELECT currval('ciclo_operacion_id_seq'), id, now(), 85.0 FROM variable WHERE tag_isa = 'ZI-102';
 SELECT 'prueba 1 correcta: muestra en rango aceptada' AS resultado;
 
--- 2. muestra fuera de rango: el trigger la rechaza
+-- 2. muestra fuera de rango: el trigger la descarta, registra la alerta y saca la planta de operación
 DO $$
+DECLARE
+    muestras_antes BIGINT;
+    alertas_antes  BIGINT;
 BEGIN
+    SELECT count(*) INTO muestras_antes FROM muestra;
+    SELECT count(*) INTO alertas_antes FROM evento_alarma e JOIN alarma a ON a.id = e.alarma_id
+        WHERE a.codigo = 'limite_variable';
     INSERT INTO muestra (ciclo_id, variable_id, instante, valor)
     SELECT currval('ciclo_operacion_id_seq'), id, now(), 250.0 FROM variable WHERE tag_isa = 'ZI-102';
-    RAISE NOTICE 'prueba 2 FALLÓ: el trigger dejó pasar 250 mm';
-EXCEPTION WHEN raise_exception THEN
-    RAISE NOTICE 'prueba 2 correcta: %', SQLERRM;
+    IF (SELECT count(*) FROM muestra) = muestras_antes
+       AND (SELECT count(*) FROM evento_alarma e JOIN alarma a ON a.id = e.alarma_id
+            WHERE a.codigo = 'limite_variable') = alertas_antes + 1
+       AND NOT (SELECT en_operacion FROM sistema WHERE id = 1) THEN
+        RAISE NOTICE 'prueba 2 correcta: 250 mm descartado, alerta registrada y planta fuera de operación';
+    ELSE
+        RAISE NOTICE 'prueba 2 FALLÓ: el trigger no desvió el dato o no registró la alerta';
+    END IF;
 END $$;
 
 -- 3. valor nulo: NOT NULL lo rechaza
@@ -61,6 +72,15 @@ BEGIN
     RAISE NOTICE 'prueba 6 FALLÓ: se repitió el tag ZS-101';
 EXCEPTION WHEN unique_violation THEN
     RAISE NOTICE 'prueba 6 correcta: %', SQLERRM;
+END $$;
+
+-- 7. borrar una variable que ya tiene muestras: ON DELETE RESTRICT lo impide
+DO $$
+BEGIN
+    DELETE FROM variable WHERE tag_isa = 'ZI-102';
+    RAISE NOTICE 'prueba 7 FALLÓ: se borró una variable con historial';
+EXCEPTION WHEN foreign_key_violation THEN
+    RAISE NOTICE 'prueba 7 correcta: %', SQLERRM;
 END $$;
 
 ROLLBACK;

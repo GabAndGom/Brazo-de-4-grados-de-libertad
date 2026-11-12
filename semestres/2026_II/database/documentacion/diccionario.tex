@@ -6,6 +6,7 @@ id & SMALLSERIAL & no & PK & identificador (clave sustituta)\\
 nombre & VARCHAR(60) & no & UQ & nombre de la planta\\
 tipo & VARCHAR(40) & no &  & tipo de planta\\
 plc & VARCHAR(60) & no &  & PLC que la controla\\
+en\_operacion & BOOLEAN & no & DEFAULT true & false: un trigger detectó una variable fuera de límite\\
 \bottomrule \end{longtable}
 \subsection*{\codigo{eje}}
 \begin{longtable}{>{\ttfamily\raggedright}p{2.6cm} >{\ttfamily\raggedright}p{2.5cm} c >{\raggedright\footnotesize}p{3.6cm} >{\raggedright\arraybackslash}p{4.5cm}}

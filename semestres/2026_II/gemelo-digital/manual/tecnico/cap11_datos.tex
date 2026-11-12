@@ -16,7 +16,7 @@ Del levantamiento del informe 1 (ETN-1000) y de lo que la app ya produce, la bas
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.62\linewidth, trim=0 360 0 0, clip]{modelo_er_preliminar.png}
-\caption{Modelo E-R preliminar del equipo (\texttt{base-de-datos/modelo/}).}
+\caption{Modelo E-R preliminar del equipo (\texttt{database/modelo/}).}
 \end{figure}
 
 Cambios para llevarlo a 3FN y a la planta real:
@@ -84,23 +84,28 @@ PUNT\_I/O & \codigo{punto\_io} con dirección del PLC, tag ISA y eje\\
 \end{itemize}
 
 \section{El script SQL}
-El script \codigo{base-de-datos/scripts/brazo\_4gdl.sql} crea las 15 tablas con sus restricciones, un trigger, dos vistas y carga los datos fijos de la planta: sistema, 4 ejes, 22 señales del PLC con sus tags ISA, 5 variables, 3 programas, 8 alarmas y 2 roles. El listado completo está en el apéndice \ref{ap:sql}.
+El script \codigo{database/scripts/brazo\_4gdl.sql} crea las 15 tablas con sus restricciones, un trigger, dos vistas y carga los datos fijos de la planta: sistema, 4 ejes, 22 señales del PLC con sus tags ISA, 5 variables, 3 programas, 9 alarmas y 2 roles. El listado completo está en el apéndice \ref{ap:sql}.
 
-\begin{lstlisting}[style=sql, caption={Trigger que rechaza muestras fuera de rango (lo pide la guía 1 para la Fase 2).}]
-CREATE FUNCTION validar_muestra() RETURNS trigger AS $$
+\begin{lstlisting}[style=sql, caption={Trigger de seguridad: descarta la muestra fuera de rango, registra la alerta y saca la planta de operación (guías 1 y 5).}]
+CREATE FUNCTION verificar_limites_variables() RETURNS trigger AS $$
 DECLARE
     r variable%ROWTYPE;
 BEGIN
     SELECT * INTO r FROM variable WHERE id = NEW.variable_id;
     IF NEW.valor < r.rango_min OR NEW.valor > r.rango_max THEN
-        RAISE EXCEPTION 'muestra fuera de rango para % (%): % no está en [%, %]',
-            r.tag_isa, r.unidad, NEW.valor, r.rango_min, r.rango_max;
+        INSERT INTO evento_alarma (alarma_id, ciclo_id, instante, activa, detalle)
+        SELECT a.id, NEW.ciclo_id, clock_timestamp(), true,
+               format('%s = %s %s fuera de [%s, %s]', r.tag_isa, NEW.valor, r.unidad, r.rango_min, r.rango_max)
+        FROM alarma a WHERE a.codigo = 'limite_variable';
+        UPDATE sistema SET en_operacion = false
+        WHERE id = (SELECT sistema_id FROM ciclo_operacion WHERE id = NEW.ciclo_id);
+        RETURN NULL;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 CREATE TRIGGER muestra_en_rango BEFORE INSERT OR UPDATE ON muestra
-    FOR EACH ROW EXECUTE FUNCTION validar_muestra();
+    FOR EACH ROW EXECUTE FUNCTION verificar_limites_variables();
 \end{lstlisting}
 
 \section{De la app a las tablas}

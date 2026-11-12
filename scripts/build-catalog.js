@@ -15,7 +15,7 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'web', 'data');
-const REPO = 'GabAndGom/Brazo-4GDL-gemelo-digital';
+const REPO = 'GabAndGom/Brazo-de-4-grados-de-libertad';
 const RAMA = 'main';
 // Cloudflare Pages publica archivos de hasta 25 MB y GitHub Pages de hasta 100 MB.
 // Los más grandes se descargan directamente desde GitHub.
@@ -32,7 +32,7 @@ const SUBSISTEMAS = [
   { id: 3, nombre: 'Garra', detalle: 'Efector final con solenoide 24 V', claves: ['garra', 'efector', 'solenoide'] },
   { id: 4, nombre: 'Potencia y mando', detalle: 'Drivers 2M542/2M530, fuente, relés y botonera', claves: ['driver', 'dm542', '2dm556', 'fuente', 'disyuntor', 'rele_', 'rele.', 'botonera'] },
   { id: 5, nombre: 'PLC S7-200', detalle: 'CPU 224 y librería MAP_SERV', claves: ['plc', 's7-200', 'cpu224', 'map_serv', 'kop', '.mwp', '.awl'] },
-  { id: 6, nombre: 'Datos y HMI', detalle: 'Base de datos, interfaz y SCADA', claves: ['base-de-datos', 'hmi', 'interfaz', 'mockup', 'scada', 'erp', '.sql'] }
+  { id: 6, nombre: 'Datos y HMI', detalle: 'Base de datos, interfaz y SCADA', claves: ['database', 'base-de-datos', 'hmi', 'interfaz', 'mockup', 'scada', 'erp', '.sql'] }
 ];
 
 const CATEGORIAS = {

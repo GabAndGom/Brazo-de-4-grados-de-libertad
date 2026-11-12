@@ -7,21 +7,33 @@
       "equipo": [
         {
           "grupo": "Control (ETN-902 / ETN-1034)",
-          "integrantes": ["Jorge Alex Arriata Paco", "Gabriel Andres Gomez Calla", "Domingo Fabio Layme Patzi"]
+          "integrantes": [
+            "Jorge Alex Arriata Paco",
+            "Gabriel Andres Gomez Calla",
+            "Domingo Fabio Layme Patzi"
+          ]
         }
       ]
     },
     "2026_II": {
-      "resumen": "Semestre en curso. Auditoría y levantamiento de requerimientos, planos históricos, guías de laboratorio integrado y diseño de la base de datos e interfaz local.",
+      "resumen": "Semestre en curso, organizado según las 8 guías del laboratorio integrado: auditoría Kaizen, planos v2.0 (ISA-5.1 / IEC 60617), base de datos en 3FN con triggers, gemelo digital con operación local y remota, e informes de cada laboratorio.",
       "docente": "Ing. Jorge Antonio Nava Amador",
       "equipo": [
         {
           "grupo": "Control (ETN-902 / ETN-1034)",
-          "integrantes": ["Gabriel Andres Gomez Calla", "Jose Lenin Mamani Choque", "Miguel Alejandro Lima Huarachi", "Román Abner Machicado Arequipa"]
+          "integrantes": [
+            "Gabriel Andres Gomez Calla",
+            "Jose Lenin Mamani Choque",
+            "Miguel Alejandro Lima Huarachi",
+            "Román Abner Machicado Arequipa"
+          ]
         },
         {
           "grupo": "Cómputo (ETN-1000)",
-          "integrantes": ["Miguel Alejandro Lima Huarachi", "Marco Eduardo Chura Rondo"]
+          "integrantes": [
+            "Miguel Alejandro Lima Huarachi",
+            "Marco Eduardo Chura Rondo"
+          ]
         }
       ]
     }
