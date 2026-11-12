@@ -116,13 +116,25 @@ CREATE TABLE muestra (
 Son 17 claves foráneas con \codigo{RESTRICT/CASCADE} y una con \codigo{CASCADE/CASCADE}.
 
 \subsection{Ejecución}
-\aviso{El script no se pudo ejecutar todavía en un servidor: PostgreSQL no está instalado en la PC de la mesa ni en la PC donde se escribió. Se validó la sintaxis con \codigo{pglast}, que usa el analizador del propio PostgreSQL: las 30 sentencias y el cuerpo PL/pgSQL del trigger se reconocen sin errores. Falta subir el registro de ejecución exitosa a \codigo{database/scripts/}.}
+\nota{Se ejecutó en PostgreSQL 16.2 el 12/11/2026, en la PC de desarrollo del equipo: la base se crea sin errores, las 7 pruebas de \codigo{prueba\_reglas.sql} dan «correcta», se cargaron 18\,000 muestras sintéticas (\codigo{datos\_sinteticos.sql}) y las 14 consultas del dashboard responden; el plan de ejecución confirma que el índice por marca de tiempo se usa. Todo queda en \codigo{database/scripts/registro\_ejecucion.txt}. Falta repetirlo en la PC del laboratorio.}
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize]
+$ psql -d brazo4gdl -v ON_ERROR_STOP=1 -f brazo_4gdl.sql
+BEGIN
+CREATE TABLE      (x15)
+CREATE INDEX      (x2)
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE VIEW       (x2)
+INSERT 0 1 / 0 4 / 0 22 / 0 5 / 0 3 / 0 9 / 0 2
+COMMIT            código de salida: 0
+\end{lstlisting}
+La consulta al catálogo \codigo{pg\_constraint} del registro confirma que las 18 claves foráneas quedaron con las reglas declaradas (17 \codigo{RESTRICT/CASCADE} y una \codigo{CASCADE/CASCADE}). Un \codigo{UPDATE} de la clave de ZI-102 propagó el cambio a sus 3600 muestras (\codigo{ON UPDATE CASCADE}).
 
 La guía pide el nombre \codigo{estructura\_telemetria.sql}; en el repositorio el script es \codigo{brazo\_4gdl.sql} porque además de la telemetría crea los catálogos, la seguridad y los datos de la planta.
 
 \section{Entregables (Definition of Done)}
 \begin{dod}
-Script SQL ejecutable (.sql) & \parcial & \codigo{database/scripts/brazo\_4gdl.sql}: sintaxis validada, FK con RESTRICT/CASCADE; falta ejecutarlo en PostgreSQL\\
+Script SQL ejecutable (.sql) & \cumple & \codigo{database/scripts/brazo\_4gdl.sql} ejecutado sin errores en PostgreSQL 16.2; registro en \codigo{registro\_ejecucion.txt}; falta repetirlo en la PC del laboratorio\\
 Archivo de telemetría cruda del escalón (.csv) & \falta & la prueba no se hizo (sección 3)\\
 Función de transferencia parametrizada & \parcial & función analítica por eje (integrador); falta la identificación experimental\\
 Matrices del espacio de estados & \cumple & sección 4 y \codigo{laboratorios/lab05\_gemelo\_y\_triggers/espacio\_estados\_brazo.py}\\
@@ -132,7 +144,7 @@ Matrices del espacio de estados & \cumple & sección 4 y \codigo{laboratorios/la
 \begin{enumerate}
 \item El brazo, en lazo abierto con motores paso a paso, es un integrador por eje: su modelo en espacio de estados tiene $A = 0$ y una matriz $B$ que conmuta con los relés K1 y K2. Esta estructura explica por qué X e Y no pueden moverse a velocidades distintas.
 \item La identificación por caja negra choca con la falta de un sensor continuo: sin medir la salida no hay curva de reacción. Es la misma ruptura de causalidad documentada en el laboratorio 1.
-\item El esquema físico de la base está completo y con integridad referencial explícita; queda ejecutarlo en la PC del laboratorio.
+\item El esquema físico de la base está completo, con integridad referencial explícita, y se ejecutó sin errores en PostgreSQL 16.2; queda repetirlo en la PC del laboratorio.
 \end{enumerate}
 
 \end{document}

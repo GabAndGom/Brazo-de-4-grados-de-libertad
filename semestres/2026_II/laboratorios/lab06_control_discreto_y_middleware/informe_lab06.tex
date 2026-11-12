@@ -93,7 +93,7 @@ El estado se publica como objeto JSON en \codigo{GET /api/estado}. Ejemplo de la
 \end{lstlisting}
 
 \subsection{Inserción en PostgreSQL}
-\aviso{La inserción automática en PostgreSQL \textbf{no está implementada}. La base está diseñada (laboratorios 3 a 5) y el flujo está definido, pero falta instalar PostgreSQL y agregar al middleware el registrador.}
+\aviso{La inserción automática en PostgreSQL \textbf{no está implementada}. La base está creada y probada en PostgreSQL 16.2 con datos sintéticos (laboratorios 4 y 5) y el flujo está definido; falta agregar al middleware el registrador.}
 Diseño acordado (documento de base de datos, sección 11):
 \begin{itemize}
 \item un hilo aparte con la biblioteca \codigo{psycopg} y sentencias parametrizadas, para que una base lenta no frene la lectura del PLC ni el watchdog;
@@ -116,7 +116,7 @@ Bitácora lazo abierto frente a lazo cerrado & \falta & no hay lazo cerrado (sin
 
 \section{Pendientes antes de la entrega}
 \begin{enumerate}
-\item Instalar PostgreSQL, ejecutar \codigo{brazo\_4gdl.sql} y agregar el registrador al middleware.
+\item Instalar PostgreSQL en la PC del laboratorio, ejecutar \codigo{brazo\_4gdl.sql} y agregar el registrador al middleware.
 \item Agregar realimentación de posición (encoder o HSC) para poder cerrar un lazo; sin ella, el resto del laboratorio no es aplicable a esta planta.
 \item Medir con osciloscopio el periodo real de los paquetes de pulsos y el jitter (tarea del auxiliar).
 \end{enumerate}

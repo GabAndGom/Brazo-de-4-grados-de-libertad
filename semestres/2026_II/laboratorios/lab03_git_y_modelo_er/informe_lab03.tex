@@ -136,7 +136,7 @@ El paso a paso con tablas de ejemplo, las dependencias funcionales y el dicciona
 Cada tag del P\&ID v2.0 es una fila de la base: los 22 tags de señales (ZS-101, ZSL/ZSH-102/103, HS-100\dots XY-104) están en \codigo{punto\_io.tag\_isa} y los de variables continuas (ZI-101 a ZI-103, SY-100, SY-101) en \codigo{variable.tag\_isa}, ambos con restricción UNIQUE. El número de lazo (101 a 104) está en \codigo{eje.lazo\_isa}. Así el código de la base habla el mismo lenguaje normado que los planos.
 
 \subsection{Herramienta CASE}
-El modelo se escribió directamente en SQL (\codigo{database/scripts/brazo\_4gdl.sql}) y los diagramas se dibujaron a partir del script. Para tener el diagrama en pgModeler o MySQL Workbench basta importar la base ya creada (\emph{Import $\to$ Database}); queda pendiente porque PostgreSQL aún no está instalado en la PC de la mesa (tarea del auxiliar, guía 3).
+El modelo se escribió directamente en SQL (\codigo{database/scripts/brazo\_4gdl.sql}) y los diagramas se dibujaron a partir del script. Para tener el diagrama en pgModeler o MySQL Workbench basta importar la base ya creada (\emph{Import $\to$ Database}); la base ya se creó y probó en PostgreSQL 16.2 en la PC de desarrollo (laboratorio 4), así que queda solo hacer la importación y guardar la captura.
 
 \section{Informe de cierre de la fase 1 (laboratorios 1 a 3)}
 \begin{center}\small

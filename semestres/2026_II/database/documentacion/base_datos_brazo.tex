@@ -91,8 +91,8 @@ Las tres guías del laboratorio integrado reparten el trabajo de la base de dato
 1 & Levantamiento de las necesidades de datos de la planta & Sección \ref{sec:requerimientos} & \cumple\\
 1 & Modelo E-R y normalización (1FN, 2FN, 3FN) & Secciones \ref{sec:er}, \ref{sec:logico} y \ref{sec:normalizacion} & \cumple\\
 1 & SQL puro (DDL y DML): tablas, llaves primarias y foráneas, índices para búsquedas por marca de tiempo & Sección \ref{sec:script}, \archivo{scripts/brazo\_4gdl.sql} & \cumple\\
-1 y 5 & Triggers PL/pgSQL que impidan datos nulos o fuera de rango, registren la alerta y cambien el estado de la planta & Sección \ref{sec:reglas}, \archivo{scripts/prueba\_reglas.sql} & \cumple\ (sintaxis validada, sin ejecutar)\\
-1 & Instalar PostgreSQL en la PC del laboratorio & Sección \ref{sec:instalar} & \falta\\
+1 y 5 & Triggers PL/pgSQL que impidan datos nulos o fuera de rango, registren la alerta y cambien el estado de la planta & Sección \ref{sec:reglas}, \archivo{scripts/prueba\_reglas.sql} & \cumple\ (probado en PostgreSQL 16.2)\\
+1 & Instalar PostgreSQL en la PC del laboratorio & Sección \ref{sec:instalar} & \parcial\ (probado en la PC de desarrollo)\\
 1 & Middleware que lea la planta e inserte en PostgreSQL & Sección \ref{sec:flujo} (lectura PPI hecha; inserción propuesta) & \parcial\\
 1 & KPIs en el dashboard web & Sección \ref{sec:consultas}, \archivo{scripts/consultas\_kpi.sql} & \parcial\ (consultas listas)\\
 2 & Mockups de la interfaz local y del dashboard & carpeta \archivo{mockups/} & \cumple\\
@@ -596,7 +596,7 @@ CREATE INDEX muestra_variable_instante ON muestra (variable_id, instante);
 
 \paragraph{Por qué ese índice.} Casi todas las consultas del dashboard piden «la variable $V$ entre $t_1$ y $t_2$» o «el último valor de $V$». Un índice B-tree con \codigo{variable\_id} primero y \codigo{instante} después deja todas las muestras de una variable juntas y ordenadas por tiempo, así que PostgreSQL encuentra el intervalo sin recorrer la tabla. El orden de las columnas importa: al revés, el índice serviría para buscar por tiempo, pero mezclaría todas las variables.
 
-\paragraph{Validación.} No hay PostgreSQL en la PC donde se escribió el script. Se validó su sintaxis con \codigo{pglast}, que usa el analizador sintáctico del propio PostgreSQL: las 30 sentencias del script, las 14 consultas y las 11 sentencias de la prueba, más el cuerpo PL/pgSQL del trigger y de los bloques \codigo{DO}, se reconocen sin errores. Falta ejecutarlo en un servidor real (sección \ref{sec:instalar}).
+\paragraph{Validación.} Se ejecutó en PostgreSQL 16.2 el 12/11/2026, en la PC de desarrollo del equipo: la base se crea sin errores, las 7 pruebas de \codigo{prueba\_reglas.sql} dan «correcta», se cargaron 18\,000 muestras sintéticas (\codigo{datos\_sinteticos.sql}) y las 14 consultas del dashboard responden; el plan de ejecución confirma que el índice por marca de tiempo se usa. Todo queda en \codigo{database/scripts/registro\_ejecucion.txt}. Falta repetirlo en la PC del laboratorio.
 
 % =====================================================================
 \section{Reglas de integridad}\label{sec:reglas}
@@ -926,6 +926,8 @@ La guía 3 sugiere pgModeler o MySQL Workbench. El modelo se escribió directame
 database/scripts/brazo\_4gdl.sql & DDL, trigger, vistas y datos de la planta\\
 database/scripts/prueba\_reglas.sql & prueba de las reglas de integridad\\
 database/scripts/consultas\_kpi.sql & consultas del dashboard\\
+database/scripts/datos\_sinteticos.sql & datos de prueba (no son mediciones)\\
+database/scripts/registro\_ejecucion.txt & salida de la ejecución en PostgreSQL 16.2\\
 database/modelo/ & modelo E-R preliminar del equipo\\
 database/mockups/ & mockups y organigrama (Lab 2)\\
 database/documentacion/ & este documento y el generador del diccionario\\
@@ -938,7 +940,7 @@ gemelo-digital/app/ & middleware (lectura PPI, roles, registro)\\
 % =====================================================================
 \section{Estado y próximos pasos}
 \begin{enumerate}
-\item \textbf{Ejecutar el script} en la PC del laboratorio y correr \codigo{prueba\_reglas.sql} (sección \ref{sec:instalar}).
+\item \textbf{Repetir en la PC del laboratorio} la ejecución que ya se hizo en la PC de desarrollo (sección \ref{sec:instalar} y \codigo{registro\_ejecucion.txt}).
 \item \textbf{Importar el modelo en pgModeler o DBeaver} y guardar el diagrama como entregable de la guía 3.
 \item \textbf{Agregar el registrador a la app}: un módulo con la biblioteca \codigo{psycopg} que siga la secuencia propuesta (sección \ref{sec:flujo}), en un hilo aparte y opcional (la app debe seguir funcionando sin base).
 \item \textbf{Dashboard}: una página que muestre las consultas de la sección \ref{sec:mockups}; puede ser parte de la misma app, solo para el rol observador u operador.

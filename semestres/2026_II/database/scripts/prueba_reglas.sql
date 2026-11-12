@@ -8,10 +8,12 @@ BEGIN;
 
 -- un ciclo de prueba en modo simulación
 INSERT INTO ciclo_operacion (sistema_id, programa_id, modo) VALUES (1, 1, 'simulacion');
+-- se guarda su id: una inserción rechazada también consume la secuencia, así que currval() no sirve después
+CREATE TEMP TABLE prueba_ciclo AS SELECT currval('ciclo_operacion_id_seq') AS id;
 
 -- 1. muestra dentro del rango de ZI-102 (0 a 170 mm): entra
 INSERT INTO muestra (ciclo_id, variable_id, instante, valor)
-SELECT currval('ciclo_operacion_id_seq'), id, now(), 85.0 FROM variable WHERE tag_isa = 'ZI-102';
+SELECT (SELECT id FROM prueba_ciclo), id, now(), 85.0 FROM variable WHERE tag_isa = 'ZI-102';
 SELECT 'prueba 1 correcta: muestra en rango aceptada' AS resultado;
 
 -- 2. muestra fuera de rango: el trigger la descarta, registra la alerta y saca la planta de operación
@@ -24,7 +26,7 @@ BEGIN
     SELECT count(*) INTO alertas_antes FROM evento_alarma e JOIN alarma a ON a.id = e.alarma_id
         WHERE a.codigo = 'limite_variable';
     INSERT INTO muestra (ciclo_id, variable_id, instante, valor)
-    SELECT currval('ciclo_operacion_id_seq'), id, now(), 250.0 FROM variable WHERE tag_isa = 'ZI-102';
+    SELECT (SELECT id FROM prueba_ciclo), id, now(), 250.0 FROM variable WHERE tag_isa = 'ZI-102';
     IF (SELECT count(*) FROM muestra) = muestras_antes
        AND (SELECT count(*) FROM evento_alarma e JOIN alarma a ON a.id = e.alarma_id
             WHERE a.codigo = 'limite_variable') = alertas_antes + 1
@@ -39,7 +41,7 @@ END $$;
 DO $$
 BEGIN
     INSERT INTO muestra (ciclo_id, variable_id, instante, valor)
-    SELECT currval('ciclo_operacion_id_seq'), id, now(), NULL FROM variable WHERE tag_isa = 'ZI-102';
+    SELECT (SELECT id FROM prueba_ciclo), id, now(), NULL FROM variable WHERE tag_isa = 'ZI-102';
     RAISE NOTICE 'prueba 3 FALLÓ: se aceptó un valor nulo';
 EXCEPTION WHEN not_null_violation THEN
     RAISE NOTICE 'prueba 3 correcta: %', SQLERRM;
@@ -58,7 +60,7 @@ END $$;
 DO $$
 BEGIN
     INSERT INTO muestra (ciclo_id, variable_id, instante, valor)
-    VALUES (currval('ciclo_operacion_id_seq'), 999, now(), 1.0);
+    VALUES ((SELECT id FROM prueba_ciclo), 999, now(), 1.0);
     RAISE NOTICE 'prueba 5 FALLÓ: se aceptó una variable inexistente';
 EXCEPTION WHEN foreign_key_violation THEN
     RAISE NOTICE 'prueba 5 correcta: %', SQLERRM;

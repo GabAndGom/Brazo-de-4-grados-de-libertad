@@ -46,11 +46,11 @@ ORDER BY p.tag_isa, e.instante DESC;
 -- 7. Posición actual de los ejes (vista)
 SELECT * FROM v_ultima_posicion;
 
--- 8. Serie de tiempo del carro X en el último ciclo, promedio por segundo
-SELECT date_trunc('second', m.instante) AS t, avg(m.valor) AS x_mm
+-- 8. Serie de tiempo del carro X en el último ciclo que tiene telemetría, promedio por minuto
+SELECT date_trunc('minute', m.instante) AS t, round(avg(m.valor)::numeric, 2) AS x_mm
 FROM muestra m JOIN variable v ON v.id = m.variable_id
 WHERE v.tag_isa = 'ZI-102'
-  AND m.ciclo_id = (SELECT max(id) FROM ciclo_operacion)
+  AND m.ciclo_id = (SELECT max(ciclo_id) FROM muestra)
 GROUP BY 1
 ORDER BY 1;
 

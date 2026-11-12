@@ -143,12 +143,23 @@ El script \codigo{database/scripts/prueba\_reglas.sql} inyecta valores erróneos
 \bottomrule
 \end{tabularx}
 \end{center}
-\aviso{Las pruebas están escritas y su sintaxis está validada con el analizador de PostgreSQL (\codigo{pglast}), pero \textbf{no se ejecutaron} porque PostgreSQL no está instalado en la PC del laboratorio. La resiliencia del backend queda demostrada en el diseño, no en una ejecución.}
+\paragraph{Resultado de la ejecución} (PostgreSQL 16.2, 12/11/2026, PC de desarrollo; registro completo en \codigo{database/scripts/registro\_ejecucion.txt}):
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize]
+ prueba 1 correcta: muestra en rango aceptada
+WARNING:  muestra descartada: ZI-102 = 250 mm fuera de [0, 170]
+NOTICE:  prueba 2 correcta: 250 mm descartado, alerta registrada y planta fuera de operación
+NOTICE:  prueba 3 correcta: null value in column "valor" of relation "muestra" violates not-null constraint
+NOTICE:  prueba 4 correcta: new row for relation "ciclo_operacion" violates check constraint "ciclo_operacion_modo_check"
+NOTICE:  prueba 5 correcta: insert or update on table "muestra" violates foreign key constraint "muestra_variable_id_fkey"
+NOTICE:  prueba 6 correcta: duplicate key value violates unique constraint "punto_io_tag_isa_key"
+NOTICE:  prueba 7 correcta: update or delete on table "variable" violates foreign key constraint "muestra_variable_id_fkey"
+\end{lstlisting}
+Con 18\,000 muestras sintéticas ya cargadas se repitió la inyección de un valor extremo (base a 400°): el \codigo{INSERT} devolvió \codigo{INSERT 0 0} (dato desviado), quedó la alerta «ZI-101 = 400 deg fuera de [-263, 263]» y \codigo{sistema.en\_operacion} pasó a falso. La primera corrida detectó un error en el propio script de pruebas (la prueba 5 fallaba por el ciclo y no por la variable, porque una inserción rechazada consume la secuencia); se corrigió y se repitió.
 
 \section{Entregables (Definition of Done)}
 \begin{dod}
 Archivos de simulación (.slx / .m) con el gemelo y el rango de matrices & \parcial & gemelo en la app (\codigo{gemelo-digital/}), \codigo{espacio\_estados\_brazo.m} y \codigo{.py}; no hay modelo \codigo{.slx} de Simulink\\
-Script SQL de lógica de servidor (PL/pgSQL) & \cumple & \codigo{database/scripts/brazo\_4gdl.sql} y \codigo{prueba\_reglas.sql}; falta ejecutarlo\\
+Script SQL de lógica de servidor (PL/pgSQL) & \cumple & \codigo{database/scripts/brazo\_4gdl.sql} y \codigo{prueba\_reglas.sql}, ejecutados en PostgreSQL 16.2 (\codigo{registro\_ejecucion.txt})\\
 Informe de cierre de fase 2 & \cumple & este informe, con el del laboratorio 4\\
 Firma del escudo de seguridad del docente & \falta & pendiente de la revisión del docente\\
 \end{dod}
@@ -158,7 +169,7 @@ Firma del escudo de seguridad del docente & \falta & pendiente de la revisión d
 \item El gemelo digital reproduce la geometría con menos de 5~mm de error y el estimador sigue al PLC con un error máximo de 1,35~mm; falta contrastarlo con una medición independiente.
 \item La discretización con ZOH de un integrador da $\mathbf{x}(k+1) = \mathbf{x}(k) + T_sB\mathbf{u}(k)$, la misma ecuación que ya ejecuta el estimador.
 \item El análisis estructural muestra el límite de la planta: con un solo tren de pulsos para X e Y y sin sensores continuos, el sistema no es controlable en ningún modo fijo ni observable. El control por realimentación de estados de la fase 3 requiere cambios de hardware.
-\item El trigger de seguridad cumple la lógica que pide la guía (desviar, alertar y detener) y está listo para ejecutarse.
+\item El trigger de seguridad cumple la lógica que pide la guía (desviar, alertar y detener) y se comprobó en PostgreSQL 16.2 con inyecciones de datos erróneos.
 \end{enumerate}
 
 \end{document}

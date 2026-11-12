@@ -138,4 +138,4 @@ SELECT u.nombre, o.motivo, count(*) FROM orden o LEFT JOIN usuario u ON u.id = o
 WHERE NOT o.aceptada GROUP BY 1, 2 ORDER BY 3 DESC;
 \end{lstlisting}
 
-\pendiente{El script no se ejecutó todavía: la PC donde se escribió no tiene PostgreSQL. Falta: (1) crear la base y correr el script en la PC del laboratorio; (2) agregar a la app un módulo que inserte las muestras (por ejemplo, una por segundo y por eje), los cambios de E/S, las órdenes y los ingresos, con la biblioteca \codigo{psycopg}; (3) un tablero que consulte el historial.}
+\pendiente{El script, las pruebas y las consultas se ejecutaron en PostgreSQL 16.2 en la PC de desarrollo (\codigo{database/scripts/registro\_ejecucion.txt}). Falta: (1) crear la base y correr el script en la PC del laboratorio; (2) agregar a la app un módulo que inserte las muestras (por ejemplo, una por segundo y por eje), los cambios de E/S, las órdenes y los ingresos, con la biblioteca \codigo{psycopg}; (3) un tablero que consulte el historial.}

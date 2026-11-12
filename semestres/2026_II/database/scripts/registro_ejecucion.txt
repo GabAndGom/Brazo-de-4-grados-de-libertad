@@ -1,0 +1,327 @@
+REGISTRO DE EJECUCIÓN · base brazo4gdl · 2026-11-12 16:08 -04
+Servidor: PostgreSQL 16.2 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 10.2.1 20210130 (Red Hat 10.2.1-11), 64-bit
+Equipo: PC de desarrollo del equipo (Linux), servidor PostgreSQL local de prueba. Pendiente: repetir en la PC del laboratorio.
+
+=== 1. Creación de la base desde cero: createdb + brazo_4gdl.sql (ON_ERROR_STOP=1) ===
+BEGIN
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE VIEW
+CREATE VIEW
+INSERT 0 1
+INSERT 0 4
+INSERT 0 22
+INSERT 0 5
+INSERT 0 3
+INSERT 0 9
+INSERT 0 2
+COMMIT
+código de salida: 0
+
+=== 2. Objetos creados ===
+              List of relations
+ Schema |      Name       | Type  |  Owner   
+--------+-----------------+-------+----------
+ public | alarma          | table | postgres
+ public | ciclo_operacion | table | postgres
+ public | eje             | table | postgres
+ public | estado_io       | table | postgres
+ public | evento_alarma   | table | postgres
+ public | muestra         | table | postgres
+ public | orden           | table | postgres
+ public | orden_parametro | table | postgres
+ public | programa_plc    | table | postgres
+ public | punto_io        | table | postgres
+ public | rol             | table | postgres
+ public | sesion          | table | postgres
+ public | sistema         | table | postgres
+ public | usuario         | table | postgres
+ public | variable        | table | postgres
+(15 rows)
+
+              List of relations
+ Schema |       Name        | Type |  Owner   
+--------+-------------------+------+----------
+ public | v_ciclo           | view | postgres
+ public | v_ultima_posicion | view | postgres
+(2 rows)
+
+ senales | variables | alarmas | ejes | programas | roles 
+---------+-----------+---------+------+-----------+-------
+      22 |         5 |       9 |    4 |         3 |     2
+(1 row)
+
+             conname              | on_delete | on_update 
+----------------------------------+-----------+-----------
+ ciclo_operacion_programa_id_fkey | r         | c
+ ciclo_operacion_sistema_id_fkey  | r         | c
+ eje_sistema_id_fkey              | r         | c
+ estado_io_ciclo_id_fkey          | r         | c
+ estado_io_punto_id_fkey          | r         | c
+ evento_alarma_alarma_id_fkey     | r         | c
+ evento_alarma_ciclo_id_fkey      | r         | c
+ muestra_ciclo_id_fkey            | r         | c
+ muestra_variable_id_fkey         | r         | c
+ orden_ciclo_id_fkey              | r         | c
+ orden_parametro_eje_id_fkey      | r         | c
+ orden_parametro_orden_id_fkey    | c         | c
+ orden_usuario_id_fkey            | r         | c
+ punto_io_eje_id_fkey             | r         | c
+ punto_io_sistema_id_fkey         | r         | c
+ sesion_usuario_id_fkey           | r         | c
+ usuario_rol_id_fkey              | r         | c
+ variable_eje_id_fkey             | r         | c
+(18 rows)
+
+(a = sin acción, r = RESTRICT, c = CASCADE)
+
+=== 3. Pruebas de integridad: prueba_reglas.sql ===
+BEGIN
+INSERT 0 1
+SELECT 1
+INSERT 0 1
+                  resultado                   
+----------------------------------------------
+ prueba 1 correcta: muestra en rango aceptada
+(1 row)
+
+WARNING:  muestra descartada: ZI-102 = 250 mm fuera de [0, 170]
+NOTICE:  prueba 2 correcta: 250 mm descartado, alerta registrada y planta fuera de operación
+DO
+NOTICE:  prueba 3 correcta: null value in column "valor" of relation "muestra" violates not-null constraint
+DO
+NOTICE:  prueba 4 correcta: new row for relation "ciclo_operacion" violates check constraint "ciclo_operacion_modo_check"
+DO
+NOTICE:  prueba 5 correcta: insert or update on table "muestra" violates foreign key constraint "muestra_variable_id_fkey"
+DO
+NOTICE:  prueba 6 correcta: duplicate key value violates unique constraint "punto_io_tag_isa_key"
+DO
+NOTICE:  prueba 7 correcta: update or delete on table "variable" violates foreign key constraint "muestra_variable_id_fkey" on table "muestra"
+DO
+ROLLBACK
+
+=== 4. Datos sintéticos: datos_sinteticos.sql ===
+BEGIN
+INSERT 0 2
+INSERT 0 5
+INSERT 0 2
+INSERT 0 18000
+INSERT 0 17
+INSERT 0 9
+INSERT 0 7
+INSERT 0 5
+COMMIT
+ANALYZE
+código de salida: 0
+
+=== 5. Consultas del dashboard: consultas_kpi.sql (zona horaria America/La_Paz) ===
+ id | modo  |   programa   |         inicio         
+----+-------+--------------+------------------------
+  4 | local | brazo_gemelo | 2026-11-10 11:00:00-04
+(1 row)
+
+          dia           | modo  | horas 
+------------------------+-------+-------
+ 2026-11-10 00:00:00-04 | local | 53.14
+ 2026-11-10 00:00:00-04 | red   |  1.00
+(2 rows)
+
+          dia           | ciclos 
+------------------------+--------
+ 2026-11-10 00:00:00-04 |      2
+(1 row)
+
+ tag_isa |             nombre             | hz |        instante        
+---------+--------------------------------+----+------------------------
+ SY-100  | frecuencia del tren X/Y        |  0 | 2026-11-10 09:59:59-04
+ SY-101  | frecuencia del tren de la base |  0 | 2026-11-10 09:59:59-04
+(2 rows)
+
+ direccion | tag_isa |        descripcion         | valor |        instante        
+-----------+---------+----------------------------+-------+------------------------
+ Q0.3      | ZY-102D | dirección X (0 = adelante) | f     | 2026-11-10 09:01:10-04
+ Q0.5      | ZY-102K | relé K1: Q0.1 al driver X  | f     | 2026-11-10 09:05:00-04
+ Q0.4      | ZY-103D | dirección Y (0 = arriba)   | t     | 2026-11-10 09:05:10-04
+ Q0.6      | ZY-103K | relé K2: Q0.1 al driver Y  | f     | 2026-11-10 09:10:00-04
+(4 rows)
+
+ direccion | tag_isa |               descripcion               | valor |        instante        
+-----------+---------+-----------------------------------------+-------+------------------------
+ I0.0      | ZS-101  | sensor inductivo de la base (theta = 0) | f     | 2026-11-10 09:01:00-04
+ I0.2      | ZSH-102 | final de carrera X adelante             | f     | 2026-11-10 09:33:25-04
+ I0.1      | ZSL-102 | final de carrera X atrás (origen)       | f     | 2026-11-10 09:00:20-04
+ I0.3      | ZSL-103 | final de carrera Y abajo (origen)       | f     | 2026-11-10 09:00:40-04
+(4 rows)
+
+ tag_isa |        nombre        | unidad |        valor        |        instante        
+---------+----------------------+--------+---------------------+------------------------
+ ZI-101  | posición de la base  | deg    | -25.291385387293232 | 2026-11-10 09:59:59-04
+ ZI-102  | posición del carro X | mm     |   52.63703329823943 | 2026-11-10 09:59:59-04
+ ZI-103  | posición del carro Y | mm     |    76.4019338513465 | 2026-11-10 09:59:59-04
+(3 rows)
+
+           t            |  x_mm  
+------------------------+--------
+ 2026-11-10 09:00:00-04 |  90.88
+ 2026-11-10 09:01:00-04 | 102.61
+ 2026-11-10 09:02:00-04 | 113.63
+ 2026-11-10 09:03:00-04 | 123.51
+ 2026-11-10 09:04:00-04 | 131.86
+ 2026-11-10 09:05:00-04 | 138.34
+ 2026-11-10 09:06:00-04 | 142.69
+ 2026-11-10 09:07:00-04 | 144.74
+ 2026-11-10 09:08:00-04 | 144.41
+ 2026-11-10 09:09:00-04 | 141.72
+ 2026-11-10 09:10:00-04 | 136.76
+ 2026-11-10 09:11:00-04 | 129.73
+ 2026-11-10 09:12:00-04 | 120.93
+ 2026-11-10 09:13:00-04 | 110.69
+ 2026-11-10 09:14:00-04 |  99.43
+ 2026-11-10 09:15:00-04 |  87.59
+ 2026-11-10 09:16:00-04 |  75.65
+ 2026-11-10 09:17:00-04 |  64.08
+ 2026-11-10 09:18:00-04 |  53.35
+ 2026-11-10 09:19:00-04 |  43.88
+ 2026-11-10 09:20:00-04 |  36.04
+ 2026-11-10 09:21:00-04 |  30.16
+ 2026-11-10 09:22:00-04 |  26.47
+ 2026-11-10 09:23:00-04 |  25.11
+ 2026-11-10 09:24:00-04 |  26.13
+ 2026-11-10 09:25:00-04 |  29.51
+ 2026-11-10 09:26:00-04 |  35.09
+ 2026-11-10 09:27:00-04 |  42.67
+ 2026-11-10 09:28:00-04 |  51.93
+ 2026-11-10 09:29:00-04 |  62.51
+ 2026-11-10 09:30:00-04 |  73.99
+ 2026-11-10 09:31:00-04 |  85.91
+ 2026-11-10 09:32:00-04 |  97.79
+ 2026-11-10 09:33:00-04 | 109.16
+ 2026-11-10 09:34:00-04 | 119.57
+ 2026-11-10 09:35:00-04 | 128.60
+ 2026-11-10 09:36:00-04 | 135.89
+ 2026-11-10 09:37:00-04 | 141.15
+ 2026-11-10 09:38:00-04 | 144.18
+ 2026-11-10 09:39:00-04 | 144.84
+ 2026-11-10 09:40:00-04 | 143.12
+ 2026-11-10 09:41:00-04 | 139.08
+ 2026-11-10 09:42:00-04 | 132.89
+ 2026-11-10 09:43:00-04 | 124.79
+ 2026-11-10 09:44:00-04 | 115.10
+ 2026-11-10 09:45:00-04 | 104.21
+ 2026-11-10 09:46:00-04 |  92.55
+ 2026-11-10 09:47:00-04 |  80.60
+ 2026-11-10 09:48:00-04 |  68.82
+ 2026-11-10 09:49:00-04 |  57.68
+ 2026-11-10 09:50:00-04 |  47.64
+ 2026-11-10 09:51:00-04 |  39.08
+ 2026-11-10 09:52:00-04 |  32.35
+ 2026-11-10 09:53:00-04 |  27.73
+ 2026-11-10 09:54:00-04 |  25.38
+ 2026-11-10 09:55:00-04 |  25.42
+ 2026-11-10 09:56:00-04 |  27.82
+ 2026-11-10 09:57:00-04 |  32.51
+ 2026-11-10 09:58:00-04 |  39.29
+ 2026-11-10 09:59:00-04 |  47.90
+(60 rows)
+
+        instante        |   nombre_usado    |    rol     |      ip      | exito | duracion 
+------------------------+-------------------+------------+--------------+-------+----------
+ 2026-11-10 09:10:40-04 | root              |            | 192.168.1.99 | f     | 
+ 2026-11-10 09:10:20-04 | admin             |            | 192.168.1.99 | f     | 
+ 2026-11-10 09:10:00-04 | admin             |            | 192.168.1.99 | f     | 
+ 2026-11-10 09:05:00-04 | observador_prueba | observador | 192.168.1.51 | t     | 00:40:00
+ 2026-11-10 09:00:00-04 | operador_prueba   | operador   | 192.168.1.50 | t     | 01:00:00
+(5 rows)
+
+ ip | fallidos 
+----+----------
+(0 rows)
+
+  codigo  | severidad |        instante        |             detalle             
+----------+-----------+------------------------+---------------------------------
+ watchdog |         3 | 2026-11-10 09:59:10-04 | sin latido de la PC (sintético)
+(1 row)
+
+ severidad |     codigo     | veces 
+-----------+----------------+-------
+         3 | watchdog       |     1
+         2 | paro           |     1
+         1 | fuera_de_rango |     1
+(3 rows)
+
+      usuario      |                      motivo                       | veces 
+-------------------+---------------------------------------------------+-------
+ observador_prueba | su usuario es observador: solo puede ver el brazo |     1
+ operador_prueba   | destino fuera del recorrido                       |     1
+(2 rows)
+
+ id |        instante        | theta_deg | x_mm | y_mm 
+----+------------------------+-----------+------+------
+  6 | 2026-11-10 09:20:00-04 |           |  250 |     
+  5 | 2026-11-10 09:16:40-04 |           |  100 |     
+  3 | 2026-11-10 09:05:10-04 |           |   60 |  150
+  2 | 2026-11-10 09:01:10-04 |        30 |  120 |   40
+(4 rows)
+
+código de salida: 0
+
+=== 6. Uso del índice por marca de tiempo ===
+                                                                                        QUERY PLAN                                                                                        
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate (actual rows=1 loops=1)
+   InitPlan 1 (returns $0)
+     ->  Seq Scan on variable (actual rows=1 loops=1)
+           Filter: ((tag_isa)::text = 'ZI-102'::text)
+           Rows Removed by Filter: 4
+   ->  Bitmap Heap Scan on muestra (actual rows=601 loops=1)
+         Recheck Cond: ((variable_id = $0) AND (instante >= '2026-11-10 09:10:00-04'::timestamp with time zone) AND (instante <= '2026-11-10 09:20:00-04'::timestamp with time zone))
+         Heap Blocks: exact=26
+         ->  Bitmap Index Scan on muestra_variable_instante (actual rows=601 loops=1)
+               Index Cond: ((variable_id = $0) AND (instante >= '2026-11-10 09:10:00-04'::timestamp with time zone) AND (instante <= '2026-11-10 09:20:00-04'::timestamp with time zone))
+ Planning Time: 0.391 ms
+ Execution Time: 0.333 ms
+(12 rows)
+
+
+=== 7. ON UPDATE CASCADE (dentro de una transacción que se deshace) ===
+BEGIN
+UPDATE 1
+ muestras_con_variable_50 
+--------------------------
+                     3600
+(1 row)
+
+ROLLBACK
+
+=== 8. Trigger con datos sintéticos cargados: inserción fuera de rango fuera de la prueba ===
+BEGIN
+WARNING:  muestra descartada: ZI-101 = 400 deg fuera de [-263, 263]
+INSERT 0 0
+     codigo      |                detalle                
+-----------------+---------------------------------------
+ limite_variable | ZI-101 = 400 deg fuera de [-263, 263]
+(1 row)
+
+ en_operacion 
+--------------
+ f
+(1 row)
+
+ROLLBACK
