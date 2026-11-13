@@ -614,7 +614,7 @@
   },
   "semestres/2026_II/laboratorios/evaluacion_tareas_docente.xlsx": {
     "titulo": "Evaluación de las tareas del docente",
-    "descripcion": "Cada tarea del docente de las guías 1 a 8, lo realizado y su porcentaje de avance."
+    "descripcion": "Cada tarea del docente de las guías 1 a 8: si se realizó (sí, parcial o no), lo realizado y lo que falta."
   },
   "semestres/2026_II/database/documentacion/base_datos_brazo.pdf": {
     "titulo": "Base de datos del brazo",
