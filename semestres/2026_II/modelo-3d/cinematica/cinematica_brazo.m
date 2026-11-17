@@ -67,7 +67,7 @@ end
 
 function k = directa(P, D, theta, sX, sY)
     % sY = 0 en el final inferior (homing); g = posición del bloque 1 desde su tope trasero
-    psi = psi_de(P, D, P.recorridoY - sY);
+    psi = psi_de(P, D, D.carreraLibre - 2*P.holgura - sY);
     phi = psi - P.beta*pi/180;
     uA = D.u5_0 + sX + P.uA;
     Eu = uA + P.L9*cos(phi);  Eh = D.hA + P.L9*sin(phi);
@@ -89,7 +89,7 @@ function q = inversa(P, D, X, Y, Z)
     if abs(psi_de(P, D, g) - psi) > 1e-6         % probar la otra raíz
         g = bx + sqrt(P.L12^2 - (D.ch - bz)^2) - D.cu0;
     end
-    sY = P.recorridoY - g;
+    sY = D.carreraLibre - 2*P.holgura - g;
     q = [theta, sX, sY];
     if sX < 0 || sX > P.recorridoX || sY < 0 || sY > P.recorridoY
         warning('Fuera de recorrido');

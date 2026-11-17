@@ -9,7 +9,7 @@ bt = 1/K_theta;  bxy = 1/K_xy;
 
 A = zeros(3);
 Bm = @(k1, k2) [bt 0; 0 k1*bxy; 0 k2*bxy];
-C = [0 1 -0.492; 585.4 0 0; 0 0 2.307];   % J(q0) en el centro (0°, 85, 85), manual técnico cap. 8
+C = [0 1 -0.397; 574.8 0 0; 0 0 2.622];   % J(q0) en el centro (0°, 85, 85), cotas del modelo de Inventor
 D = zeros(3, 2);
 
 modos = {[1 0], 'K1 (X)'; [0 1], 'K2 (Y)'; [1 1], 'K1 y K2'; [0 0], 'ninguno'};

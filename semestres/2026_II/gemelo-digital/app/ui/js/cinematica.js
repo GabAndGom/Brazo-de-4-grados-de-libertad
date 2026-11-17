@@ -42,17 +42,17 @@
     hDiscoSup: 15,        // leida
     rDisco: 82.5,         // leida: Ø165
     hColumna: 120,        // leida: pieza 7
-    hBloque2: 40,         // leida: pieza 2
-    hBloque1: 50,         // leida: pieza 1
+    hBloque2: 51.3,       // inventor (ensambleGeneral, 17/11/2026); antes 40 (leida)
+    hBloque1: 51.3,       // inventor (ensambleGeneral, 17/11/2026); antes 50 (leida)
     largoBloque: 100,     // leida: bloques 1 y 2 a lo largo de las guías
     anchoBloque: 130,     // leida
-    sepNiveles: 45,       // leida: ejes de los husillos separados ~44-45 mm
+    sepNiveles: 60,       // inventor (ensambleGeneral, 17/11/2026): centros de los bloques 1 y 2 (8.7 mm de luz entre ellos); antes 45
     // Bastidor
-    largoGuias: 300,      // leida: piezas 16, Ø16 × 300
-    espesorPlaca: 13,     // leida: placas 5 y 10
-    anchoPlaca: 120,      // leida (f02, f04): 12.06 cm; agujeros a 22, 57 y 97 mm de un borde
-    altoPlaca: 110,       // leida: 11.03 cm
-    zGuias: 37.5,         // leida (f02): guías a ±37.5 mm del husillo (97 - 22 = 75 entre centros)
+    largoGuias: 334,      // inventor (ensambleGeneral, 17/11/2026): entre caras exteriores de las placas (guías Ø16 × 300 entre placas)
+    espesorPlaca: 16,     // inventor (ensambleGeneral, 17/11/2026); antes 13
+    anchoPlaca: 117,      // inventor (ensambleGeneral, 17/11/2026); antes 120
+    altoPlaca: 120,       // inventor (ensambleGeneral, 17/11/2026); antes 110
+    zGuias: 41.5,         // inventor (ensambleGeneral, 17/11/2026): guías a ±41.5 mm del plano del brazo; antes 37.5
     holgura: 2,           // SUPUESTO: distancia bloque-placa al pisar el final de carrera
     // Recorridos útiles (entre finales de carrera)
     recorridoX: 170,      // dato del equipo: el carro X recorre lo mismo que el carro Y (máximo
@@ -63,21 +63,21 @@
     // Mecanismo de bielas (cotas entre centros de pasadores). Las estimadas se ajustaron
     // con la foto de perfil del manual (fig. 1.3.3 A) y la foto f13: el modelo reproduce
     // esa pose con menos de 5 mm de diferencia en B y C.
-    uA: 20,               // estimada: pivote A casi sobre la cara delantera de la placa 5 (placa 13 + 7)
-    dhA: 45,              // estimada: pivote A a la altura del husillo superior (mitad del bloque 1)
-    hC: 110,              // leida: altura de la escuadra 6
-    dhC: -10,             // SUPUESTO: pivote C 10 mm bajo la punta de la escuadra 6
-    uCBloque: -60,        // estimada: la escuadra 6 está hacia atrás del bloque 1 (desde su cara delantera)
-    L12: 235,             // estimada: boceto pieza 12 = 24 cm de largo total; entre pivotes ≈ 235
-    a: 145,               // estimada (manual): distancia A-B del balancín 8+9
-    beta: 50,             // estimada (manual): ángulo entre A-B y el brazo A-E [°]
-    L9: 300,              // estimada: igual a la varilla 13 (leida 300) por ser paralelogramo
-    L14: 70,              // estimada: A-A' y E-E' (postes 14 de 46 mm + soportes)
+    uA: 23.5,             // inventor (ensambleGeneral, 17/11/2026): desde la cara interior de la placa delantera (placa 16 + 7.5); antes 20
+    dhA: 74.25,           // inventor (ensambleGeneral, 17/11/2026): sobre el centro del bloque 2; antes 45
+    hC: 107.9,            // inventor (ensambleGeneral, 17/11/2026): altura de la escuadra 6; antes 110
+    dhC: -9.9,            // inventor (ensambleGeneral, 17/11/2026): pivote C bajo la punta de la escuadra 6
+    uCBloque: -50,        // inventor (ensambleGeneral, 17/11/2026): pivote C detrás de la cara delantera del bloque 1; antes -60
+    L12: 230,             // inventor (ensambleGeneral, 17/11/2026): biela 12 entre pivotes; antes 235
+    a: 134.1,             // inventor (ensambleGeneral, 17/11/2026): distancia A-B; antes 145
+    beta: 50.2,           // inventor (ensambleGeneral, 17/11/2026): ángulo entre A-B y el brazo A-E [°]; antes 50
+    L9: 300,              // inventor (ensambleGeneral, 17/11/2026): brazo 9 entre pivotes A y E (coincide con lo estimado)
+    L14: 56,              // inventor (ensambleGeneral, 17/11/2026): A-A' (en el lado E mide 63.5: revisar el paralelogramo); antes 70
     // Pinza (desde el pivote E hasta el centro de las mordazas = TCP)
-    dg: 135,              // estimada (manual): E queda en la parte trasera del cuerpo 4, a media altura
-    hg: 20,               // estimada: las mordazas van un poco por debajo de E
+    dg: 117.7,            // inventor (ensambleGeneral, 17/11/2026): de E al centro de las mordazas; antes 135
+    hg: 0,                // inventor (ensambleGeneral, 17/11/2026): las mordazas quedan a la altura de E (-0.3 mm); antes 20
     hCuerpoPinza: 55,     // leida
-    pinzaBajoE: 35,       // estimada: el cuerpo 4 baja 35 mm desde E (y sube 20)
+    pinzaBajoE: 27.5,     // inventor (ensambleGeneral, 17/11/2026): el cuerpo de la pinza baja 27.5 mm desde E; antes 35
     // Transmisión
     pasoHusillo: 5,       // SUPUESTO [mm/rev]: husillo de bolas tipo SFU1605
     pasosMotor: 200,      // fabricante: 1.8°/paso
@@ -93,8 +93,9 @@
   };
 
   // Supuestos y estimaciones de foto: deben medirse en la planta
-  const SUPUESTOS = ['hEntreDiscos', 'holgura', 'recorridoX', 'recorridoY', 'thetaMin', 'thetaMax', 'uA', 'dhA',
-    'dhC', 'uCBloque', 'L12', 'a', 'beta', 'L9', 'L14', 'dg', 'hg', 'pinzaBajoE',
+  // Las cotas del mecanismo se tomaron del modelo de Inventor del equipo (17/11/2026):
+  // semestres/2026_II/modelo-3d/levantamiento/medidas_inventor.json
+  const SUPUESTOS = ['hEntreDiscos', 'holgura', 'recorridoX', 'recorridoY', 'thetaMin', 'thetaMax',
     'pasoHusillo', 'micropasosZ', 'reduccionBase'];
 
   // ------------------------------------------------------------------ geometría derivada
@@ -105,7 +106,7 @@
     const carreraLibre = p.largoGuias - 2 * p.espesorPlaca - p.largoBloque;
     const u5_0 = uBloque2 + p.holgura;           // cara interior de la placa 5 con sX = 0
     const hA = hEjeX + p.dhA;
-    const hCabs = hEjeX + p.hBloque2 / 2 + p.hBloque1 + p.hC + p.dhC;
+    const hCabs = hEjeX + p.sepNiveles + p.hBloque1 / 2 + p.hC + p.dhC;   // cara superior del bloque 1 + escuadra
     // C respecto a A (en el bastidor) con el bloque 1 atrás del todo (posición geométrica g = 0)
     const cu0 = -(carreraLibre - p.holgura) + p.uCBloque - p.uA;
     return { hEjeX, hEjeY, uBloque2, carreraLibre, u5_0, hA, hCabs, cu0, ch: hCabs - hA };
@@ -118,9 +119,11 @@
     const d = derivar(p);
     const beta = p.beta * RAD;
 
-    // Posición geométrica del bloque 1 desde su tope trasero: g = recorridoY - sY
-    // (sY se mide desde el final inferior, que es el homing).
-    const gY = sY => p.recorridoY - sY;
+    // Posición geométrica del bloque 1: g = (carreraLibre - 2·holgura) - sY. sY se mide desde el final
+    // inferior (homing, bloque 1 adelante), que se supone a 'holgura' del tope delantero, igual que el
+    // final trasero del carro X (SUPUESTO: no se midió dónde están los finales). Con las cotas anteriores
+    // (carreraLibre 174) es la fórmula de antes, g = recorridoY - sY.
+    const gY = sY => (d.carreraLibre - 2 * p.holgura) - sY;
 
     // Lazo A-B-C: ángulo ψ del segmento A-B para una posición geométrica g del bloque 1.
     // Rama de montaje real: B queda por debajo de la recta A-C.

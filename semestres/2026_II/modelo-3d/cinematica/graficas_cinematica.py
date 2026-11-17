@@ -42,7 +42,7 @@ def psi_de(g):
 def directa(theta, sX, sY):
     """Devuelve dict con phi [°], r, z, X, Y, Z [mm] y puntos A, B, C, E del plano."""
     sX, sY = np.broadcast_arrays(np.asarray(sX, float), np.asarray(sY, float))
-    g = P["recorridoY"] - sY          # sY = 0 en el final inferior (homing)
+    g = D["carreraLibre"] - 2 * P["holgura"] - sY   # sY = 0 en el final inferior (homing)
     psi = psi_de(g)
     phi = psi - BETA
     uA = D["u5_0"] + sX + P["uA"]
@@ -56,7 +56,7 @@ def directa(theta, sX, sY):
 
 
 def dphi_num(sY, h=1e-4):
-    g = P["recorridoY"] - sY
+    g = D["carreraLibre"] - 2 * P["holgura"] - sY
     return -(np.degrees(psi_de(g + h)) - np.degrees(psi_de(g - h))) / (2 * h)
 
 

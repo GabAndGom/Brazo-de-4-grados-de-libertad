@@ -1,0 +1,69 @@
+{
+  "fuente": "Inventor ensambleGeneral (STL por instancia), mm",
+  "parametros": {
+    "rDisco": 82.5,
+    "hDiscoSup": 15.0,
+    "hColumna": 120.0,
+    "largoBloque": 100.31,
+    "anchoBloque": 130.61,
+    "hBloque2": 51.3,
+    "hBloque1": 51.3,
+    "sepNiveles": 60.0,
+    "espesorPlaca": 16.01,
+    "anchoPlaca": 117.0,
+    "altoPlaca": 120.0,
+    "largoGuias": 334.01,
+    "zGuias": 41.52,
+    "uA": 23.51,
+    "dhA": 74.25,
+    "hC": 107.92,
+    "dhC": -9.9,
+    "uCBloque": -49.95,
+    "L12": 230.0,
+    "a": 134.13,
+    "L9": 300.0,
+    "beta": 50.18,
+    "L14": 56.0,
+    "L14_E": 63.5,
+    "L13": 295.0,
+    "dg": 117.73,
+    "hg": -0.3,
+    "hCuerpoPinza": 55.0,
+    "pinzaBajoE": 27.5
+  },
+  "pose": {
+    "sX_geom": 201.69,
+    "bloque1_contra_placa": -0.01
+  },
+  "puntos_u_h_desde_eje_inferior": {
+    "A": [
+      276.9,
+      74.25
+    ],
+    "B": [
+      410.69,
+      83.89
+    ],
+    "C": [
+      203.45,
+      183.67
+    ],
+    "E": [
+      485.1,
+      -141.75
+    ],
+    "A2": [
+      276.9,
+      130.25
+    ],
+    "E2": [
+      485.6,
+      -78.25
+    ],
+    "TCP": [
+      602.82,
+      -141.45
+    ]
+  },
+  "z_eje_inferior_sobre_base_disco": 160.65
+}

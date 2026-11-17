@@ -17,7 +17,8 @@ sigma = (k1, k2) es el estado de los relés K1 (Q0.5) y K2 (Q0.6): el sistema es
 Constantes (manual técnico, cap. 4 y 13):
     base: 190,3 pulsos/° medidos con transportador (26/10/2026)
     carros: 1000 pulsos/vuelta / 5 mm por vuelta del husillo = 200 pulsos/mm  (paso de 5 mm: SUPUESTO)
-    J(q0) en el centro (0°, 85 mm, 85 mm): tabla del capítulo 8 del manual técnico (theta en rad)
+    J(q0) en el centro (0°, 85 mm, 85 mm): K.jacobiano() de web/js/cinematica.js con las cotas del modelo de
+    Inventor (17/11/2026), theta en rad
 
 Calcula: rango de controlabilidad y observabilidad por modo de los relés, modelo discreto con
 retención de orden cero (ZOH) y funciones de transferencia por eje. Equivalente en MATLAB:
@@ -31,9 +32,9 @@ K_XY = 1000 / 5                        # pulsos/mm (SUPUESTO: husillo de 5 mm)
 b_t, b_xy = 1 / K_THETA, 1 / K_XY
 
 A = np.zeros((3, 3))
-C_centro = np.array([[0.0, 1.0, -0.492],      # X  = d(X, Y, Z)/d(theta, sX, sY) en (0°, 85, 85)
-                     [585.4, 0.0, 0.0],       # Y
-                     [0.0, 0.0, 2.307]])      # Z
+C_centro = np.array([[0.0, 1.0, -0.397],      # X  = d(X, Y, Z)/d(theta, sX, sY) en (0°, 85, 85)
+                     [574.8, 0.0, 0.0],       # Y
+                     [0.0, 0.0, 2.622]])      # Z
 C_estimado = np.eye(3)                         # el gemelo "mide" los tres estados contando pulsos
 
 

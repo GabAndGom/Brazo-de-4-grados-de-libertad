@@ -193,7 +193,7 @@ cilindro(cyN.geo, 'motor', [0, P.sepNiveles, 0], [8, P.sepNiveles, 0], 24, 24);
 for (const x of [-P.largoBloque - 1, 0]) {                                        // bujes lineales (Ø28)
   for (const z of [-P.zGuias, P.zGuias]) cilindro(cyN.geo, 'goma', [x, P.sepNiveles, z], [x + 1, P.sepNiveles, z], 14, 20);
 }
-const yTop1 = P.hBloque2 / 2 + P.hBloque1;            // cara superior del bloque 1 (relativa al eje inferior)
+const yTop1 = P.sepNiveles + P.hBloque1 / 2;          // cara superior del bloque 1 (relativa al eje inferior)
 const hCrel = D.hCabs - D.hEjeX;                       // pivote C (relativo al eje inferior)
 for (const z0 of [-17, 6]) {
   prisma(cyN.geo, 'aluminio', [[P.uCBloque - 24.5, yTop1], [P.uCBloque + 24.5, yTop1],
