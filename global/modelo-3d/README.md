@@ -1,13 +1,21 @@
 # Modelo 3D del brazo XK-JS1-1
 
 `brazo_xk-js1-1.glb` es el modelo articulado a escala real (metros, Y hacia arriba) que usa la sección
-**Modelo 3D** de la página. Se genera con un script, sin Blender:
+**Modelo 3D** de la página. Usa las piezas del **modelo de Inventor del equipo** (`inventor/`: piezas `.ipt`,
+ensambles `.iam` y el ensamble exportado a STL, un archivo por pieza en `inventor/stl/`). Se genera con un
+script, sin Blender:
 
 ```bash
 node global/modelo-3d/generar_modelo.js
 ```
 
-El script toma todas las cotas de `web/js/cinematica.js`. Para corregir una medida:
+El script lee los STL, calcula con `web/js/cinematica.js` la pose en que se exportó el ensamble y lleva cada pieza
+al marco de su nodo. Solo el disco fijo de abajo, que no está en el ensamble, se dibuja con primitivas. Para
+dibujar el modelo en una pose (figuras de los informes): `python3 global/modelo-3d/dibujar_modelo.py`.
+
+Si cambia el modelo de Inventor: exportar de nuevo `ensambleGeneral.iam` a STL ("un archivo por instancia",
+en mm) a `inventor/stl/`, ejecutar `python3 semestres/2026_II/modelo-3d/levantamiento/medidas_inventor.py`,
+pasar las cotas que cambien a `web/js/cinematica.js` y seguir los pasos de abajo. Para corregir una medida:
 
 1. Se cambia en `PARAMETROS`, dentro de `web/js/cinematica.js`.
 2. Se vuelve a generar el modelo con el comando de arriba.
@@ -25,13 +33,13 @@ Cada pieza móvil tiene el origen en su eje de giro o en su guía lineal. La pá
 | `carro_y` | prismática, eje X | posición inicial + carro Y |
 | `biela_12` | revoluta, eje Z (pasiva) | ángulo de la biela, de la cinemática |
 | `brazo_9` | revoluta, eje Z (pasiva) | φ, de la cinemática |
-| `pinza` | revoluta, eje Z (pasiva) | −φ (el paralelogramo la deja horizontal) |
-| `varilla_13` | revoluta, eje Z (pasiva) | φ |
+| `pinza` | revoluta, eje Z (pasiva) | γ − φ (la varilla 13 no forma un paralelogramo: la pinza se inclina γ) |
+| `varilla_13` | revoluta, eje Z (pasiva) | ángulo de la varilla 13, de la cinemática |
 | `mordaza_izq`, `mordaza_der` | revoluta, eje Y (garra) | dedos en el plano horizontal: paralelos con la garra cerrada (Q0.7 ON) y ±25° abierta (SUPUESTO) |
 | `tcp` | — | punto de trabajo (centro de las mordazas) |
 
-La geometría es simplificada (cajas, cilindros y prismas) y las piezas sin cota usan valores **SUPUESTO**
-(ver `semestres/2026_II/modelo-3d/levantamiento/levantamiento_medidas.md`).
+Las mordazas son la misma pieza de Inventor: en el STL una está abierta, así que el modelo usa la cerrada y su
+espejo; su pivote de apertura es **SUPUESTO**.
 
 El modelo anterior (`brazo_robotico_v2.glb`, 4.5 MB, malla generada por IA y cortada en nodos) queda fuera
 del repositorio: tenía la escala aproximada y los orígenes de los nodos no estaban en los ejes.

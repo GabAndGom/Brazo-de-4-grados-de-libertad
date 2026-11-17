@@ -3,9 +3,10 @@
  *
  *   node global/modelo-3d/generar_modelo.js
  *
- * Sin dependencias: construye la geometría con primitivas (cajas, cilindros y
- * prismas) a partir de las cotas de web/js/cinematica.js y escribe el glTF
- * binario a mano. Cada pieza móvil es un nodo con el origen en su eje de giro o
+ * Sin dependencias. Usa las piezas del modelo de Inventor del equipo
+ * (inventor/stl/, un STL por instancia) y las acomoda en los nodos articulados
+ * con las cotas de web/js/cinematica.js; solo el disco fijo de abajo, que no está
+ * en el ensamble de Inventor, se dibuja con primitivas. Escribe el glTF binario a mano. Cada pieza móvil es un nodo con el origen en su eje de giro o
  * en su guía lineal; la jerarquía sigue el mecanismo:
  *
  *   brazo_xk_js1_1
@@ -15,10 +16,10 @@
  *         ├─ carro_y       P  sY (eje X)           bloque 1, escuadra 6
  *         │  └─ biela_12   R  pasiva (pivote C)
  *         ├─ brazo_9       R  pasiva φ (pivote A)  brazo 9 + escuadra 8
- *         │  └─ pinza      R  -φ (pivote E: queda horizontal)
+ *         │  └─ pinza      R  γ - φ (pivote E: se inclina γ, no es paralelogramo)
  *         │     ├─ mordaza_izq / mordaza_der   garra ON/OFF (giran en el plano horizontal)
  *         │     └─ tcp     punto de trabajo
- *         └─ varilla_13    R  pasiva φ (pivote A')
+ *         └─ varilla_13    R  pasiva (pivote A', ángulo de la varilla 13)
  *
  * Las bielas pasivas no se animan a mano: la página calcula sus ángulos con la
  * cinemática (web/js/cinematica.js). Unidades del glTF: metros, Y hacia arriba,
@@ -114,141 +115,133 @@ function barra(geo, mat, L, w, z0, z1) {
 
 const pasador = (geo, u, h, z0, z1) => cilindro(geo, 'acero', [u, h, z0], [u, h, z1], 4.5, 16);
 
-// ------------------------------------------------------------------ piezas
+// ------------------------------------------------------------------ mallas de Inventor
+// Las piezas son las del modelo de Inventor del equipo, exportado a STL "un archivo por instancia"
+// (inventor/stl/). medidas_inventor.json da el marco del ensamble (R, o) y la pose en que se exportó.
+const DIR_STL = path.join(__dirname, 'inventor', 'stl');
+const INV = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'semestres', '2026_II', 'modelo-3d',
+  'levantamiento', 'medidas_inventor.json'), 'utf8'));
+
+function leerStl(nombre) {
+  const b = fs.readFileSync(path.join(DIR_STL, 'ensambleGeneral_1_' + nombre + '.stl'));
+  const n = b.readUInt32LE(80), tris = [];
+  for (let i = 0; i < n; i++) {
+    const o = 84 + i * 50 + 12, t = [];
+    for (let k = 0; k < 3; k++) t.push([b.readFloatLE(o + k * 12), b.readFloatLE(o + k * 12 + 4), b.readFloatLE(o + k * 12 + 8)]);
+    tris.push(t);
+  }
+  return tris;
+}
+
+// Punto del STL -> mundo del glTF en mm (x = adelante, y = arriba desde la mesa, z = lateral) con θ = 0
+const hSup = P.hDiscoInf + P.hEntreDiscos;                 // cara inferior del disco giratorio
+function aMundo(v) {
+  const R = INV.marco.R, o = INV.marco.o;
+  const l = [0, 1, 2].map(i => R[i][0] * v[0] + R[i][1] * v[1] + R[i][2] * v[2] - o[i]);
+  return [-l[0], l[2] + hSup, l[1]];
+}
+
+// Pose en que se exportó el ensamble (bastidor y bloque 1 contra la placa delantera)
+const qRef = { theta: 0, sX: INV.pose.sX_geom - P.holgura, sY: -P.holgura };
+const FR = K.directa(qRef);
+const RAD = Math.PI / 180;
+
+// Marco de cada nodo en esa pose: origen (mm, mundo) y giro alrededor de z
+const ORIGEN = {};
+function marco(nombre, o, ang) { ORIGEN[nombre] = { o, ang: (ang || 0) * RAD }; }
+const tX = [D.u5_0 + qRef.sX, D.hEjeX, 0];                 // carro X (origen en la placa delantera, eje inferior)
+const xBloque1_0 = -(D.carreraLibre - P.holgura);
+const tY = [tX[0] + xBloque1_0 + FR.posBloque1, D.hEjeX, 0];
+const hCrel = D.hCabs - D.hEjeX;
+marco('base_giratoria', [0, 0, 0]);
+marco('carro_x', tX);
+marco('carro_y', tY);
+marco('biela_12', [tY[0] + P.uCBloque, D.hEjeX + hCrel, 0], FR.angBiela);
+marco('brazo_9', [FR.puntos.A.u, FR.puntos.A.h, 0], FR.phi);
+marco('pinza', [FR.puntos.E.u, FR.puntos.E.h, 0], FR.gamma);
+marco('varilla_13', [FR.puntos.A2.u, FR.puntos.A2.h, 0], FR.angVarilla);
+
+function aLocal(nombre, w) {
+  const m = ORIGEN[nombre], dx = w[0] - m.o[0], dy = w[1] - m.o[1], c = Math.cos(-m.ang), s = Math.sin(-m.ang);
+  return [dx * c - dy * s, dx * s + dy * c, w[2] - m.o[2]];
+}
+function pieza(n, nombre, mat, transformar, enMarcoDe, espejo) {
+  for (const t of leerStl(nombre)) {
+    const v = t.map(p => (transformar || (w => w))(aLocal(enMarcoDe || n.nombre, aMundo(p))));
+    if (espejo) v.reverse();                                 // un espejo invierte el sentido de las caras
+    tri(n.geo, mat, v[0], v[1], v[2]);
+  }
+}
+
+// ------------------------------------------------------------------ nodos
 const nodos = [];
 function nodo(nombre, padre, opciones) {
   const n = Object.assign({ nombre, padre, geo: nuevaGeo(), t: [0, 0, 0], extras: null }, opciones || {});
   nodos.push(n); return n;
 }
+const rel = (hijo, padre) => { const a = ORIGEN[hijo], b = ORIGEN[padre];      // traslación en el marco del padre
+  const dx = a.o[0] - b.o[0], dy = a.o[1] - b.o[1], c = Math.cos(-b.ang), s = Math.sin(-b.ang);
+  return [dx * c - dy * s, dx * s + dy * c, a.o[2] - b.o[2]]; };
 
-// Ejes locales: x = adelante (radial), y = arriba, z = lateral
 const raiz = nodo('brazo_xk_js1_1', null);
 
-// Base fija: disco inferior y buje
+// Base fija: disco inferior y buje (el ensamble de Inventor no los incluye)
 const baseFija = nodo('base_fija', raiz);
 cilindro(baseFija.geo, 'aluminio', [0, 0, 0], [0, P.hDiscoInf, 0], P.rDisco, 48);
-cilindro(baseFija.geo, 'acero', [0, P.hDiscoInf, 0], [0, P.hDiscoInf + P.hEntreDiscos, 0], 30, 32);
+cilindro(baseFija.geo, 'acero', [0, P.hDiscoInf, 0], [0, hSup, 0], 30, 32);
 
-// Base giratoria (θ)
-const hSup = P.hDiscoInf + P.hEntreDiscos;                 // cara inferior del disco superior
-const hCol = hSup + P.hDiscoSup;                          // pie de la columna
+// Base giratoria (θ): disco, columnas y bloque 2
 const giro = nodo('base_giratoria', raiz, { extras: { articulacion: 'revoluta', eje: 'y', variable: 'theta' } });
-cilindro(giro.geo, 'aluminio', [0, hSup, 0], [0, hCol, 0], P.rDisco, 48);
-// Columna 7 en H: dos patas y travesaño (SUPUESTO de forma)
-caja(giro.geo, 'aluminio', 0, hCol + P.hColumna / 2, 38.5, 71, P.hColumna, 23);
-caja(giro.geo, 'aluminio', 0, hCol + P.hColumna / 2, -38.5, 71, P.hColumna, 23);
-caja(giro.geo, 'aluminio', 0, hCol + P.hColumna - 7.5, 0, 71, 15, 100);
-caja(giro.geo, 'aluminio', 0, hCol + 5, 0, 90, 10, 120);
-// Bloque 2 (fijo) con la tuerca del husillo inferior
-caja(giro.geo, 'aluminio', 0, D.hEjeX, 0, P.largoBloque, P.hBloque2, P.anchoBloque);
-cilindro(giro.geo, 'motor', [P.largoBloque / 2, D.hEjeX, 0], [P.largoBloque / 2 + 8, D.hEjeX, 0], 24, 24);
-for (const x of [-P.largoBloque / 2 - 1, P.largoBloque / 2]) {                   // bujes lineales (Ø28)
-  for (const z of [-P.zGuias, P.zGuias]) cilindro(giro.geo, 'goma', [x, D.hEjeX, z], [x + 1, D.hEjeX, z], 14, 20);
-}
-// Motor NEMA 17 delante de la columna (fotos f11, f13) con su acople hacia el engranaje, y sensor inductivo
-caja(giro.geo, 'motor', 62, hCol + 30, 0, 42, 48, 42);
-cilindro(giro.geo, 'acero', [62, hCol, 0], [62, hCol + 6, 0], 13, 20);
-cilindro(giro.geo, 'sensor', [-45, hCol, 58], [-45, hCol + 45, 58], 6, 16);
+pieza(giro, 'baseBrazo_14', 'aluminio');
+pieza(giro, 'baseCorredera_11', 'aluminio');
+pieza(giro, 'baseCorredera_12', 'aluminio');
+pieza(giro, 'BaseRodilloY_8', 'aluminio');
 
-// Bastidor = carro X. Origen: eje del husillo inferior, en la cara interior de la placa 5
+// Carro X: placas, guías, soporte del pivote A y poste de A'. Su traslación en el GLB es con sX = 0.
 const cx = nodo('carro_x', giro, { t: [D.u5_0, D.hEjeX, 0], extras: { articulacion: 'prismatica', eje: 'x', variable: 'sX' } });
-const xp10 = -(P.largoGuias - 2 * P.espesorPlaca);        // cara interior de la placa 10
-const yPlaca = P.sepNiveles / 2;
-// Placas 5 y 10: 120 de ancho (lateral) × 110 de alto, con los dos niveles de guías y husillo
-caja(cx.geo, 'aluminio', P.espesorPlaca / 2, yPlaca, 0, P.espesorPlaca, P.altoPlaca, P.anchoPlaca);
-caja(cx.geo, 'aluminio', xp10 - P.espesorPlaca / 2, yPlaca, 0, P.espesorPlaca, P.altoPlaca, P.anchoPlaca);
-for (const y of [0, P.sepNiveles]) {
-  for (const z of [-P.zGuias, P.zGuias]) cilindro(cx.geo, 'acero', [xp10 - P.espesorPlaca, y, z], [P.espesorPlaca, y, z], 8, 20);
-  cilindro(cx.geo, 'acero', [xp10 - P.espesorPlaca, y, 0], [P.espesorPlaca, y, 0], 8, 20);   // husillo
-}
-// Motores NEMA 23 con adaptadores 3 (arriba Y, abajo X); separados para que no se crucen (SUPUESTO)
-const xm = xp10 - P.espesorPlaca;
-for (const [y, nombre] of [[-8, 'X'], [P.sepNiveles + 8, 'Y']]) {
-  caja(cx.geo, 'aluminio', xm - 25, y, 0, 50, 57, 57);
-  caja(cx.geo, 'motor', xm - 50 - 38, y, 0, 76, 56, 56);
-  caja(cx.geo, 'acero', xm - 50 - 77, y, 0, 2, 38, 38);     // tapa trasera del motor
-}
-// Barras de finales de carrera en las placas 5 y 10 (dos interruptores cada una)
-for (const x of [P.espesorPlaca / 2, xp10 - P.espesorPlaca / 2]) {
-  const zBarra = -(P.anchoPlaca / 2 + 4);
-  caja(cx.geo, 'aluminio', x, yPlaca, zBarra, 16, P.altoPlaca, 8);
-  for (const y of [0, P.sepNiveles]) caja(cx.geo, 'motor', x + (x > 0 ? -12 : 12), y, zBarra, 12, 18, 10);
-}
-// Horquilla 17 en la cara delantera de la placa 5 (pivote A, a la altura del husillo superior)
-const xH = P.espesorPlaca, largoH = P.uA - P.espesorPlaca + 12;
-caja(cx.geo, 'aluminio', xH + largoH / 2, P.dhA, -24, largoH, 34, 6);
-caja(cx.geo, 'aluminio', xH + largoH / 2, P.dhA, 24, largoH, 34, 6);
-pasador(cx.geo, P.uA, P.dhA, -32, 32);
-// Soporte sobre la placa 5 y poste 14 del pivote A' (paralelogramo), en el plano central del brazo:
-// la varilla 13 pasa entre las dos placas de la escuadra 8
-const yTopPlaca = P.sepNiveles / 2 + P.altoPlaca / 2;
-caja(cx.geo, 'aluminio', (P.uA + 6) / 2, yTopPlaca + 5, 0, P.uA + 6, 10, 20);
-cilindro(cx.geo, 'acero', [P.uA, yTopPlaca + 10, 0], [P.uA, P.dhA + P.L14, 0], 5, 16);
+for (const k of ['soporteCorrederas_1', 'soporteCorrederas_2', 'Pieza14_10']) pieza(cx, k, 'aluminio');
+for (const k of ['barraDesliz_3', 'barraDesliz_4', 'barraDesliz_5', 'barraDesliz_6', 'soporteRodillo_22']) pieza(cx, k, 'acero');
 
-// Carro Y: bloque 1 con la escuadra 6. Origen: cara delantera del bloque 1 sobre el eje inferior
-const xBloque1_0 = -(D.carreraLibre - P.holgura);
+// Carro Y: bloque 1 y escuadra 6. Su traslación en el GLB es con el bloque 1 en g = 0.
 const cyN = nodo('carro_y', cx, { t: [xBloque1_0, 0, 0], extras: { articulacion: 'prismatica', eje: 'x', variable: 'sY' } });
-caja(cyN.geo, 'aluminio', -P.largoBloque / 2, P.sepNiveles, 0, P.largoBloque, P.hBloque1, P.anchoBloque);
-cilindro(cyN.geo, 'motor', [0, P.sepNiveles, 0], [8, P.sepNiveles, 0], 24, 24);
-for (const x of [-P.largoBloque - 1, 0]) {                                        // bujes lineales (Ø28)
-  for (const z of [-P.zGuias, P.zGuias]) cilindro(cyN.geo, 'goma', [x, P.sepNiveles, z], [x + 1, P.sepNiveles, z], 14, 20);
-}
-const yTop1 = P.sepNiveles + P.hBloque1 / 2;          // cara superior del bloque 1 (relativa al eje inferior)
-const hCrel = D.hCabs - D.hEjeX;                       // pivote C (relativo al eje inferior)
-for (const z0 of [-17, 6]) {
-  prisma(cyN.geo, 'aluminio', [[P.uCBloque - 24.5, yTop1], [P.uCBloque + 24.5, yTop1],
-    [P.uCBloque + 12, yTop1 + P.hC], [P.uCBloque - 12, yTop1 + P.hC]], z0, z0 + 11);
-}
-pasador(cyN.geo, P.uCBloque, hCrel, -20, 20);
+pieza(cyN, 'BaseRodilloY_7', 'aluminio');
+pieza(cyN, 'soporteBarrasBrazo_9', 'aluminio');
 
-// Biela 12: origen en C, a lo largo de +x hasta B
-const biela = nodo('biela_12', cyN, { t: [P.uCBloque, hCrel, 0], extras: { articulacion: 'revoluta', eje: 'z', pasiva: true } });
-barra(biela.geo, 'aluminio', P.L12, 24, -5.5, 5.5);
+const biela = nodo('biela_12', cyN, { t: rel('biela_12', 'carro_y'), extras: { articulacion: 'revoluta', eje: 'z', pasiva: true } });
+pieza(biela, 'barraBrazo2_19', 'aluminio');
 
-// Brazo 9 + escuadra 8: origen en A, brazo a lo largo de +x
-const brazo = nodo('brazo_9', cx, { t: [P.uA, P.dhA, 0], extras: { articulacion: 'revoluta', eje: 'z', pasiva: true, variable: 'phi' } });
-barra(brazo.geo, 'aluminio', P.L9, 46, -5, 5);
-const bU = P.a * Math.cos(P.beta * Math.PI / 180), bH = P.a * Math.sin(P.beta * Math.PI / 180);
-for (const z0 of [-17, 6]) prisma(brazo.geo, 'aluminio', [[20, 0], [125, 0], [bU + 12, bH], [bU - 12, bH]], z0, z0 + 11);
-pasador(brazo.geo, bU, bH, -20, 20);
-pasador(brazo.geo, P.L9, 0, -32, 32);
+const brazo = nodo('brazo_9', cx, { t: rel('brazo_9', 'carro_x'), extras: { articulacion: 'revoluta', eje: 'z', pasiva: true, variable: 'phi' } });
+pieza(brazo, 'barraBrazo1_13', 'aluminio');
+pieza(brazo, 'soporteBarrasBrazo_20', 'aluminio');
 
-// Pinza: origen en E, contrarrota -φ para quedar horizontal
-const pinza = nodo('pinza', brazo, { t: [P.L9, 0, 0], extras: { articulacion: 'revoluta', eje: 'z', pasiva: true, nota: 'rotación = -phi (paralelogramo)' } });
-// Cuerpo 4: E en su parte trasera, a media altura (sube hCuerpo - pinzaBajoE y baja pinzaBajoE)
-const yCuerpo = (P.hCuerpoPinza - 2 * P.pinzaBajoE) / 2;
-caja(pinza.geo, 'aluminio', 35, yCuerpo, 0, 80, P.hCuerpoPinza, 55);          // el solenoide va dentro
-for (const [x, z] of [[15, -12], [35, 10], [55, -12], [35, -12]]) {                   // tornillos de la tapa
-  cilindro(pinza.geo, 'motor', [x, yCuerpo + P.hCuerpoPinza / 2, z], [x, yCuerpo + P.hCuerpoPinza / 2 + 0.6, z], 2.5, 10);
-}
-const yTopCuerpo = P.hCuerpoPinza - P.pinzaBajoE;
-cilindro(pinza.geo, 'aluminio', [0, yTopCuerpo, 0], [0, yTopCuerpo + 6, 0], 9, 16);          // base del poste
-cilindro(pinza.geo, 'acero', [0, yTopCuerpo, 0], [0, P.L14, 0], 5, 16);                  // poste 14 al centro de la pinza
-// Mordazas 15: dos dedos planos que abren y cierran en el plano HORIZONTAL (fotos f13 y f18).
-// Cada dedo pivota sobre un eje vertical en una esquina delantera del cuerpo 4 y termina en un
-// bloque de agarre. Cerrada: dedos paralelos con los bloques juntos en el centro (TCP).
-const xPivDedo = 75, zPivDedo = 16;
-const largoDedo = (P.dg - xPivDedo) / 0.75;     // el centro del bloque de agarre queda en el TCP
-// +z del glTF es la derecha del robot (Y del robot = -z)
-for (const [nombre, s] of [['mordaza_der', 1], ['mordaza_izq', -1]]) {
+// Pinza: origen en E. La página le aplica γ - φ (cuadrilátero A-A'-E'-E, no paralelogramo).
+const pinza = nodo('pinza', brazo, { t: [P.L9, 0, 0], extras: { articulacion: 'revoluta', eje: 'z', pasiva: true, nota: 'rotación = gamma - phi' } });
+pieza(pinza, 'soportePinza_17', 'aluminio');
+pieza(pinza, 'trasePinza_18', 'aluminio');
+pieza(pinza, 'soporteRodillo_21', 'acero');
+
+// Mordazas: la 15 está cerrada en el STL; la derecha es su espejo respecto del plano medio del cuerpo.
+// Pivote (SUPUESTO): en el extremo trasero de cada mordaza, dentro del cuerpo, del lado exterior.
+const PZ = INV.pinza;
+const zMedio = PZ.y_plano_medio;                          // coordenada lateral del plano medio (mundo, mm)
+const uPiv = PZ.mordaza_u_trasera + (PZ.cuerpo_u_delantera - PZ.mordaza_u_trasera) / 2 - FR.puntos.E.u;
+const anchoMordaza = Math.abs(PZ.mordaza_y_interior - zMedio) + 29;  // 29 mm de ancho de la mordaza
+for (const [nombre, s] of [['mordaza_izq', 1], ['mordaza_der', -1]]) {
+  const zPiv = s * -(anchoMordaza - 2);                    // borde exterior (relativo al plano medio)
   const m = nodo(nombre, pinza, {
-    t: [xPivDedo, -P.hg, s * zPivDedo],
+    t: [uPiv, -P.hg, zPiv],
     extras: { articulacion: 'revoluta', eje: 'y', garra: true, apertura_grados: 25 }
   });
-  cilindro(m.geo, 'acero', [0, -12, 0], [0, 12, 0], 5, 16);                       // pasador vertical
-  caja(m.geo, 'aluminio', largoDedo * 0.35, 0, 0, largoDedo * 0.7, 10, 16);         // dedo: placa plana horizontal
-  // Bloque de agarre: desde el borde exterior del dedo hasta casi el centro de la pinza
-  const zIn = -s * (zPivDedo - 1), zOut = s * 8;
-  caja(m.geo, 'aluminio', largoDedo * 0.75, 0, (zIn + zOut) / 2, largoDedo * 0.5, 26, Math.abs(zOut - zIn));
-  caja(m.geo, 'goma', largoDedo * 0.75, 0, -s * (zPivDedo - 2.5), largoDedo * 0.4, 22, 3);  // cinta de agarre
+  pieza(m, 'pinza_15', 'aluminio', v => {
+    // v está en el marco de la pinza; se lleva al plano medio, se espeja si hace falta y se pasa al pivote
+    const z = (v[2] - zMedio) * s;
+    return [v[0] - uPiv, v[1] + P.hg, z - zPiv];
+  }, 'pinza', s < 0);
 }
 nodo('tcp', pinza, { t: [P.dg, -P.hg, 0] });
 
-// Varilla 13: origen en A', paralela al brazo
-const varilla = nodo('varilla_13', cx, { t: [P.uA, P.dhA + P.L14, 0], extras: { articulacion: 'revoluta', eje: 'z', pasiva: true } });
-cilindro(varilla.geo, 'aluminio', [0, 0, 0], [P.L9, 0, 0], 5.5, 16);
-cilindro(varilla.geo, 'acero', [0, 0, -6], [0, 0, 6], 7, 16);
-cilindro(varilla.geo, 'acero', [P.L9, 0, -6], [P.L9, 0, 6], 7, 16);
+const varilla = nodo('varilla_13', cx, { t: rel('varilla_13', 'carro_x'), extras: { articulacion: 'revoluta', eje: 'z', pasiva: true } });
+pieza(varilla, 'barillaBrazo_23', 'acero');
 
 // ------------------------------------------------------------------ glTF binario
 function escribirGlb() {

@@ -32,9 +32,9 @@ K_XY = 1000 / 5                        # pulsos/mm (SUPUESTO: husillo de 5 mm)
 b_t, b_xy = 1 / K_THETA, 1 / K_XY
 
 A = np.zeros((3, 3))
-C_centro = np.array([[0.0, 1.0, -0.397],      # X  = d(X, Y, Z)/d(theta, sX, sY) en (0°, 85, 85)
-                     [574.8, 0.0, 0.0],       # Y
-                     [0.0, 0.0, 2.622]])      # Z
+C_centro = np.array([[0.0, 1.0, -0.412],      # X  = d(X, Y, Z)/d(theta, sX, sY) en (0°, 85, 85)
+                     [578.8, 0.0, 0.0],       # Y
+                     [0.0, 0.0, 2.760]])      # Z
 C_estimado = np.eye(3)                         # el gemelo "mide" los tres estados contando pulsos
 
 

@@ -636,8 +636,8 @@ donde $u_A$ depende de $s_X$ (el carro X desplaza todo el brazo) y el ángulo $\
 Dado el punto $(X, Y, Z)$, la página calcula los carros en cuatro pasos:
 \begin{enumerate}
 \item \textbf{Giro de la base}: $\theta = \operatorname{atan2}(Y, X)$, y la distancia horizontal al eje $r = \sqrt{X^2 + Y^2}$.
-\item \textbf{Ángulo del brazo} a partir de la altura: $\sin\varphi = \dfrac{Z + h_g - h_A}{L_9}$. Si el cociente pasa de 1, la altura es inalcanzable.
-\item \textbf{Carro X} a partir del alcance: $s_X = r - d_g - L_9\cos\varphi - u_0$.
+\item \textbf{Ángulo del brazo} a partir de la altura: se busca $\varphi$ tal que $h_A + L_9\sin\varphi + d_g\sin\gamma(\varphi) = Z$, por bisección, porque la pinza se inclina un ángulo $\gamma$ que depende de $\varphi$ (la varilla 13 no forma un paralelogramo). Si no hay solución, la altura es inalcanzable.
+\item \textbf{Carro X} a partir del alcance: $s_X = r - d_g\cos\gamma - L_9\cos\varphi - u_0$.
 \item \textbf{Carro Y}: con $\psi = \varphi + \beta$ se conoce la posición del pasador B; el bloque del carro Y debe estar donde la biela de longitud $L_{12}$ une B con C. Es la intersección de una circunferencia con una recta, y se elige la solución que corresponde al montaje real.
 \end{enumerate}
 Luego se comprueba que los carros queden dentro de su recorrido y que la pinza no choque con la mesa.
@@ -673,29 +673,29 @@ Como $s_X$ y $s_Y$ van de 0 a 170~mm, la garra solo puede estar dentro de la ima
 \centering
 \begin{tikzpicture}[x=0.019cm,y=0.019cm]
 \draw[->] (380,0) -- (720,0) node[right, etiq]{$r$ [mm]};
-\draw[->] (380,0) -- (380,480) node[above, etiq]{$z$ [mm]};
+\draw[->] (380,0) -- (380,580) node[above, etiq]{$z$ [mm]};
 \foreach \r in {400,500,600,700} {\draw (\r,0) -- (\r,-6) node[below, font=\tiny]{\r};}
-\foreach \z in {100,200,300,400} {\draw (380,\z) -- (374,\z) node[left, font=\tiny]{\z};}
-\fill[naranja!15, draw=naranja!80!black, thick] plot coordinates {(460,54) (481,54) (502,54) (523,54) (545,54) (566,54) (587,54) (608,54) (630,54) (641,74) (651,93) (659,113) (665,132) (670,152) (674,171) (676,190) (677,209) (677,227) (676,245) (673,262) (670,279) (667,295) (662,310) (656,325) (650,340) (644,353) (636,367) (629,379) (620,392) (611,403) (602,415) (592,425) (581,436) (560,436) (539,436) (518,436) (496,436) (475,436) (454,436) (433,436) (411,436) (422,425) (432,415) (441,403) (450,392) (459,379) (466,367) (474,353) (480,340) (486,325) (492,310) (497,295) (500,279) (503,262) (506,245) (507,227) (507,209) (506,190) (504,171) (500,152) (495,132) (489,113) (481,93) (471,74) (460,54)} -- cycle;
-\fill[black] (460,54) circle (5); \node[font=\scriptsize, anchor=north east] at (458,50) {homing ($s_X = s_Y = 0$)};
-\draw[rojo, thick, ->] (460,58) -- (460,170); \node[font=\scriptsize, rojo, anchor=east, align=right] at (440,150) {subir en vertical:\\fuera de la franja};
-\node[font=\scriptsize] at (548,25) {$s_Y = 0$ (abajo)};
-\node[font=\scriptsize] at (500,455) {$s_Y = 170$};
-\node[font=\scriptsize, anchor=west] at (680,250) {$s_X = 170$};
-\node[font=\scriptsize, anchor=west, align=left] at (515,240) {zona\\alcanzable};
-\fill[black] (585,279) circle (4); \node[font=\scriptsize, anchor=west] at (590,285) {centro (85, 85)};
+\foreach \z in {100,200,300,400,500} {\draw (380,\z) -- (374,\z) node[left, font=\tiny]{\z};}
+\fill[naranja!15, draw=naranja!80!black, thick] plot coordinates {(412,61) (433,61) (454,61) (475,61) (497,61) (518,61) (539,61) (560,61) (582,61) (582,61) (630,129) (657,200) (667,267) (664,329) (651,384) (630,434) (602,478) (569,518) (569,518) (548,518) (527,518) (506,518) (484,518) (463,518) (442,518) (421,518) (399,518) (399,518) (432,478) (460,434) (481,384) (494,329) (497,267) (487,200) (460,129) (412,61)} -- cycle;
+\fill[black] (412,61) circle (5); \node[font=\scriptsize, anchor=north east] at (410,57) {homing ($s_X = s_Y = 0$)};
+\draw[rojo, thick, ->] (412,65) -- (412,200); \node[font=\scriptsize, rojo, anchor=east, align=right] at (405,170) {subir en vertical:\\fuera de la franja};
+\node[font=\scriptsize] at (500,32) {$s_Y = 0$ (abajo)};
+\node[font=\scriptsize] at (484,545) {$s_Y = 170$};
+\node[font=\scriptsize, anchor=west] at (670,267) {$s_X = 170$};
+\node[font=\scriptsize, anchor=west, align=left] at (515,200) {zona\\alcanzable};
+\fill[black] (579,329) circle (4); \node[font=\scriptsize, anchor=west] at (584,335) {centro (85, 85)};
 \end{tikzpicture}
 \caption{Corte vertical del espacio de trabajo (calculado con el modelo). Desde el homing, subir o bajar en vertical sale de la franja.}
 \end{figure}
 
 Por eso muchos puntos escritos a mano resultan «inalcanzables», sobre todo cerca del homing. La página ahora busca y propone el \textbf{punto alcanzable más cercano}: recorre los valores posibles de $s_X$ y $s_Y$ (con el $\theta$ del objetivo), calcula la directa de cada uno y se queda con el que tiene menor distancia al objetivo.
 
-\paragraph{A partir de qué se logró.} Del modelo geométrico del mecanismo (levantamiento de medidas y fotos), resolviendo las ecuaciones de lazo cerrado de las bielas. El \textbf{jacobiano} se calculó también para detectar posturas singulares, donde un movimiento pequeño de un carro casi no mueve la garra.
+\paragraph{A partir de qué se logró.} Del modelo geométrico del mecanismo (levantamiento de medidas y, desde noviembre, el modelo de Inventor del equipo), resolviendo las ecuaciones de lazo cerrado de las bielas. El \textbf{jacobiano} se calculó también para detectar posturas singulares, donde un movimiento pequeño de un carro casi no mueve la garra.
 
 \limite{\begin{itemize}[leftmargin=5mm, topsep=0pt]
 \item Con el brazo real la trayectoria \textbf{no es recta}: el PLC recibe solo el destino y, por el tren de pulsos compartido, mueve X e Y a la misma velocidad.
 \item El espacio de trabajo es una franja estrecha: muchos puntos no son alcanzables y conviene moverse de a poco.
-\item La exactitud depende de las cotas: varias son estimadas o SUPUESTOS (por ejemplo, la posición de algunos pasadores). Un error de pocos milímetros en una biela desplaza la garra.
+\item La exactitud depende de las cotas: las del mecanismo vienen del modelo de Inventor y la transmisión (paso del husillo) sigue siendo SUPUESTO. Un error de pocos milímetros en una biela desplaza la garra.
 \item El sistema es de lazo abierto: si un motor pierde pasos, el gemelo no lo sabe hasta el siguiente homing.
 \end{itemize}}
 

@@ -626,9 +626,10 @@ Dados $q = (\theta, s_X, s_Y)$:
 \begin{enumerate}
 \item La posición del bloque fija el punto C; el lazo A--B--C se cierra intersecando la circunferencia de radio $a$ centrada en A con la de radio $L_{12}$ centrada en C. Se elige la solución del montaje real (B por debajo de la recta A--C). Así se obtiene el ángulo $\psi$ del balancín y el del brazo, $\varphi = \psi - \beta$.
 \item El pivote A se mueve con el carro X: $u_A = u_0 + s_X$.
+\item La varilla 13 une el poste A$'$ (56~mm sobre A) con el poste E$'$ de la pinza (63,5~mm sobre E). No es un paralelogramo: cerrando ese segundo lazo se obtiene la inclinación $\gamma$ de la pinza, entre 0,2° y 13,3°.
 \item La garra queda en
 \[
-r = u_A + L_9\cos\varphi + d_g, \qquad z = h_A + L_9\sin\varphi - h_g,
+r = u_A + L_9\cos\varphi + d_g\cos\gamma, \qquad z = h_A + L_9\sin\varphi + d_g\sin\gamma,
 \]
 \[
 X = r\cos\theta, \qquad Y = r\sin\theta, \qquad Z = z.
@@ -638,19 +639,20 @@ X = r\cos\theta, \qquad Y = r\sin\theta, \qquad Z = z.
 \subsection{Cinemática inversa: de la garra a los carros}
 Dado el punto $(X, Y, Z)$:
 \[
-\theta = \operatorname{atan2}(Y, X), \quad r = \sqrt{X^2+Y^2}, \quad \sin\varphi = \frac{Z + h_g - h_A}{L_9}, \quad s_X = r - d_g - L_9\cos\varphi - u_0 .
+\theta = \operatorname{atan2}(Y, X), \quad r = \sqrt{X^2+Y^2}, \quad z(\varphi) = Z \text{ (por bisección)}, \quad s_X = r - d_g\cos\gamma - L_9\cos\varphi - u_0 .
 \]
+Como la pinza se inclina con $\varphi$, el ángulo del brazo ya no sale de un arcoseno: se busca numéricamente.
 Con $\psi = \varphi + \beta$ se conoce B, y el bloque del carro Y debe estar donde la biela $L_{12}$ alcanza a B: intersección de una circunferencia con la recta por la que se mueve C; de ahí sale $s_Y$. Se descartan las soluciones fuera del recorrido o que choquen con la mesa. Hay dos ramas posibles del brazo (hacia adelante y hacia atrás); la planta usa la primera.
 
 \begin{lstlisting}[style=js, caption={Fragmento de la cinemática inversa (\texttt{web/js/cinematica.js}).}]
-const s = (obj.Z + p.hg - d.hA) / p.L9;           // seno del ángulo del brazo
-if (Math.abs(s) > 1) return { valida: false, motivo: 'Altura inalcanzable' };
-for (const [rama, phi] of [['adelante', Math.asin(s)], ['atrás', Math.PI - Math.asin(s)]]) {
-  const sX = r - p.dg - p.L9 * Math.cos(phi) - d.u5_0 - p.uA;   // alcance -> carro X
-  const psi = phi + beta;                                         // balancín A-B
+// z del TCP en función de phi, con la inclinación gamma de la pinza; se resuelve por bisección
+const zDe = phi => { const gm = gammaDe(phi); return d.hA + p.L9 * Math.sin(phi) + rot(gm, p.dg, -p.hg).h; };
+for (const [rama, phi] of ramas) {
+  const gm = gammaDe(phi);
+  const sX = r - rot(gm, p.dg, -p.hg).u - p.L9 * Math.cos(phi) - d.u5_0 - p.uA;   // alcance -> carro X
+  const psi = phi + beta;                                                        // balancín A-B
   const bx = p.a * Math.cos(psi), bz = p.a * Math.sin(psi);
-  const disc = p.L12 * p.L12 - (d.ch - bz) * (d.ch - bz);         // biela L12 hasta C
-  if (disc < 0) continue;
+  const disc = p.L12 * p.L12 - (d.ch - bz) * (d.ch - bz);                        // biela L12 hasta C
   // ... dos posiciones posibles del bloque; se queda la del montaje real
 }
 \end{lstlisting}
@@ -665,15 +667,15 @@ Como $s_X$ y $s_Y$ van de 0 a 170~mm, la garra solo puede estar en la imagen de 
 \centering
 \begin{tikzpicture}[x=0.019cm,y=0.019cm]
 \draw[->] (380,0) -- (720,0) node[right, etiq]{$r$ [mm]};
-\draw[->] (380,0) -- (380,480) node[above, etiq]{$z$ [mm]};
+\draw[->] (380,0) -- (380,580) node[above, etiq]{$z$ [mm]};
 \foreach \r in {400,500,600,700} {\draw (\r,0) -- (\r,-6) node[below, font=\tiny]{\r};}
-\foreach \z in {100,200,300,400} {\draw (380,\z) -- (374,\z) node[left, font=\tiny]{\z};}
-\fill[naranja!15, draw=naranja!80!black, thick] plot coordinates {(460,54) (481,54) (502,54) (523,54) (545,54) (566,54) (587,54) (608,54) (630,54) (641,74) (651,93) (659,113) (665,132) (670,152) (674,171) (676,190) (677,209) (677,227) (676,245) (673,262) (670,279) (667,295) (662,310) (656,325) (650,340) (644,353) (636,367) (629,379) (620,392) (611,403) (602,415) (592,425) (581,436) (560,436) (539,436) (518,436) (496,436) (475,436) (454,436) (433,436) (411,436) (422,425) (432,415) (441,403) (450,392) (459,379) (466,367) (474,353) (480,340) (486,325) (492,310) (497,295) (500,279) (503,262) (506,245) (507,227) (507,209) (506,190) (504,171) (500,152) (495,132) (489,113) (481,93) (471,74) (460,54)} -- cycle;
-\fill[black] (460,54) circle (5); \node[font=\scriptsize, anchor=north east] at (458,50) {homing};
-\draw[rojo, thick, ->] (460,58) -- (460,170); \node[font=\scriptsize, rojo, anchor=east, align=right] at (440,150) {vertical desde\\el homing: fuera};
-\node[font=\scriptsize] at (548,25) {$s_Y = 0$}; \node[font=\scriptsize] at (500,455) {$s_Y = 170$};
-\node[font=\scriptsize, anchor=west] at (680,250) {$s_X = 170$};
-\node[font=\scriptsize, anchor=west, align=left] at (515,240) {zona\\alcanzable};
+\foreach \z in {100,200,300,400,500} {\draw (380,\z) -- (374,\z) node[left, font=\tiny]{\z};}
+\fill[naranja!15, draw=naranja!80!black, thick] plot coordinates {(412,61) (433,61) (454,61) (475,61) (497,61) (518,61) (539,61) (560,61) (582,61) (582,61) (630,129) (657,200) (667,267) (664,329) (651,384) (630,434) (602,478) (569,518) (569,518) (548,518) (527,518) (506,518) (484,518) (463,518) (442,518) (421,518) (399,518) (399,518) (432,478) (460,434) (481,384) (494,329) (497,267) (487,200) (460,129) (412,61)} -- cycle;
+\fill[black] (412,61) circle (5); \node[font=\scriptsize, anchor=north east] at (410,57) {homing};
+\draw[rojo, thick, ->] (412,65) -- (412,200); \node[font=\scriptsize, rojo, anchor=east, align=right] at (405,170) {vertical desde\\el homing: fuera};
+\node[font=\scriptsize] at (500,32) {$s_Y = 0$}; \node[font=\scriptsize] at (484,545) {$s_Y = 170$};
+\node[font=\scriptsize, anchor=west] at (670,267) {$s_X = 170$};
+\node[font=\scriptsize, anchor=west, align=left] at (515,200) {zona\\alcanzable};
 \end{tikzpicture}
 \caption{Corte vertical del espacio de trabajo, calculado con el modelo ($\theta$ fijo).}
 \end{figure}
@@ -685,7 +687,7 @@ n_X = 200\, s_X, \qquad n_Y = 200\, s_Y, \qquad n_\theta = 190{,}3\, \theta \qua
 La app manda al PLC la diferencia entre el destino y la posición contada: $\Delta n = n_{destino} - n_{actual}$.
 
 \section{Modelo 3D}
-Las piezas del brazo se modelaron y se ensamblaron con las mismas cotas del modelo cinemático en un archivo \codigo{brazo\_xk-js1-1.glb}. El visor (biblioteca three.js) carga el archivo y, en cada cuadro, coloca cada pieza según la cinemática directa: la base gira $\theta$, el bastidor se desplaza $s_X$, el bloque $s_Y$, y la biela, el balancín y el brazo toman los ángulos del lazo. Así el dibujo nunca se separa del cálculo.
+El archivo \codigo{brazo\_xk-js1-1.glb} usa las piezas del modelo de Inventor del equipo (\codigo{global/modelo-3d/inventor/}), acomodadas con las mismas cotas del modelo cinemático. El visor (biblioteca three.js) carga el archivo y, en cada cuadro, coloca cada pieza según la cinemática directa: la base gira $\theta$, el bastidor se desplaza $s_X$, el bloque $s_Y$, y la biela, el balancín y el brazo toman los ángulos del lazo. Así el dibujo nunca se separa del cálculo.
 
 % #####################################################################
 \part{El software}

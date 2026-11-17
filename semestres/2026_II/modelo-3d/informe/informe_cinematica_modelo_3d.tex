@@ -121,8 +121,8 @@ Complemento del Laboratorio Integrado N.º 5 (Fase 2: gemelos digitales)\\[0.8cm
 \begin{tabular}{@{}ll}
 \textbf{Docente:} & Ing. Jorge Antonio Nava Amador\\
 \textbf{Auxiliares de docencia:} & Limber Ajnota -- Fabián Plata -- Franz Choque\\
-\textbf{Repositorio:} & \url{https://github.com/GabAndGom/Brazo-4GDL-gemelo-digital}\\
-\textbf{Página:} & \url{https://brazo-4gdl-gemelo-digital.pages.dev/}\\
+\textbf{Repositorio:} & \url{https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad}\\
+\textbf{Página:} & \url{https://brazo-4gdl.pages.dev/}\\
 \end{tabular}
 
 \vspace{0.8cm}
@@ -145,7 +145,7 @@ Complemento del Laboratorio Integrado N.º 5 (Fase 2: gemelos digitales)\\[0.8cm
 
 \vfill
 \begin{center}
-La Paz, Bolivia -- Octubre de 2026 -- Gestión II/2026
+La Paz, Bolivia -- Octubre de 2026 (actualizado el 17 de noviembre con el modelo de Inventor) -- Gestión II/2026
 \end{center}
 \end{titlepage}
 \normalcolor
@@ -164,7 +164,9 @@ husillos X e Y accionan un mecanismo de bielas que lleva la garra, y la posició
 calcularla resolviendo ese mecanismo.
 
 Este informe desarrolla esa geometría. Se toman como base los bocetos acotados y las fotos etiquetadas de la
-planta del 20 de octubre de 2026, el manual de fábrica y los informes anteriores. A partir de ellos se
+planta del 20 de octubre de 2026, el manual de fábrica y los informes anteriores. En noviembre, el equipo
+replicó el brazo pieza por pieza en Autodesk Inventor; desde entonces las cotas del mecanismo y el modelo 3D
+se toman de ese modelo (sección~\ref{sec:inventor}). A partir de ellos se
 obtienen la estructura cinemática, la cinemática directa e inversa, el jacobiano, la relación
 motor--articulación y el espacio de trabajo. Con los mismos parámetros se construye un modelo 3D articulado,
 que se integra en la página del proyecto como un gemelo digital geométrico controlable desde el navegador.
@@ -249,6 +251,27 @@ ajustaron con la foto de perfil del manual (figura 1.3.3 A): con ellas el modelo
 foto con menos de 5 mm de diferencia en los pivotes $B$ y $C$. No se encontraron fotos ni planos públicos
 del equipo; la única referencia externa es la ficha comercial del fabricante \cite{ficha}.
 
+\subsection{Modelo de Inventor del equipo}\label{sec:inventor}
+El equipo modeló cada pieza y el ensamble completo en Autodesk Inventor 2027 (\codigo{global/modelo-3d/inventor/}).
+El ensamble se exportó a STL con un archivo por pieza, cada una en su posición. El script
+\codigo{levantamiento/medidas\_inventor.py} lo lleva a un sistema propio (eje vertical normal al disco, eje
+$x$ a lo largo de las guías), mide las piezas y ubica los pasadores ajustando circunferencias a las caras de
+los agujeros. Resultado en \codigo{levantamiento/medidas\_inventor.json}. Con esas cotas, la cinemática reproduce la pose en que
+se exportó el ensamble con \textbf{0.4~mm de error como máximo} en los pivotes $A$, $B$, $C$, $E$, $A'$, $E'$ y en
+el TCP. Diferencias principales con el levantamiento de octubre:
+\begin{itemize}
+\item mecanismo: $L_{12} = 230$ (antes 235), $a = 134.1$ (145), $\beta = 50.2°$ (50), pivote $A$ 74.25~mm sobre
+      el eje del carro X (45), pivote $C$ 50~mm detrás de la cara del bloque 1 (60);
+\item bloques de 51.3~mm separados 60~mm entre centros, placas de 16~mm y guías entre las placas: la carrera
+      mecánica libre es de 202~mm (antes 174);
+\item \textbf{postes distintos}: $A$--$A'$ = 56~mm y $E$--$E'$ = 63.5~mm, con la varilla 13 de 295~mm. Es
+      intencional: el cuadrilátero $A$--$A'$--$E'$--$E$ \textbf{no es un paralelogramo} y la pinza se inclina
+      un ángulo $\gamma$ entre 0.2° y 13.3° según la altura del brazo;
+\item TCP a $d_g = 120.8$~mm de $E$ y a su misma altura ($h_g = 0$).
+\end{itemize}
+El ensamble de Inventor no incluye el disco fijo de abajo, por lo que la altura del disco giratorio sobre la
+mesa (15 + 21~mm) sigue siendo la del levantamiento.
+
 \subsection{Funcionamiento deducido}
 \begin{enumerate}
 \item La \textbf{base giratoria} (disco superior 11, columna 7 y bloque 2) gira sobre el disco inferior. El
@@ -261,8 +284,9 @@ del equipo; la única referencia externa es la ficha comercial del fabricante \c
 \item Sobre el bloque 1, la escuadra 6 sostiene el pivote $C$ de la \textbf{biela 12}, que empuja el vértice
       $B$ de la escuadra 8. La escuadra 8 está fija al \textbf{brazo 9} y forma con él un balancín que
       pivota en $A$, sobre la placa delantera 5.
-\item La \textbf{varilla 13} y los dos \textbf{postes 14} forman con el brazo 9 un paralelogramo que mantiene
-      la pinza siempre horizontal. Están en el plano central del brazo: la varilla pasa entre las dos placas
+\item La \textbf{varilla 13} y los dos \textbf{postes 14} forman con el brazo 9 un cuadrilátero que orienta la
+      pinza. Como los postes miden distinto (56 y 63.5~mm), no es un paralelogramo y la pinza se inclina un
+      poco al subir el brazo. Están en el plano central del brazo: la varilla pasa entre las dos placas
       de la escuadra 8, y los postes van al centro de la placa 5 y al centro de la pinza.
 \item Los finales de carrera van en barras sobre las placas 5 y 10. En cada barra, el de arriba toca el
       bloque 1 y el de abajo el bloque 2: son dos por eje, como indica el manual.
@@ -305,17 +329,18 @@ eje Y como ``arriba--abajo'' \cite{manual}, y con el GLB de trabajo, cuyos nodos
 \toprule
 \textbf{Símbolo} & \textbf{Descripción} & \textbf{Valor} & \textbf{Origen}\\
 \midrule
-$L_{12}$ & distancia entre pivotes $C$--$B$ de la biela & 235 mm & estimado (boceto: 24 cm total)\\
-$a$ & distancia $A$--$B$ del balancín & 145 mm & estimado (foto del manual)\\
-$\beta$ & ángulo entre $A$--$B$ y el brazo & 50° & estimado (foto del manual)\\
-$L_9$ & distancia $A$--$E$ del brazo & 300 mm & igual a la varilla 13\\
-$L_{14}$ & postes del paralelogramo (entre pivotes) & 70 mm & estimado (poste de 46 + soporte)\\
-$u_{50}$ & placa 5 con $s_X=0$ (desde el eje $\theta$) & 52 mm & bloque 2 + holgura\\
-$u_A$, $h_A$ & pivote $A$ (desde la placa 5; sobre la mesa) & 20 mm; 236 mm & estimado (foto)\\
-$c_{u0}$, $c_h$ & pivote $C$ respecto de $A$ (bloque 1 en su tope trasero) & $-252$ mm; 125 mm & derivado\\
-$d_g$, $h_g$ & TCP respecto del pivote $E$ & 135 mm; 20 mm & estimado (foto)\\
+$L_{12}$ & distancia entre pivotes $C$--$B$ de la biela & 230 mm & Inventor\\
+$a$ & distancia $A$--$B$ del balancín & 134.1 mm & Inventor\\
+$\beta$ & ángulo entre $A$--$B$ y el brazo & 50.2° & Inventor\\
+$L_9$ & distancia $A$--$E$ del brazo & 300 mm & Inventor\\
+$L_{14}$, $L_{14E}$ & postes $A$--$A'$ y $E$--$E'$ & 56 mm; 63.5 mm & Inventor\\
+$L_{13}$ & varilla $A'$--$E'$ & 295 mm & Inventor\\
+$u_{50}$ & placa 5 con $s_X=0$ (desde el eje $\theta$) & 53.55 mm & bloque 2 + holgura (Inventor)\\
+$u_A$, $h_A$ & pivote $A$ (desde la placa 5; sobre la mesa) & 23.5 mm; 270.9 mm & Inventor\\
+$c_{u0}$, $c_h$ & pivote $C$ respecto de $A$ (bloque 1 en su tope trasero) & $-273.5$ mm; 109.4 mm & derivado\\
+$d_g$, $h_g$ & TCP respecto del pivote $E$ (pinza horizontal) & 120.8 mm; 0 mm & Inventor\\
 $s_X$ & recorrido útil del carro X & 0--170 mm & dato del equipo (igual que el carro Y)\\
-$s_Y$ & recorrido útil del carro Y & 0--170 mm & \supuesto{} (300 $-$ 2·13 $-$ 100 $-$ 2·2)\\
+$s_Y$ & recorrido útil del carro Y & 0--170 mm & dato del equipo; carrera libre 202 mm\\
 $\theta$ & rango de la base & $\pm$175° & \supuesto{} (manual: 360°)\\
 \bottomrule
 \end{tabular}
@@ -343,7 +368,7 @@ M = 3(7-1) - 2\cdot 8 = 2 .
 \end{equation}
 Las dos coordenadas independientes son $s_X$ y $s_Y$. Sumando el giro de la base ($\theta$) y la garra
 ON/OFF, el equipo tiene los \textbf{4 GDL} de su nombre. La garra no cambia la posición del TCP. El
-paralelogramo no agrega movilidad: solo fija la orientación de la pinza.
+cuadrilátero de la varilla 13 no agrega movilidad: fija la orientación $\gamma$ de la pinza en función de $\varphi$.
 
 %==================================================================== 6
 \section{Cinemática directa}
@@ -358,36 +383,46 @@ $Z$ hacia arriba.
 \mathbf{C}-\mathbf{A} = \begin{bmatrix} g + c_{u0}\\ c_h\end{bmatrix},\qquad
 \mathbf{B}-\mathbf{A} = a\begin{bmatrix}\cos\psi\\ \sin\psi\end{bmatrix}.
 \end{equation}
-Aquí $g = S_Y - s_Y$ es cuánto se alejó el bloque 1 de su tope trasero ($S_Y = 170$ mm): $s_Y$ se mide desde
+Aquí $g = S_Y - s_Y$ es cuánto se alejó el bloque 1 de su tope trasero ($S_Y = 202 - 2\cdot2 = 198$ mm: carrera libre menos la holgura en cada tope): $s_Y$ se mide desde
 el final inferior, que es el homing, y al crecer el bloque 1 retrocede y el brazo sube. La posición de $C$
 respecto de $A$ \textbf{no depende de} $s_X$, porque el bloque 1 y el pivote $A$ viajan
 juntos con el bastidor.
 
 \paragraph{Paso 2: cierre del lazo $A$--$B$--$C$.} La biela es rígida: $|\mathbf{B}-\mathbf{C}| = L_{12}$.
 En el triángulo $A B C$ se conocen los tres lados, $a$, $L_{12}$ y $d = |\mathbf{C}-\mathbf{A}|$. Por la
-ley de cosenos, el ángulo $\gamma$ en $A$ es
+ley de cosenos, el ángulo $\alpha$ en $A$ es
 \begin{equation}
-d = \sqrt{(g+c_{u0})^2 + c_h^2},\qquad \cos\gamma = \frac{a^2 + d^2 - L_{12}^2}{2ad},
+d = \sqrt{(g+c_{u0})^2 + c_h^2},\qquad \cos\alpha = \frac{a^2 + d^2 - L_{12}^2}{2ad},
 \end{equation}
 y el ángulo de $A$--$B$ resulta
 \begin{equation}
-\psi = \operatorname{atan2}(c_h,\, g + c_{u0}) - \gamma .
+\psi = \operatorname{atan2}(c_h,\, g + c_{u0}) - \alpha .
 \label{eq:psi}
 \end{equation}
 El signo menos elige la \emph{rama de montaje} real, con $B$ por debajo de la recta $A$--$C$, como en las
-fotos. El lazo cierra solo si $|a-L_{12}| \le d \le a+L_{12}$, es decir, $90 \le d \le 380$ mm. Dentro del
-recorrido $d$ varía entre 150 y 281 mm, así que el lazo siempre cierra.
+fotos. El lazo cierra solo si $|a-L_{12}| \le d \le a+L_{12}$, es decir, $96 \le d \le 364$ mm. Dentro del
+recorrido $d$ varía entre 133 y 269 mm, así que el lazo siempre cierra.
 
 \paragraph{Paso 3: ángulo del brazo.} La escuadra 8 está fija al brazo con un ángulo $\beta$:
 \begin{equation}
 \varphi = \psi - \beta .
 \end{equation}
 
-\paragraph{Paso 4: posición de la garra.} El pivote $E$ está en el extremo del brazo, y el paralelogramo
-mantiene la pinza horizontal, por lo que el TCP está a una distancia fija $(d_g, -h_g)$ de $E$:
+\paragraph{Paso 4: inclinación de la pinza.} $A'$ está fijo a $L_{14}$ sobre $A$; $E'$ está en la pinza, en
+$\mathbf{v} = (u_{E2}, L_{14E}) = (0.5,\ 63.5)$ mm desde $E$ con la pinza horizontal; la varilla exige
+$|\mathbf{E} + R(\gamma)\mathbf{v} - \mathbf{A}'| = L_{13}$. Con $\mathbf{w} = \mathbf{A}' - \mathbf{E}$,
+\begin{equation}
+\gamma = \operatorname{atan2}(w_h, w_u) - \operatorname{atan2}(v_h, v_u)
+       - \arccos\frac{|\mathbf{v}|^2 + |\mathbf{w}|^2 - L_{13}^2}{2|\mathbf{v}||\mathbf{w}|},
+\label{eq:gamma}
+\end{equation}
+con la rama en que $E'$ queda por encima de $E$. Si los postes y la varilla fueran iguales ($L_{14} = L_{14E}$,
+$L_{13} = L_9$) sería un paralelogramo y $\gamma = 0$; con las cotas reales $\gamma$ va de 0.2° a 13.3°.
+
+\paragraph{Paso 5: posición de la garra.} El TCP está en $(d_g, -h_g)$ del marco de la pinza, girado $\gamma$:
 \begin{align}
-r &= u_{50} + s_X + u_A + L_9\cos\varphi + d_g, \label{eq:r}\\
-z &= h_A + L_9\sin\varphi - h_g, \label{eq:z}\\
+r &= u_{50} + s_X + u_A + L_9\cos\varphi + d_g\cos\gamma + h_g\sin\gamma, \label{eq:r}\\
+z &= h_A + L_9\sin\varphi + d_g\sin\gamma - h_g\cos\gamma, \label{eq:z}\\
 X &= r\cos\theta,\quad Y = r\sin\theta,\quad Z = z .
 \end{align}
 El carro X aparece \emph{solo} en $r$: es una traslación radial pura. El carro Y entra a través de
@@ -403,8 +438,8 @@ $\varphi(s_Y)$ y mueve la garra sobre un arco de radio $L_9$, cambiando a la vez
 \label{fig:phi}
 \end{figure}
 
-Con los parámetros de la tabla~\ref{tab:parametros}, $\varphi$ va de $-32.6°$ ($s_Y=0$, homing, brazo abajo) a
-$47.0°$ ($s_Y = 170$ mm, brazo arriba), con $d\varphi/ds_Y \approx 0.47$ °/mm en promedio.
+Con los parámetros de la tabla~\ref{tab:parametros}, $\varphi$ va de $-44.5°$ ($s_Y=0$, homing, brazo abajo) a
+$47.0°$ ($s_Y = 170$ mm, brazo arriba), con $d\varphi/ds_Y \approx 0.54$ °/mm en promedio.
 
 %==================================================================== 7
 \section{Cinemática inversa}
@@ -419,16 +454,14 @@ Se conservan los valores de $\theta$ que caen en $[\theta_{min}, \theta_{max}]$ 
 a la posición actual, para que la base no dé una vuelta innecesaria. Si $r \approx 0$ el objetivo está
 sobre el eje de giro y se rechaza.
 
-\paragraph{Ángulo del brazo.} De (\ref{eq:z}):
-\begin{equation}
-\sin\varphi = \frac{Z + h_g - h_A}{L_9}\;\Rightarrow\;
-\varphi_1 = \arcsin(\cdot),\qquad \varphi_2 = \pi - \varphi_1 .
-\end{equation}
-Si $|\sin\varphi| > 1$, la altura es inalcanzable.
+\paragraph{Ángulo del brazo.} La ecuación (\ref{eq:z}) depende de $\varphi$ también a través de $\gamma(\varphi)$
+(ecuación \ref{eq:gamma}), así que ya no hay fórmula cerrada. Se busca $\varphi$ tal que $z(\varphi) = Z$ por
+bisección, separando dos ramas: $\varphi_1 \in [-90°, 90°]$ (brazo hacia adelante) y
+$\varphi_2 \in [90°, 270°]$ (hacia atrás). Si no hay raíz, la altura es inalcanzable.
 
 \paragraph{Carro X.} De (\ref{eq:r}):
 \begin{equation}
-s_X = r - d_g - L_9\cos\varphi - u_{50} - u_A .
+s_X = r - d_g\cos\gamma - h_g\sin\gamma - L_9\cos\varphi - u_{50} - u_A .
 \end{equation}
 
 \paragraph{Carro Y.} Con $\psi = \varphi + \beta$ queda determinado $B$. El pivote $C$ está a altura
@@ -453,36 +486,40 @@ motivo concreto (por ejemplo, ``carro X fuera de recorrido'').
 %==================================================================== 8
 \section{Jacobiano y singularidades}
 
-Derivando la ecuación de cierre $f(\psi, g) = |a\,\mathbf{e}(\psi) - (\mathbf{C}-\mathbf{A})|^2 - L_{12}^2 = 0$,
+Derivando la ecuación de cierre de la biela $f(\psi, g) = |a\,\mathbf{e}(\psi) - (\mathbf{C}-\mathbf{A})|^2 - L_{12}^2 = 0$,
 con $\mathbf{e}_\perp = (-\sin\psi, \cos\psi)$:
 \begin{equation}
 \varphi' \equiv \frac{d\varphi}{ds_Y} = -\frac{d\psi}{dg} = \frac{\partial f/\partial g}{\partial f/\partial\psi}
 = -\frac{(B-C)_u}{a\,(\mathbf{B}-\mathbf{C})\cdot\mathbf{e}_\perp}.
 \end{equation}
-Entonces
+Con $\rho = \partial r/\partial\varphi = -L_9\sin\varphi + (-d_g\sin\gamma + h_g\cos\gamma)\,\gamma'$ y
+$\zeta = \partial z/\partial\varphi = L_9\cos\varphi + (d_g\cos\gamma + h_g\sin\gamma)\,\gamma'$, donde
+$\gamma' = d\gamma/d\varphi$ sale de derivar el cierre de la varilla 13:
 \begin{equation}
 J = \frac{\partial(X,Y,Z)}{\partial(\theta, s_X, s_Y)} =
 \begin{bmatrix}
--r\sin\theta & \cos\theta & -\cos\theta\, L_9\sin\varphi\,\varphi'\\
- r\cos\theta & \sin\theta & -\sin\theta\, L_9\sin\varphi\,\varphi'\\
- 0 & 0 & L_9\cos\varphi\,\varphi'
+-r\sin\theta & \cos\theta & \cos\theta\, \rho\,\varphi'\\
+ r\cos\theta & \sin\theta & \sin\theta\, \rho\,\varphi'\\
+ 0 & 0 & \zeta\,\varphi'
 \end{bmatrix},\qquad
-\det J = r\,L_9\cos\varphi\,\varphi' .
+|\det J| = r\,\zeta\,\varphi' .
 \end{equation}
+Como intervienen dos lazos, \codigo{cinematica.js} evalúa $J$ por diferencias centradas, y la prueba lo
+contrasta con diferencias finitas independientes.
 
 Hay singularidad en estos casos:
 \begin{itemize}
-\item $r = 0$: el TCP está sobre el eje de giro. Es imposible, porque $r \ge 411$ mm.
-\item $\cos\varphi = 0$: el brazo está vertical. No ocurre, porque $\varphi \in [-32.6°, 47.0°]$.
+\item $r = 0$: el TCP está sobre el eje de giro. Es imposible, porque $r \ge 399$ mm.
+\item $\zeta = 0$: la garra no cambia de altura con el brazo. No ocurre, porque $\varphi \in [-44.5°, 47.0°]$ y $\gamma$ es pequeño.
 \item $\varphi' = 0$: la biela 12 está vertical y el carro Y no mueve el brazo.
 \item $\varphi' \to \infty$: punto muerto, con la biela alineada con $A$--$B$.
 \end{itemize}
-Recorriendo todo el rango se obtiene $|\det J| \ge 579$ mm²/rad y un ángulo de transmisión entre 38° y
-92°. \textbf{No hay singularidades dentro del recorrido} y la transmisión es adecuada. Como ejemplo, en
+Recorriendo todo el rango se obtiene $|\det J| \ge 707$ mm²/rad y un ángulo de transmisión entre 30° y
+91°. \textbf{No hay singularidades dentro del recorrido} y la transmisión es adecuada. Como ejemplo, en
 $\mathbf{q} = (30°, 100, 20)$:
 \begin{equation}
-J = \begin{bmatrix} -293.7 & 0.866 & 0.918\\ 508.7 & 0.500 & 0.530\\ 0 & 0 & 2.783\end{bmatrix},
-\qquad \det J = 1635 .
+J = \begin{bmatrix} -279.0 & 0.866 & 1.569\\ 483.2 & 0.500 & 0.906\\ 0 & 0 & 3.317\end{bmatrix},
+\qquad |\det J| = 1851 .
 \end{equation}
 
 %==================================================================== 9
@@ -553,10 +590,9 @@ I0.0--I0.3. Hay que confirmarlo en la planta.
 
 El corte $r$--$z$ es la imagen del rectángulo de carreras $[0,170]\times[0,170]$. Los bordes $s_Y = $ constante son
 segmentos horizontales, porque $s_X$ solo traslada en $r$. Los bordes $s_X = $ constante son arcos de radio
-$L_9 = 300$ mm. El TCP alcanza $r \in [411, 677]$ mm y $z \in [54, 436]$ mm, unos 382 mm de recorrido
+$L_9 = 300$ mm. Los bordes $s_X$ = constante ya no son arcos exactos, porque la pinza se inclina. El TCP alcanza $r \in [399, 667]$ mm y $z \in [61, 518]$ mm, unos 457 mm de recorrido
 vertical. La ficha comercial del fabricante indica 0--400 mm en vertical y 0--120 mm adelante--atrás
-\cite{ficha}, y el manual 440 mm para el eje Y. La diferencia se atribuye a los supuestos de la
-tabla~\ref{tab:parametros}. En planta, el volumen es una corona de $\pm175°$.
+\cite{ficha}, y el manual 440 mm para el eje Y, muy cerca de lo calculado con las cotas de Inventor. En planta, el volumen es una corona de $\pm175°$.
 
 %==================================================================== 11
 \section{Modelo 3D y gemelo digital en la página}
@@ -564,10 +600,13 @@ tabla~\ref{tab:parametros}. En planta, el volumen es una corona de $\pm175°$.
 \subsection{Modelo articulado a escala}
 El GLB de trabajo (\codigo{brazo\_robotico\_v2.glb}) es una malla generada por IA y cortada en nodos. Su escala
 es aproximada (la base mide 187 mm frente a los 165 mm reales) y los orígenes no están en los ejes, así que
-se \textbf{rehízo de forma paramétrica}. El script \codigo{global/modelo-3d/generar\_modelo.js} (Node, sin
-dependencias) construye cada pieza con primitivas a partir de las cotas de \codigo{web/js/cinematica.js} y
-escribe el glTF binario. El resultado es \codigo{brazo\_xk-js1-1.glb}: 260 KB, 12 nodos y unos 3\,400
-triángulos. Cada pieza móvil tiene el origen en su pivote o en su guía, y la jerarquía sigue el mecanismo:
+se rehízo primero de forma paramétrica, con primitivas. Desde noviembre usa \textbf{las piezas del modelo de
+Inventor del equipo}: el script \codigo{global/modelo-3d/generar\_modelo.js} (Node, sin dependencias) lee los
+STL de \codigo{global/modelo-3d/inventor/stl/}, lleva cada pieza al marco de la pieza móvil a la que pertenece
+(con la pose de exportación calculada por la cinemática) y escribe el glTF binario. Solo el disco fijo de abajo,
+que no está en el ensamble de Inventor, se dibuja con primitivas. Las dos mordazas son la misma pieza: en el
+STL una está abierta, así que se usa la cerrada y su espejo. El resultado es \codigo{brazo\_xk-js1-1.glb}:
+435 KB, 12 nodos y unos 6\,000 triángulos. Cada pieza móvil tiene el origen en su pivote o en su guía, y la jerarquía sigue el mecanismo:
 \begin{lstlisting}
 brazo_xk_js1_1
  +- base_fija
@@ -576,9 +615,9 @@ brazo_xk_js1_1
          +- carro_y  (P sY)
          |   +- biela_12   (R pasiva, pivote C)
          +- brazo_9        (R pasiva phi, pivote A)
-         |   +- pinza      (R -phi: queda horizontal)
+         |   +- pinza      (R gamma - phi: se inclina gamma)
          |       +- mordaza_izq, mordaza_der (R eje vertical), tcp
-         +- varilla_13     (R pasiva phi, pivote A')
+         +- varilla_13     (R pasiva, pivote A')
 \end{lstlisting}
 Las bielas pasivas no se animan a mano: la página calcula sus ángulos con la cinemática directa.
 
@@ -590,14 +629,14 @@ Las bielas pasivas no se animan a mano: la página calcula sus ángulos con la c
 \caption{Vista lateral ($\theta=0$).}\end{subfigure}\\[4pt]
 \begin{subfigure}{0.7\textwidth}\includegraphics[width=\textwidth]{modelo_3d_superior.png}
 \caption{Vista superior ($\theta=0$, $s_X = 40$, $s_Y = 40$ mm) sobre la mesa de 900 × 640 mm.}\end{subfigure}
-\caption{Modelo 3D en el visor de la página ($s_X = 80$ mm, $s_Y = 50$ mm salvo indicación).}
+\caption{Modelo 3D con las piezas de Inventor ($s_X = 80$ mm, $s_Y = 50$ mm salvo indicación), dibujado con \codigo{global/modelo-3d/dibujar\_modelo.py}.}
 \label{fig:modelo}
 \end{figure}
 
-\paragraph{Garra.} La garra tiene dos dedos planos que pivotan sobre ejes verticales en las esquinas
-delanteras del cuerpo 4, de modo que \textbf{abren y cierran en el plano horizontal} (foto f18). En el modelo,
-los nodos \codigo{mordaza\_izq} y \codigo{mordaza\_der} giran $\pm25°$ (\supuesto) con la garra abierta y
-quedan paralelos con la garra cerrada (Q0.7 ON). El centro de los bloques de agarre coincide con el TCP.
+\paragraph{Garra.} Las mordazas de Inventor \textbf{abren y cierran en el plano horizontal} (foto f18). En el
+modelo, los nodos \codigo{mordaza\_izq} y \codigo{mordaza\_der} giran $\pm25°$ (\supuesto) alrededor de un pivote
+vertical en su extremo trasero (\supuesto) con la garra abierta, y quedan juntas con la garra cerrada (Q0.7 ON).
+El TCP es el centro de las mordazas cerradas.
 
 \begin{figure}[H]
 \centering
@@ -612,7 +651,7 @@ quedan paralelos con la garra cerrada (Q0.7 ON). El centro de los bloques de aga
 \end{figure}
 
 \subsection{Sección ``Modelo 3D'' de la página}
-La página (\url{https://brazo-4gdl-gemelo-digital.pages.dev/}) incorpora:
+La página (\url{https://brazo-4gdl.pages.dev/}) incorpora:
 \begin{itemize}
 \item \textbf{Visor} three.js 0.160.0 con cámara orbital, vistas rápidas, mesa, rejilla y sombras suaves.
       Se carga en diferido, al llegar a la sección.
@@ -644,12 +683,13 @@ La página (\url{https://brazo-4gdl-gemelo-digital.pages.dev/}) incorpora:
 \toprule
 \textbf{Prueba} & \textbf{Resultado} & \textbf{Criterio}\\
 \midrule
-Directa $\rightarrow$ inversa $\rightarrow$ directa (2205 puntos) & error $1.7\times10^{-13}$ & $<10^{-6}$\\
-Jacobiano analítico frente a diferencias finitas & error $4.7\times10^{-8}$ & $<10^{-4}$\\
-Pose del manual (fig. 1.3.3 A): pivotes $B$ y $C$ & $<5$ mm & foto de perfil\\
+Directa $\rightarrow$ inversa $\rightarrow$ directa (2205 puntos) & error $2.8\times10^{-13}$ & $<10^{-6}$\\
+Jacobiano frente a diferencias finitas independientes & error $9\times10^{-7}$ & $<10^{-4}$\\
+Pose de exportación del ensamble de Inventor & $\le 0.4$ mm & pivotes y TCP\\
 Python frente a JavaScript (25 puntos) & 0.05 mm & redondeo de la tabla\\
 TCP del modelo 3D frente a la directa (visor) & $<10^{-13}$ mm & --\\
-Lazo cerrado en todo el recorrido & sí & $90 \le d \le 380$ mm\\
+Lazo cerrado en todo el recorrido & sí & $96 \le d \le 364$ mm\\
+Cuadrilátero de la varilla 13 en todo el recorrido & cierra & $\gamma \in [0.2°, 13.3°]$\\
 Singularidades en el recorrido & ninguna & $|\det J| > 0$\\
 \bottomrule
 \end{tabular}
@@ -663,7 +703,7 @@ Singularidades en el recorrido & ninguna & $|\det J| > 0$\\
 \begin{subfigure}{0.49\textwidth}\includegraphics[width=\textwidth]{modelo_3d_pose_manual.png}
 \caption{Modelo con $s_X = 0$, $s_Y = 45$ mm.}\end{subfigure}
 \caption{Comparación cualitativa con la foto del manual: posición de la biela 12, la escuadra 8, la varilla 13
-y la pinza. Las cotas estimadas se ajustaron con esta foto.}
+y la pinza. Las cotas ahora son las del modelo de Inventor.}
 \label{fig:comparacion}
 \end{figure}
 
@@ -688,13 +728,13 @@ seguridad de la Guía 4:
 \toprule
 $s_X$ [mm] & $s_Y$ [mm] & $\varphi$ [°] & $r$ [mm] & $z$ [mm] & pulsos X & pulsos Y\\
 \midrule
-0 & 0 & $-32.60$ & 459.7 & 54.4 & 0 & 0\\
-0 & 85 & 12.04 & 500.4 & 278.6 & 0 & 17000\\
-0 & 170 & 47.04 & 411.5 & 435.5 & 0 & 34000\\
-85 & 85 & 12.04 & 585.4 & 278.6 & 17000 & 17000\\
-170 & 0 & $-32.60$ & 629.7 & 54.4 & 34000 & 0\\
-170 & 42.5 & $-8.56$ & 673.7 & 171.3 & 34000 & 8500\\
-170 & 170 & 47.04 & 581.5 & 435.5 & 34000 & 34000\\
+0 & 0 & $-44.53$ & 411.7 & 60.9 & 0 & 0\\
+0 & 85 & 8.61 & 493.8 & 328.7 & 0 & 17000\\
+0 & 170 & 46.96 & 399.3 & 518.0 & 0 & 34000\\
+85 & 85 & 8.61 & 578.8 & 328.7 & 17000 & 17000\\
+170 & 0 & $-44.53$ & 581.7 & 60.9 & 34000 & 0\\
+170 & 42.5 & $-15.10$ & 657.3 & 199.8 & 34000 & 8500\\
+170 & 170 & 46.96 & 569.3 & 518.0 & 34000 & 34000\\
 \bottomrule
 \end{tabular}
 \caption{Extracto de la tabla de validación (posiciones previstas por el modelo).}
@@ -710,9 +750,10 @@ $s_X$ [mm] & $s_Y$ [mm] & $\varphi$ [°] & $r$ [mm] & $z$ [mm] & pulsos X & puls
 \item \textbf{Holguras.} Juego en los pasadores de las bielas, en los bujes lineales y en las tuercas de los
       husillos. El brazo amplifica el juego angular: un juego de 0.5° en $A$ desplaza el TCP
       $L_9 \cdot 0.5° \approx 2.6$ mm.
-\item \textbf{Supuestos geométricos.} La posición de $A$ y $C$, $a$, $\beta$, $L_9$ y el TCP salen de
-      estimaciones de foto. Un error de 5 mm en $h_A$ es un error de 5 mm en $z$. La validación del
-      apartado anterior debe corregirlos.
+\item \textbf{Cotas del modelo de Inventor.} El mecanismo se tomó del modelo de Inventor del equipo, no de una
+      medición de la planta con instrumentos. Un error de 5 mm en $h_A$ es un error de 5 mm en $z$. La
+      validación del apartado anterior debe confirmarlas. La altura del disco giratorio sobre la mesa (15 + 21 mm)
+      sigue saliendo del levantamiento, porque el ensamble no incluye el disco fijo.
 \item \textbf{Transmisión supuesta.} Si el paso real fuera 10 mm/rev, todas las distancias calculadas a
       partir de pulsos se duplicarían. Medirlo es la prioridad número uno.
 \item \textbf{Modelo solo cinemático.} No incluye masas, inercias ni la dinámica de los motores. Para el
@@ -733,7 +774,7 @@ $s_X$ [mm] & $s_Y$ [mm] & $\varphi$ [°] & $r$ [mm] & $z$ [mm] & pulsos X & puls
 Gemelo digital de la planta & Gemelo \emph{geométrico}: cinemática, modelo 3D y simulador web. Falta la dinámica identificada.\\
 Archivos .m / .slx & \codigo{cinematica\_brazo.m} (directa, inversa, jacobiano, espacio de trabajo). No incluye Simulink.\\
 Contraste con datos reales ($>$95~\%) & Protocolo y tabla de 25 puntos; queda pendiente medir en la planta.\\
-Controlabilidad y observabilidad & No cubierto: requiere las matrices $A, B, C$ del Laboratorio 4.\\
+Controlabilidad y observabilidad & Cubierto en el informe del Laboratorio 5 (\codigo{espacio\_estados\_brazo.py}), con $C$ igual al jacobiano de este informe.\\
 Versionado en GitHub (ramas y merge) & Rama \codigo{feat/cinematica-modelo-3d}, con integración por pull request.\\
 \bottomrule
 \end{tabular}
@@ -747,20 +788,21 @@ Versionado en GitHub (ramas y merge) & Rama \codigo{feat/cinematica-modelo-3d}, 
 \begin{itemize}
 \item El XK-JS1-1 \textbf{no es un robot cartesiano}. El carro X traslada todo el brazo en dirección radial.
       El carro Y, a través de un mecanismo biela--manivela invertido, fija el ángulo del brazo y mueve la
-      garra sobre un arco. Un paralelogramo mantiene la pinza horizontal. La movilidad en el plano es 2
+      garra sobre un arco. La varilla 13 orienta la pinza; como no forma un paralelogramo, la pinza se inclina hasta 13.3°. La movilidad en el plano es 2
       (Grübler), y con la base y la garra suma los 4 GDL del equipo.
-\item La cinemática directa se reduce a cerrar un triángulo con la ley de cosenos. La inversa es analítica
-      y, con la rama de montaje y los límites aplicados, da una solución única por cada $\theta$. No hay
-      singularidades en el recorrido, y el ángulo de transmisión (38°--92°) es aceptable.
+\item La cinemática directa se reduce a cerrar dos triángulos con la ley de cosenos (biela y varilla). La inversa
+      busca $\varphi$ por bisección y el resto es analítico; con la rama de montaje y los límites aplicados da una
+      solución única por cada $\theta$. No hay singularidades en el recorrido; el ángulo de transmisión
+      (30°--91°) es bajo cerca del homing.
 \item Con los supuestos actuales, la resolución es de 0.005 mm/pulso en los carros y 0.072 °/pulso en la
-      base. Como $d\varphi/ds_Y \approx 0.47$ °/mm, un pulso del carro Y mueve el TCP unos 12 µm: la
+      base. Como $d\varphi/ds_Y \approx 0.54$ °/mm, un pulso del carro Y mueve el TCP unos 14 µm: la
       precisión real no la limitan los pulsos, sino las holguras y la pérdida de pasos.
 \item El PTO compartido de la CPU 224 (Q0.1 con los relés independientes K1 y K2) permite mover X e Y a la
       vez, pero siempre a la misma velocidad: cada movimiento se programa como un tramo común y un tramo
       de un solo eje. Para trayectorias rectas o lazo cerrado con velocidades independientes convendría
       evaluar un módulo de posicionamiento o una CPU con más salidas PTO.
-\item Quedan por medir el paso del husillo, los micropasos, la reducción de la base y los pivotes $A$ y
-      $C$. La tabla de 25 puntos permite validar el modelo con un flexómetro.
+\item Quedan por medir el paso del husillo, los micropasos y la reducción de la base. Las cotas del mecanismo
+      vienen del modelo de Inventor; la tabla de 25 puntos permite validarlas con un flexómetro.
 \end{itemize}
 
 \subsection{Equipo de Cómputo (ETN-1000)}
@@ -768,8 +810,8 @@ Versionado en GitHub (ramas y merge) & Rama \codigo{feat/cinematica-modelo-3d}, 
 \item La cinemática vive en un único módulo JavaScript sin dependencias (\codigo{web/js/cinematica.js}).
       Lo usan la página, el generador del modelo 3D y las pruebas, y exporta \codigo{parametros.json}
       para Python y MATLAB. Corregir una cota en ese archivo actualiza todo.
-\item El modelo 3D se genera con un script reproducible, sin Blender: pesa 260 KB (el GLB de IA, 4.5 MB) y
-      los orígenes de sus nodos están en los ejes reales.
+\item El modelo 3D se genera con un script reproducible a partir de los STL de Inventor, sin Blender: pesa
+      435 KB (el GLB de IA, 4.5 MB) y los orígenes de sus nodos están en los ejes reales.
 \item El visor se carga en diferido y no frena el resto de la página. Funciona en escritorio y en
       celulares desde 375 px, en tema claro u oscuro, y sus controles se pueden usar con teclado.
 \item \codigo{conexion-plc.js} define el contrato con el middleware: \codigo{POST /posicion},
@@ -784,7 +826,7 @@ Versionado en GitHub (ramas y merge) & Rama \codigo{feat/cinematica-modelo-3d}, 
 \begin{itemize}
 \item Medir el paso del husillo (10 vueltas), fotografiar los DIP de los drivers y contar los dientes del
       engranaje de la base.
-\item Medir entre centros de pasadores las cotas $A$, $C$, $a$, $\beta$, $L_9$ y la posición del TCP.
+\item Verificar en la planta, entre centros de pasadores, algunas cotas del modelo de Inventor ($a$, $L_{12}$, los postes 14).
 \item Confirmar en la planta el mapa de E/S (I0.0 inductivo o final de carrera; Q0.5/Q0.6 como relés K1/K2).
 \item Ejecutar el protocolo de validación y documentar el error de posición del gemelo.
 \end{itemize}

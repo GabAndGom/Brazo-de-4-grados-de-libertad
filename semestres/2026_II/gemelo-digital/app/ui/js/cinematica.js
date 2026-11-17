@@ -45,6 +45,7 @@
     hBloque2: 51.3,       // inventor (ensambleGeneral, 17/11/2026); antes 40 (leida)
     hBloque1: 51.3,       // inventor (ensambleGeneral, 17/11/2026); antes 50 (leida)
     largoBloque: 100,     // leida: bloques 1 y 2 a lo largo de las guías
+    desfaseBloque2: 1.55, // inventor (ensambleGeneral, 17/11/2026): el bloque 2 está corrido 1.55 mm hacia adelante del eje de giro
     anchoBloque: 130,     // leida
     sepNiveles: 60,       // inventor (ensambleGeneral, 17/11/2026): centros de los bloques 1 y 2 (8.7 mm de luz entre ellos); antes 45
     // Bastidor
@@ -72,12 +73,18 @@
     a: 134.1,             // inventor (ensambleGeneral, 17/11/2026): distancia A-B; antes 145
     beta: 50.2,           // inventor (ensambleGeneral, 17/11/2026): ángulo entre A-B y el brazo A-E [°]; antes 50
     L9: 300,              // inventor (ensambleGeneral, 17/11/2026): brazo 9 entre pivotes A y E (coincide con lo estimado)
-    L14: 56,              // inventor (ensambleGeneral, 17/11/2026): A-A' (en el lado E mide 63.5: revisar el paralelogramo); antes 70
+    L14: 56,              // inventor (ensambleGeneral, 17/11/2026): A-A' (poste fijo al bastidor, vertical); antes 70
+    L14E: 63.5,           // inventor (ensambleGeneral, 17/11/2026): E-E' sobre la pinza. Distinto de L14 a propósito: no es un
+                          // paralelogramo y la pinza se inclina al mover el brazo
+    uE2: 0.5,             // inventor (ensambleGeneral, 17/11/2026): E' adelantado respecto de E con la pinza horizontal
+    L13: 295,             // inventor (ensambleGeneral, 17/11/2026): varilla 13 entre A' y E'
     // Pinza (desde el pivote E hasta el centro de las mordazas = TCP)
-    dg: 117.7,            // inventor (ensambleGeneral, 17/11/2026): de E al centro de las mordazas; antes 135
+    dg: 120.8,            // inventor (ensambleGeneral, 17/11/2026): de E al centro de las mordazas cerradas; antes 135
     hg: 0,                // inventor (ensambleGeneral, 17/11/2026): las mordazas quedan a la altura de E (-0.3 mm); antes 20
     hCuerpoPinza: 55,     // leida
     pinzaBajoE: 27.5,     // inventor (ensambleGeneral, 17/11/2026): el cuerpo de la pinza baja 27.5 mm desde E; antes 35
+    pinzaAtrasE: 6.5,     // inventor (ensambleGeneral, 17/11/2026): el cuerpo empieza 6.5 mm detrás de E
+    pinzaAdelanteE: 93.5, // inventor (ensambleGeneral, 17/11/2026): y termina 93.5 mm delante de E
     // Transmisión
     pasoHusillo: 5,       // SUPUESTO [mm/rev]: husillo de bolas tipo SFU1605
     pasosMotor: 200,      // fabricante: 1.8°/paso
@@ -102,7 +109,7 @@
   function derivar(p) {
     const hEjeX = p.hDiscoInf + p.hEntreDiscos + p.hDiscoSup + p.hColumna + p.hBloque2 / 2;
     const hEjeY = hEjeX + p.sepNiveles;
-    const uBloque2 = p.largoBloque / 2;          // cara delantera del bloque 2 (centrado en el eje θ)
+    const uBloque2 = p.largoBloque / 2 + p.desfaseBloque2;   // cara delantera del bloque 2
     const carreraLibre = p.largoGuias - 2 * p.espesorPlaca - p.largoBloque;
     const u5_0 = uBloque2 + p.holgura;           // cara interior de la placa 5 con sX = 0
     const hA = hEjeX + p.dhA;
@@ -135,12 +142,20 @@
       return Math.atan2(cz, cx) - Math.acos(cosg);
     }
 
-    // dψ/dg analítico, de f = |a·e(ψ) - C|² - L12² = 0  (dψ/dsY = -dψ/dg)
-    function dpsi(g, psi) {
-      const vx = p.a * Math.cos(psi) - (g + d.cu0);
-      const vz = p.a * Math.sin(psi) - d.ch;
-      return vx / (p.a * (-vx * Math.sin(psi) + vz * Math.cos(psi)));
+    // ---------------------------------------------------------------- pinza (cuadrilátero A-A'-E'-E)
+    // A' está fijo al bastidor (L14 sobre A). E' está en la pinza, en (uE2, L14E) desde E con la
+    // pinza horizontal. La varilla 13 (L13) une A' con E'. Como L14 ≠ L14E y L13 ≠ L9, no es un
+    // paralelogramo: el ángulo γ de la pinza (0 = horizontal) cambia con φ.
+    const vE2 = Math.hypot(p.uE2, p.L14E), aE2 = Math.atan2(p.L14E, p.uE2);
+    function gammaDe(phi) {
+      const wu = -p.L9 * Math.cos(phi), wh = p.L14 - p.L9 * Math.sin(phi);   // A' - E
+      const w = Math.hypot(wu, wh);
+      const k = (vE2 * vE2 + w * w - p.L13 * p.L13) / (2 * vE2 * w);
+      if (k < -1 || k > 1) return NaN;
+      const gm = Math.atan2(wh, wu) - aE2 - Math.acos(k);   // rama de montaje: E' por encima de E
+      return ((gm + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
     }
+    const rot = (g, u, h) => ({ u: u * Math.cos(g) - h * Math.sin(g), h: u * Math.sin(g) + h * Math.cos(g) });
 
     // ---------------------------------------------------------------- directa
     function directa(q) {
@@ -149,21 +164,27 @@
       const psi = psiDe(g);
       if (!isFinite(psi)) return { valida: false, motivo: 'El lazo de bielas no cierra para esa carrera del carro Y.' };
       const phi = psi - beta;
+      const gamma = gammaDe(phi);
+      if (!isFinite(gamma)) return { valida: false, motivo: 'El cuadrilátero de la pinza no cierra.' };
       const uA = d.u5_0 + sX + p.uA;
       const A = { u: uA, h: d.hA };
       const B = { u: uA + p.a * Math.cos(psi), h: d.hA + p.a * Math.sin(psi) };
       const C = { u: uA + g + d.cu0, h: d.hCabs };
       const E = { u: uA + p.L9 * Math.cos(phi), h: d.hA + p.L9 * Math.sin(phi) };
-      const r = E.u + p.dg, z = E.h - p.hg;
+      const e2 = rot(gamma, p.uE2, p.L14E), t = rot(gamma, p.dg, -p.hg);
+      const E2 = { u: E.u + e2.u, h: E.h + e2.h };
+      const r = E.u + t.u, z = E.h + t.h;
       const th = theta * RAD;
+      const esquinas = [rot(gamma, -p.pinzaAtrasE, -p.pinzaBajoE), rot(gamma, p.pinzaAdelanteE, -p.pinzaBajoE)];
       return {
         valida: true, theta, sX, sY, garra: !!q.garra,
         posBloque1: g,      // desplazamiento del bloque 1 desde su tope trasero (para el modelo 3D)
-        phi: phi / RAD, psi: psi / RAD,
+        phi: phi / RAD, psi: psi / RAD, gamma: gamma / RAD,
         angBiela: Math.atan2(B.h - C.h, B.u - C.u) / RAD,
+        angVarilla: Math.atan2(E2.h - d.hA - p.L14, E2.u - uA) / RAD,
         r, z, X: r * Math.cos(th), Y: r * Math.sin(th), Z: z,
-        puntos: { A, B, C, E, A2: { u: A.u, h: A.h + p.L14 }, E2: { u: E.u, h: E.h + p.L14 } },
-        hPinzaMin: E.h - p.pinzaBajoE
+        puntos: { A, B, C, E, A2: { u: A.u, h: A.h + p.L14 }, E2 },
+        hPinzaMin: E.h + Math.min(...esquinas.map(c => c.h))
       };
     }
 
@@ -196,13 +217,27 @@
         .sort((x, y) => Math.abs(x - actual) - Math.abs(y - actual));
       if (!thetas.length) thetas = [th0];
 
-      const s = (obj.Z + p.hg - d.hA) / p.L9;
-      if (Math.abs(s) > 1) return { valida: false, motivo: 'Altura inalcanzable: el brazo no llega a esa Z.', soluciones };
+      // z del TCP en función de φ (con la inclinación γ de la pinza); se resuelve por bisección en cada rama
+      const zDe = phi => { const gm = gammaDe(phi); return isFinite(gm) ? d.hA + p.L9 * Math.sin(phi) + rot(gm, p.dg, -p.hg).h : NaN; };
+      const resolver = (lo, hi) => {
+        const N = 90, xs = [];
+        for (let i = 0; i <= N; i++) xs.push(lo + (hi - lo) * i / N);
+        const out = [];
+        for (let i = 0; i < N; i++) {
+          let a = xs[i], b = xs[i + 1], fa = zDe(a) - obj.Z, fb = zDe(b) - obj.Z;
+          if (!isFinite(fa) || !isFinite(fb) || fa * fb > 0) continue;
+          for (let k = 0; k < 60; k++) { const m = (a + b) / 2, fm = zDe(m) - obj.Z; if (fa * fm <= 0) { b = m; fb = fm; } else { a = m; fa = fm; } }
+          out.push((a + b) / 2);
+        }
+        return out;
+      };
+      const ramas = [...resolver(-Math.PI / 2, Math.PI / 2).map(f => ['adelante', f]),
+                     ...resolver(Math.PI / 2, 3 * Math.PI / 2).map(f => ['atrás', f])];
+      if (!ramas.length) return { valida: false, motivo: 'Altura inalcanzable: el brazo no llega a esa Z.', soluciones };
 
-      // Ramas del brazo: hacia adelante (cos φ > 0) y hacia atrás
-      const ramas = [['adelante', Math.asin(s)], ['atrás', Math.PI - Math.asin(s)]];
       for (const [rama, phi] of ramas) {
-        const sX = r - p.dg - p.L9 * Math.cos(phi) - d.u5_0 - p.uA;
+        const gm = gammaDe(phi);
+        const sX = r - rot(gm, p.dg, -p.hg).u - p.L9 * Math.cos(phi) - d.u5_0 - p.uA;
         const psi = phi + beta;
         const bx = p.a * Math.cos(psi), bz = p.a * Math.sin(psi);
         const disc = p.L12 * p.L12 - (d.ch - bz) * (d.ch - bz);
@@ -231,25 +266,27 @@
 
     // ---------------------------------------------------------------- jacobiano
     // J = ∂(X, Y, Z) / ∂(θ [rad], sX, sY)
+    // Por diferencias centradas: con la pinza inclinable ya no hay forma cerrada sencilla.
     function jacobiano(q) {
       const fk = directa(q);
       if (!fk.valida) return null;
-      const th = fk.theta * RAD, phi = fk.phi * RAD;
-      const dphi = -dpsi(fk.posBloque1, fk.psi * RAD);
-      const drY = -p.L9 * Math.sin(phi) * dphi;
-      const dzY = p.L9 * Math.cos(phi) * dphi;
-      const c = Math.cos(th), s = Math.sin(th);
-      const J = [
-        [-fk.r * s, c, c * drY],
-        [fk.r * c, s, s * drY],
-        [0, 0, dzY]
-      ];
-      const det = fk.r * dzY;   // desarrollando por la última fila
+      const h = 1e-4;
+      const dif = (dq) => {
+        const m = directa({ theta: q.theta - dq.theta / RAD, sX: q.sX - dq.sX, sY: q.sY - dq.sY });
+        const pl = directa({ theta: q.theta + dq.theta / RAD, sX: q.sX + dq.sX, sY: q.sY + dq.sY });
+        if (!m.valida || !pl.valida) return null;
+        return { X: (pl.X - m.X) / (2 * h), Y: (pl.Y - m.Y) / (2 * h), Z: (pl.Z - m.Z) / (2 * h), phi: (pl.phi - m.phi) / (2 * h) };
+      };
+      const cols = [dif({ theta: h, sX: 0, sY: 0 }), dif({ theta: 0, sX: h, sY: 0 }), dif({ theta: 0, sX: 0, sY: h })];
+      if (cols.some(c => !c)) return null;
+      const J = [0, 1, 2].map(i => cols.map(c => [c.X, c.Y, c.Z][i]));
+      const det = J[0][0] * (J[1][1] * J[2][2] - J[1][2] * J[2][1]) - J[0][1] * (J[1][0] * J[2][2] - J[1][2] * J[2][0])
+                + J[0][2] * (J[1][0] * J[2][1] - J[1][1] * J[2][0]);
       // Ángulo de transmisión entre la biela 12 y el segmento A-B (ideal 90°)
       const P = fk.puntos;
       const v1 = [P.C.u - P.B.u, P.C.h - P.B.h], v2 = [P.A.u - P.B.u, P.A.h - P.B.h];
       const mu = Math.acos((v1[0] * v2[0] + v1[1] * v2[1]) / (Math.hypot(v1[0], v1[1]) * Math.hypot(v2[0], v2[1]))) / RAD;
-      return { J, det, dphi_dsY: dphi / RAD, transmision: mu };
+      return { J, det, dphi_dsY: cols[2].phi, transmision: mu };
     }
 
     // ---------------------------------------------------------------- motor -> articulación
@@ -336,7 +373,7 @@
       parametros: p, derivados: d, supuestos: SUPUESTOS.slice(), transmision,
       directa, inversa, jacobiano, limites, colision, aPulsos, dePulsos,
       espacioTrabajo, contorno, trayectoria, interpolarQ,
-      _psiDe: psiDe
+      _psiDe: psiDe, _gammaDe: gammaDe
     };
   }
 

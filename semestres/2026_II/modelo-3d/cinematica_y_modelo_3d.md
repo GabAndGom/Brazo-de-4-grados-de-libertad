@@ -4,10 +4,10 @@ Resumen del gemelo digital geométrico (II-2026). El desarrollo completo está e
 [`informe/informe_cinematica_modelo_3d.tex`](informe/informe_cinematica_modelo_3d.tex) y el levantamiento de
 medidas en [`levantamiento/levantamiento_medidas.md`](levantamiento/levantamiento_medidas.md).
 
-> **Modelo aproximado.** Las cotas marcadas **SUPUESTO** o estimadas de foto (posición de los pivotes A y C,
-> balancín $a$ y $\beta$, brazo $L_9$, pinza, recorridos, paso del husillo, micropasos y reducción de la base)
-> deben medirse en la planta. Las estimadas se ajustaron con la foto de perfil del manual: el modelo reproduce
-> esa pose con menos de 5 mm de diferencia en los pivotes B y C. Están todas en un solo lugar: `web/js/cinematica.js`.
+> **Cotas.** Desde el 17/11/2026 las cotas del mecanismo vienen del **modelo de Inventor del equipo**
+> (`global/modelo-3d/inventor/`), extraídas con `levantamiento/medidas_inventor.py`: el modelo reproduce la pose
+> del ensamble con 0.4 mm de error como máximo. Siguen como **SUPUESTO** la holgura en los finales, el paso del
+> husillo, los micropasos y la reducción de la base. Están todas en un solo lugar: `web/js/cinematica.js`.
 
 ![Esquema cinemático](levantamiento/esquema_cinematico.svg)
 
@@ -16,9 +16,10 @@ medidas en [`levantamiento/levantamiento_medidas.md`](levantamiento/levantamient
 | Símbolo | Significado | Rango |
 |---|---|---|
 | $\theta$ | giro de la base (motor Z, NEMA 17) | −175° a 175° (SUPUESTO) |
-| $s_X$ | carrera del carro X desde su final trasero (homing): el bastidor completo se desliza por el bloque 2 | 0 a 120 mm (SUPUESTO, ficha del fabricante) |
-| $s_Y$ | carrera del carro Y desde su final inferior (homing): al crecer, el bloque 1 retrocede sobre el bastidor y el brazo sube | 0 a 170 mm (SUPUESTO) |
-| $\varphi$ | ángulo del brazo 9 respecto a la horizontal (pasivo) | −32.6° (homing) a 47.0° |
+| $s_X$ | carrera del carro X desde su final trasero (homing): el bastidor completo se desliza por el bloque 2 | 0 a 170 mm (dato del equipo) |
+| $s_Y$ | carrera del carro Y desde su final inferior (homing): al crecer, el bloque 1 retrocede sobre el bastidor y el brazo sube | 0 a 170 mm (dato del equipo; carrera libre 202 mm) |
+| $\varphi$ | ángulo del brazo 9 respecto a la horizontal (pasivo) | −44.5° (homing) a 47.0° |
+| $\gamma$ | inclinación de la pinza (pasiva; la varilla 13 no forma un paralelogramo) | 0.2° a 13.3° |
 | $(X, Y, Z)$ | posición de la garra (TCP); origen en el eje de giro sobre la mesa | — |
 
 Grados de libertad en el plano del brazo (Grübler-Kutzbach, $n = 7$ eslabones, $j = 8$ pares de 1 GDL):
@@ -31,9 +32,9 @@ Con el giro de la base y la garra ON/OFF quedan los **4 GDL** del equipo.
 
 **Lazo de la biela 12.** Con $A$ como origen en el bastidor, el pivote $C$ de la escuadra 6 está en
 
-$$ \mathbf{C} - \mathbf{A} = \begin{bmatrix} g + c_{u0} \\ c_h \end{bmatrix},\qquad g = S_Y - s_Y,\qquad c_{u0} = -252\ \text{mm},\quad c_h = 125\ \text{mm} $$
+$$ \mathbf{C} - \mathbf{A} = \begin{bmatrix} g + c_{u0} \\ c_h \end{bmatrix},\qquad g = S_Y - s_Y,\qquad c_{u0} = -273.5\ \text{mm},\quad c_h = 109.4\ \text{mm} $$
 
-donde $g$ es cuánto se alejó el bloque 1 de su tope trasero y $S_Y = 170$ mm es la carrera total del carro Y.
+donde $g$ es cuánto se alejó el bloque 1 de su tope trasero y $S_Y = 202 - 2\cdot2 = 198$ mm (carrera libre menos la holgura en cada tope).
 
 y el vértice $B$ del balancín en $\mathbf{B} - \mathbf{A} = a\,[\cos\psi,\ \sin\psi]^T$. Cerrar el lazo
 $|\mathbf{B} - \mathbf{C}| = L_{12}$ da (ley de cosenos):
@@ -44,9 +45,15 @@ El signo menos elige la rama de montaje real. El brazo forma un ángulo fijo $\b
 
 $$ \varphi = \psi - \beta $$
 
-**Posición de la garra.** El paralelogramo (varilla 13 y postes 14) mantiene la pinza horizontal, así que
+**Inclinación de la pinza.** La varilla 13 ($L_{13} = 295$) une $A'$, fijo 56 mm sobre $A$, con $E'$, que está en la
+pinza a $\mathbf{v} = (0.5,\ 63.5)$ mm de $E$. No es un paralelogramo: cerrando $|\mathbf{E} + R(\gamma)\mathbf{v} - \mathbf{A}'| = L_{13}$
+con $\mathbf{w} = \mathbf{A}' - \mathbf{E}$:
 
-$$ r = u_{50} + s_X + u_A + L_9\cos\varphi + d_g, \qquad z = h_A + L_9\sin\varphi - h_g $$
+$$ \gamma = \operatorname{atan2}(w_h, w_u) - \operatorname{atan2}(v_h, v_u) - \arccos\!\left(\frac{|\mathbf{v}|^2 + |\mathbf{w}|^2 - L_{13}^2}{2|\mathbf{v}||\mathbf{w}|}\right) $$
+
+**Posición de la garra.** El TCP está en $(d_g, -h_g)$ del marco de la pinza, girado $\gamma$:
+
+$$ r = u_{50} + s_X + u_A + L_9\cos\varphi + d_g\cos\gamma + h_g\sin\gamma, \qquad z = h_A + L_9\sin\varphi + d_g\sin\gamma - h_g\cos\gamma $$
 
 $$ X = r\cos\theta,\qquad Y = r\sin\theta,\qquad Z = z $$
 
@@ -55,12 +62,13 @@ sobre un arco que cambia a la vez $r$ y $z$.
 
 | Parámetro | Valor | Origen |
 |---|---|---|
-| $a$, $\beta$ | 145 mm, 50° | estimado de la foto del manual |
-| $L_{12}$ | 235 mm | boceto de la pieza 12 (24 cm de largo total) |
-| $L_9$ | 300 mm | igual a la varilla 13 (paralelogramo) |
-| $u_{50} + u_A$ | 52 + 20 mm | estimado de la foto |
-| $h_A$ | 236 mm (altura del husillo superior) | estimado de la foto |
-| $d_g$, $h_g$ | 135 mm, 20 mm | estimado de la foto |
+| $a$, $\beta$ | 134.1 mm, 50.2° | Inventor |
+| $L_{12}$ | 230 mm | Inventor |
+| $L_9$ | 300 mm | Inventor |
+| $L_{14}$, $L_{14E}$, $L_{13}$ | 56, 63.5, 295 mm | Inventor (no es paralelogramo) |
+| $u_{50} + u_A$ | 53.55 + 23.5 mm | Inventor |
+| $h_A$ | 270.9 mm | Inventor (+ discos del levantamiento) |
+| $d_g$, $h_g$ | 120.8 mm, 0 mm | Inventor |
 
 ## 3. Cinemática inversa
 
@@ -68,15 +76,18 @@ Dado $(X, Y, Z)$:
 
 $$ \theta = \operatorname{atan2}(Y, X)\ \ (\text{o } \theta \pm 360^\circ,\ \text{la más cercana a la actual dentro del rango}),\qquad r = \sqrt{X^2+Y^2} $$
 
-$$ \sin\varphi = \frac{Z + h_g - h_A}{L_9} \;\Rightarrow\; \varphi_1 = \arcsin(\cdot),\quad \varphi_2 = \pi - \varphi_1 $$
+$$ z(\varphi) = h_A + L_9\sin\varphi + d_g\sin\gamma(\varphi) - h_g\cos\gamma(\varphi) = Z $$
 
-$$ s_X = r - d_g - L_9\cos\varphi - u_{50} - u_A $$
+se resuelve por bisección en dos ramas, $\varphi_1 \in [-90^\circ, 90^\circ]$ y $\varphi_2 \in [90^\circ, 270^\circ]$ (no hay fórmula
+cerrada porque la pinza se inclina). Luego
+
+$$ s_X = r - d_g\cos\gamma - h_g\sin\gamma - L_9\cos\varphi - u_{50} - u_A $$
 
 $$ g = a\cos(\varphi+\beta) \pm \sqrt{L_{12}^2 - \big(c_h - a\sin(\varphi+\beta)\big)^2} - c_{u0},\qquad s_Y = S_Y - g $$
 
 Se generan las combinaciones de $\theta$, $\varphi_{1,2}$ y $\pm$. Solo se acepta la que reproduce la rama de
 montaje de la directa ($\varphi_2$, con el brazo hacia atrás, nunca la cumple). Además deben respetarse los
-recorridos de los carros y no debe haber colisión con la mesa. Si $|\sin\varphi| > 1$, si el radicando es
+recorridos de los carros y no debe haber colisión con la mesa. Si no hay raíz de $z(\varphi) = Z$, si el radicando es
 negativo o si ninguna solución cumple los límites, la posición es **inalcanzable**.
 
 ## 4. Jacobiano y singularidades
@@ -85,11 +96,14 @@ Derivando el cierre del lazo $f = |a\,\mathbf{e}(\psi) - (\mathbf{C} - \mathbf{A
 
 $$ \frac{d\varphi}{ds_Y} = -\frac{d\psi}{dg} = -\frac{(B-C)_u}{a\,(\mathbf{B}-\mathbf{C})\cdot\mathbf{e}_\perp(\psi)} $$
 
-$$ J = \frac{\partial(X,Y,Z)}{\partial(\theta, s_X, s_Y)} = \begin{bmatrix} -r\sin\theta & \cos\theta & -\cos\theta\,L_9\sin\varphi\,\varphi' \\ r\cos\theta & \sin\theta & -\sin\theta\,L_9\sin\varphi\,\varphi' \\ 0 & 0 & L_9\cos\varphi\,\varphi' \end{bmatrix},\qquad \det J = r\,L_9\cos\varphi\,\varphi' $$
+$$ J = \frac{\partial(X,Y,Z)}{\partial(\theta, s_X, s_Y)} = \begin{bmatrix} -r\sin\theta & \cos\theta & \cos\theta\,\rho\,\varphi' \\ r\cos\theta & \sin\theta & \sin\theta\,\rho\,\varphi' \\ 0 & 0 & \zeta\,\varphi' \end{bmatrix},\qquad |\det J| = r\,\zeta\,\varphi' $$
 
-Hay singularidad si $r = 0$, si $\cos\varphi = 0$ (brazo vertical), si $\varphi' = 0$ (biela 12 vertical) o si
+con $\rho = \partial r/\partial\varphi$ y $\zeta = \partial z/\partial\varphi$, que incluyen la inclinación de la pinza ($d\gamma/d\varphi$).
+`cinematica.js` calcula $J$ por diferencias centradas.
+
+Hay singularidad si $r = 0$, si $\zeta = 0$ (la garra no sube con el brazo), si $\varphi' = 0$ (biela 12 vertical) o si
 $\varphi' \to \infty$ (punto muerto: biela 12 alineada con $A$-$B$). **Con los parámetros actuales ninguna ocurre
-dentro del recorrido.** El ángulo de transmisión de la biela varía entre 38° y 92°.
+dentro del recorrido.** El ángulo de transmisión de la biela varía entre 30° y 91°.
 
 ## 5. Relación motor → articulación
 
@@ -122,16 +136,19 @@ en X e Y), pero sí el movimiento simultáneo. La página simula ambos casos y e
 
 ![Vista superior](informe/figuras/espacio_trabajo_superior.png)
 
-Alcance $r$ de 411 a 677 mm y altura $z$ de 54 a 436 mm. Son unos 382 mm de recorrido vertical: la ficha
+Alcance $r$ de 399 a 667 mm y altura $z$ de 61 a 518 mm. Son unos 457 mm de recorrido vertical: la ficha
 comercial del fabricante indica 0-400 mm en vertical y 0-120 mm adelante-atrás, y el manual 440 mm para el eje Y. En planta el alcance es una corona de ±175°.
 
 ## 7. Modelo 3D y validación
 
-- `global/modelo-3d/brazo_xk-js1-1.glb` (260 KB) se genera con `node global/modelo-3d/generar_modelo.js` a partir
-  de los mismos parámetros. Cada pieza móvil es un nodo con el origen en su pivote o su guía.
+- `global/modelo-3d/brazo_xk-js1-1.glb` (435 KB) se genera con `node global/modelo-3d/generar_modelo.js` a partir
+  de las piezas del modelo de Inventor (`global/modelo-3d/inventor/stl/`), acomodadas con los mismos parámetros.
+  Cada pieza móvil es un nodo con el origen en su pivote o su guía.
+- La pose del ensamble de Inventor se reproduce con 0.4 mm de error como máximo
+  (`levantamiento/comparacion_inventor.png`).
 - Las pruebas (`node semestres/2026_II/modelo-3d/cinematica/pruebas_cinematica.js`) dan:
   - directa → inversa → directa: error < 1e-12 mm;
-  - jacobiano analítico frente al numérico: error < 1e-7;
+  - jacobiano frente a diferencias finitas independientes: error < 1e-6;
   - Python frente a JavaScript: diferencia < 0.05 mm (redondeo de la tabla).
 - En la página, la tarjeta "Modelo vs FK" compara en vivo el TCP del modelo 3D con la cinemática directa.
 - Falta la validación contra la planta: medir $(r, z)$ de la garra en las 25 posiciones de

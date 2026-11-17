@@ -1,5 +1,36 @@
 {
   "fuente": "Inventor ensambleGeneral (STL por instancia), mm",
+  "marco": {
+    "R": [
+      [
+        -0.166684844,
+        -0.099049279,
+        -0.981022631
+      ],
+      [
+        -0.985878178,
+        0.033024538,
+        0.164175512
+      ],
+      [
+        0.016136353,
+        0.994534374,
+        -0.103155213
+      ]
+    ],
+    "o": [
+      1338.685507,
+      261.512736,
+      -760.265518
+    ],
+    "nota": "local = R·p - o (mm); x hacia atrás (la garra está en -x), y lateral, z arriba desde la cara inferior del disco giratorio"
+  },
+  "pinza": {
+    "y_plano_medio": -2.2,
+    "mordaza_y_interior": -3.795,
+    "mordaza_u_trasera": 564.975,
+    "cuerpo_u_delantera": 578.602
+  },
   "parametros": {
     "rDisco": 82.5,
     "hDiscoSup": 15.0,
@@ -26,7 +57,7 @@
     "L14": 56.0,
     "L14_E": 63.5,
     "L13": 295.0,
-    "dg": 117.73,
+    "dg": 120.78,
     "hg": -0.3,
     "hCuerpoPinza": 55.0,
     "pinzaBajoE": 27.5
@@ -61,7 +92,7 @@
       -78.25
     ],
     "TCP": [
-      602.82,
+      605.88,
       -141.45
     ]
   },

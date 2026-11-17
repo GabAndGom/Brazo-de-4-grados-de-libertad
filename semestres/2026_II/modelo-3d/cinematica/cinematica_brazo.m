@@ -71,18 +71,28 @@ function k = directa(P, D, theta, sX, sY)
     phi = psi - P.beta*pi/180;
     uA = D.u5_0 + sX + P.uA;
     Eu = uA + P.L9*cos(phi);  Eh = D.hA + P.L9*sin(phi);
-    k.phi = phi*180/pi;
-    k.r = Eu + P.dg;  k.z = Eh - P.hg;
+    gm = gamma_de(P, phi);                       % inclinación de la pinza (no es paralelogramo)
+    k.phi = phi*180/pi;  k.gamma = gm*180/pi;
+    k.r = Eu + P.dg*cos(gm) + P.hg*sin(gm);  k.z = Eh + P.dg*sin(gm) - P.hg*cos(gm);
     k.X = k.r*cosd(theta);  k.Y = k.r*sind(theta);  k.Z = k.z;
 end
 
+function gm = gamma_de(P, phi)
+    % Cuadrilátero A-A'-E'-E: A' fijo L14 sobre A; E' en (uE2, L14E) de la pinza; varilla L13
+    v = hypot(P.uE2, P.L14E);  av = atan2(P.L14E, P.uE2);
+    wu = -P.L9*cos(phi);  wh = P.L14 - P.L9*sin(phi);  w = hypot(wu, wh);
+    gm = atan2(wh, wu) - av - acos((v^2 + w^2 - P.L13^2) / (2*v*w));
+    gm = mod(gm + pi, 2*pi) - pi;
+end
+
 function q = inversa(P, D, X, Y, Z)
-    % Rama "adelante" del brazo y rama de montaje real de la biela 12
+    % Rama "adelante" del brazo y rama de montaje real de la biela 12.
+    % La pinza se inclina con phi, así que phi se busca numéricamente (fzero) a partir de Z.
     r = hypot(X, Y);  theta = atan2d(Y, X);
-    s = (Z + P.hg - D.hA) / P.L9;
-    if abs(s) > 1, error('Altura inalcanzable'); end
-    phi = asin(s);
-    sX = r - P.dg - P.L9*cos(phi) - D.u5_0 - P.uA;
+    zDe = @(f) D.hA + P.L9*sin(f) + P.dg*sin(gamma_de(P, f)) - P.hg*cos(gamma_de(P, f)) - Z;
+    phi = fzero(zDe, [-pi/2 + 1e-6, pi/2 - 1e-6]);
+    gm = gamma_de(P, phi);
+    sX = r - P.dg*cos(gm) - P.hg*sin(gm) - P.L9*cos(phi) - D.u5_0 - P.uA;
     psi = phi + P.beta*pi/180;
     bx = P.a*cos(psi);  bz = P.a*sin(psi);
     g = bx - sqrt(P.L12^2 - (D.ch - bz)^2) - D.cu0;

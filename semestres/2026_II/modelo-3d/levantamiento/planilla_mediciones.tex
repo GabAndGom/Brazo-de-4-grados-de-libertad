@@ -130,7 +130,7 @@ Convierten pulsos del PLC en milímetros y grados: un error aquí escala todas l
 \section{2. Recorridos y referencias (prioridad alta)}
 Fijan los límites de los deslizadores, el homing y el espacio de trabajo. Hoy: carro X 0--120 mm (ficha del fabricante), carro Y 0--170 mm, base $\pm$175°.
 \begin{medidas}
-2.1 & Carrera útil del carro X entre sus finales de carrera & \cod{recorridoX} & 120 mm & Bastidor al final trasero: marque con cinta la placa 5 sobre el bloque 2; luego al delantero; mida entre marcas. & & \\
+2.1 & Carrera útil del carro X entre sus finales de carrera & \cod{recorridoX} & 170 mm & Bastidor al final trasero: marque con cinta la placa 5 sobre el bloque 2; luego al delantero; mida entre marcas. & & \\
 2.2 & Carrera útil del carro Y entre sus finales de carrera & \cod{recorridoY} & 170 mm & Igual, marcando la cara delantera del bloque 1 sobre una guía superior. & & \\
 2.3 & Pulsos de X entre finales (si se puede con el PLC) & -- & 38 400 (calc.) & Contador del programa al ir de un final al otro. Verifica 1.1 y 1.5. & & \\
 2.4 & Pulsos de Y entre finales & -- & 54 400 (calc.) & Igual que 2.3. & & \\
@@ -148,15 +148,15 @@ Fijan los límites de los deslizadores, el homing y el espacio de trabajo. Hoy: 
 \section{3. Base, columna y alturas}
 La altura de los husillos decide la altura Z de la garra en todo el modelo. Hoy: 191 mm (inferior) y 236 mm (superior).
 \begin{medidas}
-3.1 & \textbf{Altura del eje del husillo inferior sobre la mesa} & suma de alturas & 191 mm & Escuadra apoyada en la mesa hasta el centro del husillo, en la cara del bloque 2. & & \\
-3.2 & \textbf{Altura del eje del husillo superior sobre la mesa} & \cod{sepNiveles} & 236 mm & Igual, al centro del husillo superior en la cara del bloque 1. & & \\
+3.1 & \textbf{Altura del eje del husillo inferior sobre la mesa} & suma de alturas & 196.7 mm & Escuadra apoyada en la mesa hasta el centro del husillo, en la cara del bloque 2. & & \\
+3.2 & \textbf{Altura del eje del husillo superior sobre la mesa} & \cod{sepNiveles} & 256.7 mm & Igual, al centro del husillo superior en la cara del bloque 1. & & \\
 3.3 & Espesor del disco inferior (fijo) & \cod{hDiscoInf} & 15 mm & Calibrador. & & \\
 3.4 & Separación entre discos & \cod{hEntreDiscos} & 21 mm & Calibrador por el costado. & & \\
 3.5 & Espesor del disco superior (gira) & \cod{hDiscoSup} & 15 mm & Calibrador. & & \\
 3.6 & Diámetro de los discos & \cod{rDisco} & Ø 165 mm & Calibrador o flexómetro. & & \\
 3.7 & Altura de la columna 7 & \cod{hColumna} & 120 mm & Del disco superior a la cara inferior del bloque 2. & & \\
 3.8 & Ancho × profundidad de la columna 7 & -- & 100 × 71 mm & Calibrador; indique cuál lado es paralelo a las guías. & & \\
-3.9 & Eje de giro a la cara delantera del bloque 2 & \cod{largoBloque}/2 & 50 mm & Del centro del disco a la cara del bloque 2 que mira a la garra. & & \\
+3.9 & Eje de giro a la cara delantera del bloque 2 & \cod{largoBloque}/2 & 51.6 mm & Del centro del disco a la cara del bloque 2 que mira a la garra. & & \\
 3.10 & Desplazamiento lateral del plano del brazo respecto al eje de giro & -- & 0 mm & Desde arriba: ¿el husillo pasa sobre el centro del disco? & & \\
 3.11 & Posición del NEMA 17 sobre el disco & -- & delante de la columna & Foto desde arriba. & & \\
 3.12 & Posición del sensor inductivo y de su leva & -- & sobre el disco superior & Foto; en qué disco va el sensor y en cuál la leva. & & \\
@@ -167,15 +167,15 @@ La altura de los husillos decide la altura Z de la garra en todo el modelo. Hoy:
 Definen la carrera máxima posible y la forma del modelo 3D; casi todas están en los bocetos y solo hay que confirmarlas.
 \begin{medidas}
 4.1 & Bloques 1 y 2: largo a lo largo de las guías & \cod{largoBloque} & 100 mm & Calibrador. & & \\
-4.2 & Bloque 1: ancho (lateral) × alto & \cod{anchoBloque}, \cod{hBloque1} & 130 × 50 mm & Calibrador. & & \\
-4.3 & Bloque 2: largo × ancho × alto & \cod{hBloque2} & 100 × 130 × 40 mm & Calibrador. & & \\
+4.2 & Bloque 1: ancho (lateral) × alto & \cod{anchoBloque}, \cod{hBloque1} & 130 × 51.3 mm & Calibrador. & & \\
+4.3 & Bloque 2: largo × ancho × alto & \cod{hBloque2} & 100 × 130 × 51.3 mm & Calibrador. & & \\
 4.4 & Desfase entre bloques 1 y 2 en el homing & -- & variable & Anote $s_X$, $s_Y$ y el desfase. & & \\
-4.5 & Placas 5 y 10: ancho (lateral) × alto × espesor & \cod{anchoPlaca}, \cod{altoPlaca} & 120 × 110 × 13 mm & Calibrador. & & \\
-4.6 & Separación vertical entre ejes de husillos & \cod{sepNiveles} & 45 mm & Centro a centro en la placa. & & \\
-4.7 & Separación lateral guía -- husillo (centro a centro) & \cod{zGuias} & 37.5 mm & Centro a centro en la placa, a cada lado. & & \\
-4.8 & Borde inferior de la placa al eje del husillo inferior & -- & 32.5 mm & Calibrador. & & \\
-4.9 & Guías 16: longitud total y diámetro & \cod{largoGuias} & 300 × Ø16 mm & Flexómetro y calibrador. & & \\
-4.10 & Distancia libre entre caras interiores de las placas 5 y 10 & -- & 274 mm & Flexómetro entre placas. & & \\
+4.5 & Placas 5 y 10: ancho (lateral) × alto × espesor & \cod{anchoPlaca}, \cod{altoPlaca} & 117 × 120 × 16 mm & Calibrador. & & \\
+4.6 & Separación vertical entre ejes de husillos & \cod{sepNiveles} & 60 mm & Centro a centro en la placa. & & \\
+4.7 & Separación lateral guía -- husillo (centro a centro) & \cod{zGuias} & 41.5 mm & Centro a centro en la placa, a cada lado. & & \\
+4.8 & Borde inferior de la placa al eje del husillo inferior & -- & 26.5 mm & Calibrador. & & \\
+4.9 & Guías 16: longitud total y diámetro & \cod{largoGuias} & 300 × Ø16 mm (entre placas) & Flexómetro y calibrador. & & \\
+4.10 & Distancia libre entre caras interiores de las placas 5 y 10 & -- & 302 mm & Flexómetro entre placas. & & \\
 4.11 & Largo del adaptador del motor (pieza 3) & -- & 50 mm & Calibrador. & & \\
 4.12 & Largo del cuerpo del motor NEMA 23 & -- & 76 mm & Calibrador. & & \\
 4.13 & ¿Qué motor está arriba: X o Y? & -- & arriba Y (manual) & Seguir el cable hasta el driver rotulado. & \cajita\ X\quad \cajita\ Y & \\
@@ -189,25 +189,25 @@ sobre la placa 5, \textbf{B} punta de la escuadra 8, \textbf{C} punta de la escu
 El ángulo $\beta$ se calcula con 5.8, 5.9 y 5.10 (no hace falta transportador).
 \begin{medidas}
 5.1 & Diámetro de los pasadores (A, B, C, E, A', E') & -- & Ø 9 mm & Calibrador; sirve para pasar de bordes a centros. & & \\
-5.2 & \textbf{A}: de la cara interior de la placa 5 al centro de A & \cod{uA} & 20 mm & Calibrador desde la cara que mira a los bloques, hacia la garra. & & \\
-5.3 & \textbf{A}: altura sobre el eje del husillo inferior & \cod{dhA} & 45 mm & Escuadra; o altura de A sobre la mesa menos 3.1. & & \\
-5.4 & \textbf{C}: de la cara delantera del bloque 1 al centro de C (negativo si está detrás) & \cod{uCBloque} & $-$60 mm & Calibrador o escuadra en la cara del bloque 1. & & \\
-5.5 & \textbf{C}: altura sobre la cara superior del bloque 1 & \cod{hC}+\cod{dhC} & 100 mm & Calibrador desde la cara superior del bloque 1. & & \\
-5.6 & Escuadra 6: alto, base, punta, espesor de placa, separación interior & -- & 110 / 49 / 24 / 11 / 12 mm & Calibrador; ¿pieza en U o dos placas? & & \\
-5.7 & \textbf{L12}: biela 12, de C a B & \cod{L12} & 235 mm & Flexómetro o calibrador entre pasadores. & & \\
-5.8 & \textbf{a}: de A a B (balancín 8 + 9) & \cod{a} & 145 mm & Calibrador entre pasadores. & & \\
+5.2 & \textbf{A}: de la cara interior de la placa 5 al centro de A & \cod{uA} & 23.5 mm & Calibrador desde la cara que mira a los bloques, hacia la garra. & & \\
+5.3 & \textbf{A}: altura sobre el eje del husillo inferior & \cod{dhA} & 74.3 mm & Escuadra; o altura de A sobre la mesa menos 3.1. & & \\
+5.4 & \textbf{C}: de la cara delantera del bloque 1 al centro de C (negativo si está detrás) & \cod{uCBloque} & $-$50 mm & Calibrador o escuadra en la cara del bloque 1. & & \\
+5.5 & \textbf{C}: altura sobre la cara superior del bloque 1 & \cod{hC}+\cod{dhC} & 98 mm & Calibrador desde la cara superior del bloque 1. & & \\
+5.6 & Escuadra 6: alto, base, punta, espesor de placa, separación interior & -- & 108 / 49 / 24 / 11 / 12 mm & Calibrador; ¿pieza en U o dos placas? & & \\
+5.7 & \textbf{L12}: biela 12, de C a B & \cod{L12} & 230 mm & Flexómetro o calibrador entre pasadores. & & \\
+5.8 & \textbf{a}: de A a B (balancín 8 + 9) & \cod{a} & 134.1 mm & Calibrador entre pasadores. & & \\
 5.9 & \textbf{L9}: brazo 9, de A a E & \cod{L9} & 300 mm & Flexómetro entre pasadores. & & \\
-5.10 & De B a E & -- (da $\beta$) & 235 mm (calc.) & Flexómetro entre pasadores. & & \\
-5.11 & $\beta$ = arccos((a² + L9² $-$ BE²) / (2·a·L9)) & \cod{beta} & 50° & Se calcula con 5.8, 5.9 y 5.10. & & \\
+5.10 & De B a E & -- (da $\beta$) & 237.7 mm (calc.) & Flexómetro entre pasadores. & & \\
+5.11 & $\beta$ = arccos((a² + L9² $-$ BE²) / (2·a·L9)) & \cod{beta} & 50.2° & Se calcula con 5.8, 5.9 y 5.10. & & \\
 5.12 & Escuadra 8: distancias desde A de sus dos vértices sobre el brazo & -- & 20 y 125 mm & Flexómetro a lo largo del brazo. & & \\
 5.13 & Separación interior entre las dos placas de la escuadra 8 & -- & 12 mm & Calibrador (por ahí pasa la varilla 13). & & \\
 5.14 & Brazo 9: ancho, espesor, ¿una o dos placas? & -- & 46 × 10, una & Calibrador. & & \\
-5.15 & \textbf{L13}: varilla 13, de A' a E' & \cod{L9} & 300 mm & Flexómetro. Si difiere de 5.9, anote la diferencia. & & \\
-5.16 & \textbf{L14}: poste trasero, de A a A' & \cod{L14} & 70 mm & Calibrador. ¿A' está justo sobre A? & & \\
-5.17 & \textbf{L14}: poste delantero, de E a E' & \cod{L14} & 70 mm & Calibrador. Debe ser igual a 5.16. & & \\
-5.18 & Ángulo del brazo 9 con $s_X$ = 0 y Y en su final inferior (homing) & -- & $-$32.6° (calc.) & Nivel digital del celular sobre el brazo 9. & & \\
+5.15 & \textbf{L13}: varilla 13, de A' a E' & \cod{L13} & 295 mm & Flexómetro. En el modelo de Inventor es 5 mm menor que 5.9. & & \\
+5.16 & \textbf{L14}: poste trasero, de A a A' & \cod{L14} & 56 mm & Calibrador. ¿A' está justo sobre A? & & \\
+5.17 & \textbf{L14}: poste delantero, de E a E' & \cod{L14E} & 63.5 mm & Calibrador. En el modelo de Inventor es distinto de 5.16 a propósito. & & \\
+5.18 & Ángulo del brazo 9 con $s_X$ = 0 y Y en su final inferior (homing) & -- & $-$44.5° (calc.) & Nivel digital del celular sobre el brazo 9. & & \\
 5.19 & Ángulo del brazo 9 con Y en su final superior & -- & +47° (calc.) & Igual que 5.18. & & \\
-5.20 & Ángulo del brazo 9 con Y al centro de su carrera & -- & +12° ($s_Y$ = 85) & Igual; anote el $s_Y$ real. & & \\
+5.20 & Ángulo del brazo 9 con Y al centro de su carrera & -- & +8.6° ($s_Y$ = 85) & Igual; anote el $s_Y$ real. & & \\
 \end{medidas}
 
 %======================================================================== 6
@@ -216,10 +216,10 @@ Definen dónde está el punto de trabajo (TCP: centro entre los bloques de agarr
 \begin{medidas}
 6.1 & Cuerpo 4: largo × ancho (lateral) × alto & \cod{hCuerpoPinza} & 80 × 55 × 55 mm & Calibrador. & & \\
 6.2 & Pivote E: distancia desde la cara trasera del cuerpo 4 & -- & 5 mm & Calibrador. & & \\
-6.3 & Pivote E: distancia desde la cara inferior del cuerpo 4 & \cod{pinzaBajoE} & 35 mm & Calibrador. & & \\
+6.3 & Pivote E: distancia desde la cara inferior del cuerpo 4 & \cod{pinzaBajoE} & 27.5 mm & Calibrador. & & \\
 6.4 & Poste delantero 14 sobre el cuerpo (desde atrás y desde el costado) & -- & sobre E, al centro & Calibrador. & & \\
-6.5 & \textbf{d\_g}: horizontal de E al centro de los bloques de agarre & \cod{dg} & 135 mm & Flexómetro con la pinza horizontal y la garra cerrada. & & \\
-6.6 & \textbf{h\_g}: cuánto más abajo que E está ese centro & \cod{hg} & 20 mm & Escuadra con la pinza horizontal. & & \\
+6.5 & \textbf{d\_g}: horizontal de E al centro de los bloques de agarre & \cod{dg} & 120.8 mm & Flexómetro con la pinza horizontal y la garra cerrada. & & \\
+6.6 & \textbf{h\_g}: cuánto más abajo que E está ese centro & \cod{hg} & 0 mm & Escuadra con la pinza horizontal. & & \\
 6.7 & Pivotes de los dedos: distancia desde E y separación lateral & -- & 75 mm; 32 mm & Calibrador. & & \\
 6.8 & Dedo: largo del pivote a la punta, ancho, espesor & -- & 80 × 16 × 10 mm & Calibrador. & & \\
 6.9 & Bloque de agarre (con cinta): largo × ancho × alto & -- & 40 × 20 × 26 mm & Calibrador. & & \\

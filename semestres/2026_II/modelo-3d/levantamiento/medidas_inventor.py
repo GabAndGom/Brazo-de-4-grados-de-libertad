@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Extrae las cotas del brazo del modelo de Inventor del equipo (exportado a STL).
 
-    python3 medidas_inventor.py "<carpeta con ensambleGeneral_1_*.stl>"   -> medidas_inventor.json
+    python3 medidas_inventor.py [carpeta con ensambleGeneral_1_*.stl]   -> medidas_inventor.json
+
+Por defecto lee global/modelo-3d/inventor/stl/ del repositorio.
 
 En Inventor: abrir ensambleGeneral.iam, Archivo > Exportar > Formato CAD > STL, opción
 "un archivo por instancia de pieza" (cada pieza queda en su posición dentro del ensamble), unidades mm.
@@ -110,8 +112,9 @@ def main(carpeta):
     lob, hib = caja('baseBrazo_14')
     loc, hic = caja('baseCorredera_11')
     lsp, hsp = caja('soportePinza_17')
-    lj = np.minimum(caja('pinza_15')[0], caja('pinza_16')[0])
-    hj = np.maximum(caja('pinza_15')[1], caja('pinza_16')[1])
+    # mordazas: pinza_16 es pinza_15 espejada y abierta ~47°; el TCP se toma con la garra cerrada:
+    # centro de la mordaza 15 a lo largo de la pinza y en altura, en el plano medio del cuerpo
+    lj, hj = caja('pinza_15')
     guias = [caja(f'barraDesliz_{i}') for i in (3, 4, 5, 6)]
     h0 = (lo2[2] + hi2[2]) / 2                 # eje del carro X (centro del bloque 2)
     u = lambda p: -p[0]
@@ -132,7 +135,13 @@ def main(carpeta):
     }
     puntos = {k: [round(u(p), 2), round(p[1] - h0, 2)] for k, p in
               dict(A=A, B=B, C=C, E=E, A2=A2, E2=E2, TCP=np.array([(lj[0] + hj[0]) / 2, (lj[2] + hj[2]) / 2])).items()}
+    ymedio = (lsp[1] + hsp[1]) / 2
     out = {'fuente': 'Inventor ensambleGeneral (STL por instancia), mm',
+           'marco': {'R': np.round(R, 9).tolist(), 'o': np.round(o, 6).tolist(),
+                     'nota': 'local = R·p - o (mm); x hacia atrás (la garra está en -x), y lateral, z arriba desde la cara '
+                             'inferior del disco giratorio'},
+           'pinza': {'y_plano_medio': round(float(ymedio), 3), 'mordaza_y_interior': round(float(hj[1]), 3),
+                     'mordaza_u_trasera': round(float(-hj[0]), 3), 'cuerpo_u_delantera': round(float(-lsp[0]), 3)},
            'parametros': {k: round(float(v), 2) for k, v in r.items()},
            'pose': {'sX_geom': round(float(u(hip) - u(lo2)), 2),   # cara interior de la placa delantera - cara delantera del bloque 2
                     'bloque1_contra_placa': round(float(lo1[0] - hip[0]), 2)},
@@ -144,4 +153,5 @@ def main(carpeta):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    raiz = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), *['..'] * 4))
+    main(sys.argv[1] if len(sys.argv) > 1 else os.path.join(raiz, 'global', 'modelo-3d', 'inventor', 'stl'))

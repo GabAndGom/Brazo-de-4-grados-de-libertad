@@ -39,6 +39,16 @@ def psi_de(g):
     return np.arctan2(cz, cx) - np.arccos(cosg)
 
 
+def gamma_de(phi):
+    """Inclinación de la pinza (rad, 0 = horizontal): cuadrilátero A-A'-E'-E (no es un paralelogramo)."""
+    v, av = np.hypot(P["uE2"], P["L14E"]), np.arctan2(P["L14E"], P["uE2"])
+    wu, wh = -P["L9"] * np.cos(phi), P["L14"] - P["L9"] * np.sin(phi)
+    w = np.hypot(wu, wh)
+    k = (v ** 2 + w ** 2 - P["L13"] ** 2) / (2 * v * w)
+    gm = np.arctan2(wh, wu) - av - np.arccos(k)
+    return (gm + np.pi) % (2 * np.pi) - np.pi
+
+
 def directa(theta, sX, sY):
     """Devuelve dict con phi [°], r, z, X, Y, Z [mm] y puntos A, B, C, E del plano."""
     sX, sY = np.broadcast_arrays(np.asarray(sX, float), np.asarray(sY, float))
@@ -50,9 +60,12 @@ def directa(theta, sX, sY):
     B = (uA + P["a"] * np.cos(psi), D["hA"] + P["a"] * np.sin(psi))
     C = (uA + g + D["cu0"], D["hCabs"])
     E = (uA + P["L9"] * np.cos(phi), D["hA"] + P["L9"] * np.sin(phi))
-    r, z = E[0] + P["dg"], E[1] - P["hg"]
+    gm = gamma_de(phi)
+    r = E[0] + P["dg"] * np.cos(gm) + P["hg"] * np.sin(gm)
+    z = E[1] + P["dg"] * np.sin(gm) - P["hg"] * np.cos(gm)
     th = np.radians(theta)
-    return dict(phi=np.degrees(phi), r=r, z=z, X=r * np.cos(th), Y=r * np.sin(th), Z=z, A=A, B=B, C=C, E=E)
+    return dict(phi=np.degrees(phi), gamma=np.degrees(gm), r=r, z=z, X=r * np.cos(th), Y=r * np.sin(th), Z=z,
+                A=A, B=B, C=C, E=E)
 
 
 def dphi_num(sY, h=1e-4):
@@ -136,7 +149,7 @@ for s, col in [(0, AZUL), (RY / 2, GRIS), (RY, NARANJA)]:
     ax.plot([C[0], B[0]], [C[1], B[1]], color=col, lw=2)                 # biela 12
     ax.plot([A[0], B[0], E[0]], [A[1], B[1], E[1]], color=col, lw=1, ls=":")
     ax.plot([A[0], E[0]], [A[1], E[1]], color=col, lw=3)                 # brazo 9
-    ax.plot([E[0], k["r"]], [E[1] - P["hg"], k["z"]], color=col, lw=1)
+    ax.plot([E[0], k["r"]], [E[1], k["z"]], color=col, lw=1)                 # pinza (inclinada γ)
     ax.plot(k["r"], k["z"], "x", color=col, ms=7)
     ax.plot(*zip(A, B, C, E), "o", color=col, mfc="white", ms=4)
     ax.annotate(f"sY = {s:g}", C, fontsize=8, color=col, xytext=(-30, 6), textcoords="offset points")

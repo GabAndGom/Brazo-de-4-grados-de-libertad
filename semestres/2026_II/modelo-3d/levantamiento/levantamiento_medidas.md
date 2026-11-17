@@ -41,8 +41,9 @@ planta con etiquetas, f07-f20.
    escuadra 8 con el vértice **C** de la escuadra 6, que está fija sobre el bloque 1. El conjunto
    bastidor-bloque 1-biela 12-balancín es un **mecanismo biela-manivela invertido**: s_Y fija el ángulo
    φ del brazo.
-6. La **varilla 13** y los dos **postes 14** (A'-A y E'-E) forman un **paralelogramo** con el brazo 9.
-   Gracias a él la pinza 4 **mantiene la orientación** (queda horizontal) para cualquier φ.
+6. La **varilla 13** y los dos **postes 14** (A'-A y E'-E) forman un cuadrilátero con el brazo 9 que orienta
+   la pinza 4. En el modelo de Inventor los postes miden distinto (56 y 63.5 mm) y la varilla 295 mm: **no es un
+   paralelogramo** (intencional) y la pinza se inclina entre 0.2° y 13.3° según φ.
 7. Los finales de carrera están en dos barras: una en la placa 5 (fotos f14 y f15) y otra en la placa
    10 (foto f17). En cada barra, el de arriba toca el bloque 1 (límites del carro Y) y el de abajo el
    bloque 2 (límites del carro X). Son 4 en total, 2 por eje, como dice el manual.
@@ -81,7 +82,7 @@ manual: "X axis for front and back movement, the Y axis for up and down movement
 
 $$ M = 3(n-1) - 2j_1 - j_2 = 3(7-1) - 2\cdot 8 - 0 = 2 $$
 
-Sumando el giro de la base (R1) y la garra ON/OFF quedan **4 GDL**. El paralelogramo no añade
+Sumando el giro de la base (R1) y la garra ON/OFF quedan **4 GDL**. El cuadrilátero de la varilla 13 no añade
 movilidad, solo fija la orientación de la pinza. La garra es un grado de libertad de actuación: no
 cambia la posición del TCP.
 
@@ -119,18 +120,18 @@ Ejes de la pieza: **L** a lo largo de las guías, **W** transversal horizontal, 
 Sin estos datos no se puede cerrar φ(s_Y). Son las cotas **entre centros de pasadores**, que son las
 que importan para la cinemática.
 
-| Símbolo | Qué medir | Valor usado (25/10/2026) |
+| Símbolo | Qué medir | Valor usado (25/10/2026; actualizado el 17/11/2026 con el modelo de Inventor, ver `medidas_inventor.json`) |
 |---|---|---|
-| A | Posición del pivote del brazo respecto a la placa 5: Δu hacia adelante y Δh respecto al eje del husillo inferior | estimada (manual y f13): Δu = 20, Δh = 45, a la altura del husillo superior (h_A = 236) |
-| C | Posición del pivote superior de la escuadra 6 respecto a la cara delantera del bloque 1: Δu y altura | estimada: Δu = −60 (hacia atrás del bloque); SUPUESTO 10 mm bajo la punta de la escuadra 6 (h_C = 361) |
-| L12 | Distancia entre centros C-B de la biela 12 | estimada: 235 (boceto f05: 24 cm de largo total) |
-| a, β | Distancia A-B y ángulo entre A-B y el brazo A-E | estimada (manual): a = 145, β = 50° |
-| L9 | Distancia entre centros A-E del brazo 9 | estimada: 300 (igual a la varilla 13 por el paralelogramo) |
-| L13, L14 | Distancias entre centros de la varilla 13 (A'-E') y de los postes 14 | 300 / 70 (estimada: poste de 46 + soporte) |
-| d_g, h_g | Desde el pivote E hasta el centro de las mordazas (TCP), en horizontal y en vertical | estimada: 135 / 20 (E en la parte trasera del cuerpo 4, a media altura) |
-| z_base | Altura del eje del husillo inferior sobre la mesa | 15 + 21 (SUPUESTO) + 15 + 120 + 20 = 191 |
-| r_base | Distancia horizontal del eje θ a la cara delantera del bloque 2 | 50 (bloque centrado en el eje: SUPUESTO) |
-| s_X, s_Y | Carrera útil entre finales de carrera (mm) y posición del cero | X 0-170 (el equipo confirmó el 26/10/2026 que el carro X recorre lo mismo que el Y), Y 0-170 (SUPUESTO) (máximo entre placas: 300 − 2·13 − 100 − 2·2). El cero de cada eje es su final de homing: trasero en X e inferior en Y (confirmado por el equipo el 25/10/2026). El modelo da ~382 mm de recorrido vertical de la garra (ficha: 0-400 mm; manual: 440 mm) |
+| A | Posición del pivote del brazo respecto a la placa 5: Δu hacia adelante y Δh respecto al eje del husillo inferior | Inventor: Δu = 23.5, Δh = 74.25 (h_A = 270.9) |
+| C | Posición del pivote superior de la escuadra 6 respecto a la cara delantera del bloque 1: Δu y altura | Inventor: Δu = −50 (hacia atrás del bloque), 9.9 mm bajo la punta de la escuadra 6 (h_C = 380.3) |
+| L12 | Distancia entre centros C-B de la biela 12 | Inventor: 230 (antes 235, del boceto) |
+| a, β | Distancia A-B y ángulo entre A-B y el brazo A-E | Inventor: a = 134.1, β = 50.2° |
+| L9 | Distancia entre centros A-E del brazo 9 | Inventor: 300 |
+| L13, L14 | Distancias entre centros de la varilla 13 (A'-E') y de los postes 14 | Inventor: L13 = 295; postes A-A' = 56 y E-E' = 63.5 (no es paralelogramo) |
+| d_g, h_g | Desde el pivote E hasta el centro de las mordazas (TCP), en horizontal y en vertical | Inventor: 120.8 / 0 (mordazas a la altura de E, garra cerrada) |
+| z_base | Altura del eje del husillo inferior sobre la mesa | 15 + 21 (SUPUESTO) + 15 + 120 + 25.65 = 196.65 (bloque 2 de 51.3, Inventor) |
+| r_base | Distancia horizontal del eje θ a la cara delantera del bloque 2 | Inventor: 51.55 (el bloque 2 está corrido 1.55 mm hacia adelante) |
+| s_X, s_Y | Carrera útil entre finales de carrera (mm) y posición del cero | X 0-170 (el equipo confirmó el 26/10/2026 que el carro X recorre lo mismo que el Y), Y 0-170 (SUPUESTO) (Inventor: carrera libre entre placas 302 − 100 = 202). El cero de cada eje es su final de homing: trasero en X e inferior en Y (confirmado por el equipo el 25/10/2026). El modelo da ~457 mm de recorrido vertical de la garra (ficha: 0-400 mm; manual: 440 mm) |
 | p | Paso del husillo (mm/rev). El boceto f02 dice "1,37 — 5ap" (sin interpretar) | SUPUESTO: 5 mm/rev (SFU1605). Medir con 10 vueltas |
 | μ | Micropasos de los drivers (DIP SW5-SW8) | Leído en la foto del tablero (26/10/2026): los tres drivers con SW1-SW8 = OFF OFF ON OFF ON ON ON OFF. En el JMC 2M542-N son 1000 pulsos/rev, 2.37 A pico (1.69 A RMS) y media corriente en reposo. El driver de la base (DIP rojo) es de otro modelo: SUPUESTO la misma tabla |
 | i_θ | Reducción del engranaje de la base y rango de giro útil | SUPUESTO: 5:1 y ±175° (manual: 360°) |

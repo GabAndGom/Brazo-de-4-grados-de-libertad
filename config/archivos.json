@@ -644,5 +644,29 @@
       4,
       5
     ]
+  },
+  "global/modelo-3d/inventor/": {
+    "titulo": "Modelo de Inventor del brazo",
+    "descripcion": "Piezas (.ipt), ensambles (.iam) y ensamble exportado a STL (un archivo por pieza) del modelo de Autodesk Inventor del equipo.",
+    "subsistemas": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "global/modelo-3d/inventor/ensambleGeneral.iam": {
+    "titulo": "Ensamble general del brazo (Inventor)",
+    "descripcion": "Ensamble completo del brazo XK-JS1-1 en Autodesk Inventor 2027.",
+    "subsistemas": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "semestres/2026_II/modelo-3d/levantamiento/comparacion_inventor.png": {
+    "titulo": "Modelo de Inventor frente a la cinemática",
+    "descripcion": "Vista lateral del ensamble de Inventor con los pivotes calculados por la cinemática en la misma pose (error máximo 0,4 mm)."
   }
 }

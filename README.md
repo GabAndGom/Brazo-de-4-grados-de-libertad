@@ -92,25 +92,25 @@ Según el vector multifase medido con multímetro (Informe 1, II-2026).
 
 <p align="center">
   <img src="semestres/2026_II/modelo-3d/informe/figuras/modelo_3d_lateral.png" width="640" alt="Modelo 3D articulado del brazo, vista lateral"><br>
-  <sub>Modelo 3D articulado a escala, generado con <code>global/modelo-3d/generar_modelo.js</code>.</sub>
+  <sub>Modelo 3D articulado con las piezas del modelo de Inventor del equipo (<code>global/modelo-3d/inventor/</code>), generado con <code>global/modelo-3d/generar_modelo.js</code>.</sub>
 </p>
 
 El brazo **no es cartesiano**:
 
 - El **carro X** (husillo inferior) desliza todo el bastidor de husillos a través del bloque fijo a la columna, y con eso traslada el brazo en dirección radial.
 - El **carro Y** (husillo superior) mueve un bloque que, mediante la biela 12, hace girar el brazo 9 (mecanismo biela-manivela). La garra se mueve sobre un arco.
-- Un paralelogramo (varilla 13 y postes 14) mantiene la pinza horizontal.
+- La varilla 13 y los postes 14 orientan la pinza. Los postes miden distinto (56 y 63,5 mm) a propósito: no es un paralelogramo y la pinza se inclina entre 0,2° y 13,3°.
 
 En el plano del brazo la movilidad es 2 (Grübler: 7 eslabones, 8 pares). Con el giro de la base y la garra suman 4 GDL.
 
 | | |
 |---|---|
-| Directa | $r = u_{50} + s_X + u_A + L_9\cos\varphi(s_Y) + d_g$, $z = h_A + L_9\sin\varphi(s_Y) - h_g$, $(X, Y) = r(\cos\theta, \sin\theta)$ |
-| Inversa | Analítica. Una solución válida por cada $\theta$, con aviso si la posición es inalcanzable |
-| Espacio de trabajo | $r$ de 411 a 677 mm, $z$ de 54 a 436 mm, $\theta$ ±175°. Sin singularidades |
+| Directa | $r = u_{50} + s_X + u_A + L_9\cos\varphi + d_g\cos\gamma$, $z = h_A + L_9\sin\varphi + d_g\sin\gamma$, con $\varphi(s_Y)$ y $\gamma(\varphi)$ de los dos lazos; $(X, Y) = r(\cos\theta, \sin\theta)$ |
+| Inversa | $\varphi$ por bisección y el resto analítico. Una solución válida por cada $\theta$, con aviso si la posición es inalcanzable |
+| Espacio de trabajo | $r$ de 399 a 667 mm, $z$ de 61 a 518 mm, $\theta$ ±175°. Sin singularidades |
 | Resolución | 0.005 mm/pulso (X, Y; drivers JMC 2M542-N a 1000 pulsos/rev) y 0.072 °/pulso (base, SUPUESTO) |
 
-Todo lo anterior depende de varios **SUPUESTOS** que hay que medir en la planta: pivotes estimados de las fotos, paso del husillo de 5 mm/rev, micropasos del driver de la base y reducción 5:1 de la base. Los carros X e Y recorren 170 mm cada uno.
+Las cotas del mecanismo vienen del modelo de Inventor del equipo (la cinemática reproduce su ensamble con 0,4 mm de error). Siguen siendo **SUPUESTOS**, a medir en la planta: paso del husillo de 5 mm/rev, micropasos del driver de la base, reducción 5:1 de la base y la posición de los finales de carrera. Los carros X e Y recorren 170 mm cada uno.
 
 - Desarrollo completo: [informe de cinemática y modelo 3D](semestres/2026_II/modelo-3d/informe/informe_cinematica_modelo_3d.pdf).
 - Ecuaciones resumidas: [cinematica_y_modelo_3d.md](semestres/2026_II/modelo-3d/cinematica_y_modelo_3d.md).
@@ -227,7 +227,7 @@ En el mantenimiento preventivo se resoldaron conexiones de los finales de carrer
 │   ├── manuales/             Manual XK-JS1-1, Ladder (KOP) y MAP_SERV de Siemens
 │   ├── normativas/           ISA S5.1 e IEC 60617
 │   ├── programas-plc/        Proyecto Micro/WIN del brazo y librerías MAP_SERV
-│   ├── modelo-3d/            Modelo 3D articulado (.glb) y su generador
+│   ├── modelo-3d/            Modelo 3D articulado (.glb), su generador y el modelo de Inventor (inventor/)
 │   └── plantillas/           Plantilla LaTeX de informes
 │
 ├── semestres/

@@ -4,7 +4,7 @@
  *   node semestres/2026_II/modelo-3d/cinematica/pruebas_cinematica.js
  *
  * 1. Directa -> inversa -> directa en una rejilla de carreras (error en mm).
- * 2. Jacobiano analítico frente a diferencias finitas.
+ * 2. Jacobiano frente a diferencias finitas independientes.
  * 3. Rangos de φ, r, z, singularidades y ángulo de transmisión.
  * 4. Escribe parametros.json (lo leen los scripts de Python y MATLAB) y
  *    tabla_cinematica.csv (para validar contra la planta).
@@ -52,7 +52,7 @@ for (const q of [{ theta: 20, sX: 50, sY: 30 }, { theta: -60, sX: 120, sY: 100 }
     num.forEach((x, f) => { errJ = Math.max(errJ, Math.abs(x - J[f][c])); });
   });
 }
-console.log(`2. Jacobiano analítico vs numérico: error máximo = ${errJ.toExponential(2)}`);
+console.log(`2. Jacobiano frente a diferencias finitas independientes: error máximo = ${errJ.toExponential(2)}`);
 ok(errJ < 1e-4, 'jacobiano no coincide');
 
 // ------------------------------------------------------------------ 3. rangos

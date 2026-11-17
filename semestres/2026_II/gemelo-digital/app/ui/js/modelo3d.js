@@ -259,6 +259,7 @@ function telemetria(ahora) {
       <dt>Carro X</dt><dd>${fmt(sim.q.sX)} mm</dd>
       <dt>Carro Y</dt><dd>${fmt(sim.q.sY)} mm</dd>
       <dt>φ brazo 9</dt><dd>${fmt(fk.phi)} °</dd>
+      <dt>γ pinza</dt><dd>${fmt(fk.gamma)} °</dd>
       <dt>Biela 12</dt><dd>${fmt(fk.angBiela)} °</dd>
       ${planta.activa ? `<dt>Origen</dt><dd>${planta.e && planta.e.estimado ? 'estimada (pulsos leídos)' : 'contada en el PLC'}</dd>` : ''}</dl></div>
     <div class="m3d-tarjeta"><h3>Posición de la garra (TCP)</h3><dl>
@@ -430,8 +431,8 @@ async function iniciarVisor() {
     N.carroY.position.x = base.carroY.x + fk.posBloque1 * M;   // el bloque 1 retrocede al subir el brazo
     N.biela.rotation.z = fk.angBiela * RAD;
     N.brazo.rotation.z = fk.phi * RAD;
-    N.pinza.rotation.z = -fk.phi * RAD;        // paralelogramo: la pinza queda horizontal
-    N.varilla.rotation.z = fk.phi * RAD;
+    N.pinza.rotation.z = (fk.gamma - fk.phi) * RAD;   // cuadrilátero A-A'-E'-E: la pinza se inclina γ
+    N.varilla.rotation.z = fk.angVarilla * RAD;
     // Garra: los dedos giran en el plano horizontal sobre sus pasadores verticales.
     // Cerrada (Q0.7 ON) quedan paralelos; abierta se separan 25° cada uno (SUPUESTO).
     const apertura = sim.garra ? 0 : 25 * RAD;
