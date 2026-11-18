@@ -8,3 +8,4 @@ Guía: [`guia_laboratorio_1.pdf`](../../guias/guia_laboratorio_1.pdf) · entrega
 | Diagrama de bloques fenomenológico | [`../../documentacion/manuales_inversa/diagrama_bloques_fenomenologico.png`](../../documentacion/manuales_inversa/diagrama_bloques_fenomenologico.png) |
 | Planos históricos auditados | [`../../documentacion/planos_isa/`](../../documentacion/planos_isa/) |
 | Programa original del PLC (ingeniería inversa) | [`../../programas-plc/`](../../programas-plc/) |
+| Logros del laboratorio frente a sus objetivos y trabajo del docente | [`logros_lab01.pdf`](logros_lab01.pdf) |

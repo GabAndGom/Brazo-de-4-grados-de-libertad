@@ -1,0 +1,120 @@
+% Logros del laboratorio 7 frente a sus objetivos y trabajo del docente.
+% Generado por ../generar_logros.py desde ../logros_datos.py: editar los datos y regenerar.
+\documentclass[a4paper,11pt]{article}
+\input{../informe_comun}
+\renewcommand{\tipodoc}{Logros del Laboratorio Integrado}
+\renewcommand{\tipocab}{Logros del laboratorio}
+\begin{document}
+\portada{7}{Control LQR, dashboard del ERP y control de acceso por roles}{martes 24 de noviembre de 2026}{martes 8 de diciembre de 2026}{semanas 16 y 17}
+\tableofcontents
+\newpage
+\nota{\textbf{Estado al 18/11/2026.} Laboratorio por empezar; se adelantó el análisis de viabilidad y el RBAC. Fase 3: implementación, redes industriales y ERP. Este documento explica, objetivo por objetivo, qué pide la guía, qué logró la escuadra, qué es cada cosa y dónde está la evidencia; después explica el trabajo del docente: qué debía revisar en cada hito y qué tiene preparado la escuadra para esa revisión.}
+\section{Resumen}
+\begin{center}\small\begin{tabularx}{\linewidth}{c >{\raggedright}p{2.4cm} >{\raggedright}X c c}
+\toprule \textbf{Nº} & \textbf{Mención} & \textbf{Objetivo} & \textbf{Estado} & \textbf{\%}\\ \midrule
+1 & ETN-902 / ETN-1034 & Implementación de control avanzado (LQR) & \falta & 0\%\\
+2 & ETN-902 / ETN-1034 & Compensación de dinámicas no lineales & \falta & 0\%\\
+3 & ETN-1000 & Desarrollo del frontend analítico del ERP & \parcial & 30\%\\
+4 & ETN-1000 & Control de acceso basado en roles (RBAC) & \parcial & 85\%\\
+\bottomrule\end{tabularx}\end{center}
+El porcentaje mide cuánto del objetivo está hecho y comprobado en la planta o en el repositorio; no cuenta lo que solo está planificado.
+\section{Logros respecto de los objetivos}
+\subsection{Mención Control Automático (ETN-902 / ETN-1034)}
+\subsubsection{Implementación de control avanzado (LQR)}
+\paragraph{Qué pide la guía.} Desplegar un control óptimo LQR en el PLC para regular el brazo de forma multivariable.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Análisis de viabilidad: con A = 0 y X e Y compartiendo un solo tren de pulsos, rango H = 2 en cualquier estado de los relés; los tres ejes no son controlables a la vez y el estado no se mide.
+\item Lista de cambios necesarios: un encoder por eje leído con los contadores rápidos HSC y un tren de pulsos independiente para X e Y.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} El LQR (regulador cuadrático lineal) calcula la ganancia K que lleva el estado a la referencia con el menor costo de error y de energía. Exige que el sistema sea controlable y que el estado se mida o se estime.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{laboratorios/lab07\_lqr\_dashboard\_y\_rbac/informe\_lab07.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} Sensores, tren de pulsos independiente y el LQR programado en el PLC.
+\paragraph{Estado:} \falta~(0\%).
+\subsubsection{Compensación de dinámicas no lineales}
+\paragraph{Qué pide la guía.} Calcular en tiempo real la ganancia óptima K a partir de las matrices de ponderación Q y R.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Planteamiento para un eje: x(k+1) = x(k) + b$\cdot$Ts$\cdot$u(k); con Q = q y R = $\rho$, la ecuación de Riccati discreta da una K escalar y Kr = K para seguimiento sin error.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Q pesa cuánto importa el error y R cuánto cuesta la energía del actuador; al cambiarlas se ajusta qué tan agresivo es el control. La no linealidad del brazo está en su cinemática (jacobiano), que cambia con la pose.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{laboratorios/lab07\_lqr\_dashboard\_y\_rbac/informe\_lab07.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} Calcular K con datos medidos y ajustarla en vivo desde la HMI.
+\paragraph{Estado:} \falta~(0\%).
+\subsection{Mención Sistemas Computacionales (ETN-1000)}
+\subsubsection{Desarrollo del frontend analítico del ERP}
+\paragraph{Qué pide la guía.} Programar el dashboard web con series de tiempo e indicadores clave.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item 14 consultas KPI listas y probadas (tiempo encendido, ciclos completados, alarmas activas, sesiones, series de tiempo).
+\item Página pública con el modelo 3D del brazo y la operación remota; propuesta del indicador de eficiencia homeostática $\eta$H = 1 - (tiempo con alarma activa / tiempo en operación).
+\end{itemize}
+\paragraph{Qué es y por qué importa.} El dashboard es la vista de análisis: gráficos de cómo se comportó la planta en el tiempo, alarmas e indicadores, leídos directamente de la base de datos.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{database/scripts/consultas\_kpi.sql}
+\item \url{https://brazo-4gdl.pages.dev}
+\end{itemize}
+\paragraph{Lo que falta.} Programar la vista Dashboard (por ejemplo con Chart.js) conectada a PostgreSQL y acordar la fórmula del KPI con el docente.
+\paragraph{Estado:} \parcial~(30\%).
+\subsubsection{Control de acceso basado en roles (RBAC)}
+\paragraph{Qué pide la guía.} Validar tokens y bloquear los comandos críticos según el rol del usuario.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Roles observador (solo ve) y operador (manda), contraseñas con hash PBKDF2 de 200 000 iteraciones y token de sesión aleatorio validado en cada petición.
+\item Para el observador los controles se ocultan en la vista y, sobre todo, el servidor rechaza sus órdenes aunque se fuercen.
+\item Pruebas: sin token o vencido $\to$ 401; observador que intenta mover $\to$ 403; menú de administración desde la red $\to$ 403.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} RBAC significa que lo que cada usuario puede hacer depende de su rol, no de su nombre. La restricción importante es la del servidor: ocultar un botón no basta si alguien puede enviar la petición a mano.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{gemelo-digital/app/}
+\item \codigo{laboratorios/lab07\_lqr\_dashboard\_y\_rbac/informe\_lab07.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} Informe formal de pruebas con tokens inválidos ejecutado por el auxiliar (certificado RBAC).
+\paragraph{Estado:} \parcial~(85\%).
+\section{Trabajo del docente}
+La guía asigna al docente el papel de auditor: en cada hito revisa el trabajo de la escuadra y decide si cumple antes de pasar a la etapa siguiente. Para cada tarea se explica qué debía revisar, cuándo, y qué tiene la escuadra para presentarle. El porcentaje es el del Excel \codigo{evaluacion\_tareas\_docente.xlsx}.
+\subsection{Evaluación de amortiguamiento (LQR)}
+\paragraph{Lo que dice la guía.} Auditar la supresión de sobreimpulsos lograda por el LQR sobre el hardware real. \textit{Cuándo:} martes 8 de diciembre de 2026.
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Respuesta al escalón con LQR en la planta: sobreimpulso, tiempo de establecimiento y esfuerzo del actuador.
+\item[$\square$] Que la corriente de los drivers no supere su límite al conmutar ganancias.
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item Análisis de viabilidad (informe 7): con un tren compartido para X/Y y sin sensores, el LQR de 3 ejes no es posible.
+\end{itemize}
+\paragraph{Lo que falta para que el docente lo apruebe.} Sensores, tren de pulsos independiente y LQR.
+\paragraph{Estado:} \falta~(0\%).
+\subsection{Validación de KPIs del dashboard}
+\paragraph{Lo que dice la guía.} Verificar que el dashboard calcule la eficiencia homeostática con lecturas directas del backend. \textit{Cuándo:} martes 8 de diciembre de 2026.
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Que cada indicador se calcule en la base (no a mano) y coincida con una consulta directa.
+\item[$\square$] Fórmula de la eficiencia homeostática acordada y aplicada.
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item 14 consultas KPI ejecutadas en PostgreSQL con 18 000 muestras sintéticas y la fórmula propuesta en el informe 7.
+\end{itemize}
+\paragraph{Lo que falta para que el docente lo apruebe.} Dashboard y fórmula de Eficiencia Homeostática.
+\paragraph{Estado:} \parcial~(30\%).
+\section{Conclusión}
+Con avance parcial: Desarrollo del frontend analítico del ERP, Control de acceso basado en roles (RBAC). Sin implementar: Implementación de control avanzado (LQR), Compensación de dinámicas no lineales.
+\par\smallskip Pendientes principales:
+\begin{enumerate}
+\item Sensores, tren de pulsos independiente y el LQR programado en el PLC.
+\item Calcular K con datos medidos y ajustarla en vivo desde la HMI.
+\item Programar la vista Dashboard (por ejemplo con Chart.js) conectada a PostgreSQL y acordar la fórmula del KPI con el docente.
+\item Informe formal de pruebas con tokens inválidos ejecutado por el auxiliar (certificado RBAC).
+\end{enumerate}
+\par\smallskip\noindent Repositorio: \url{https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad}
+\end{document}

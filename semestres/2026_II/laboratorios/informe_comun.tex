@@ -12,7 +12,10 @@
 \setlength{\headheight}{14pt}
 \newcommand{\nlab}{}
 \newcommand{\tlab}{}
-\lhead{\small Brazo XK-JS1-1 · Informe del laboratorio \nlab}
+% tipo de documento en la portada y el encabezado (los documentos de logros los redefinen)
+\newcommand{\tipodoc}{Informe del Laboratorio Integrado}
+\newcommand{\tipocab}{Informe del laboratorio}
+\lhead{\small Brazo XK-JS1-1 · \tipocab{} \nlab}
 \rhead{\small UMSA · II/2026}
 
 % \portada{número}{título}{inicio}{entrega}{semanas}
@@ -26,7 +29,7 @@
 \vspace{0.8cm}
 {\color{naranja!80!black}\rule{\linewidth}{1.5pt}\par}
 \vspace{0.3cm}
-{\Large Informe del Laboratorio Integrado Nº #1\par}
+{\Large \tipodoc{} Nº #1\par}
 \vspace{0.2cm}
 {\huge\bfseries #2\par}
 \vspace{0.3cm}

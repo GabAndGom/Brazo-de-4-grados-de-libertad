@@ -1,0 +1,133 @@
+% Logros del laboratorio 6 frente a sus objetivos y trabajo del docente.
+% Generado por ../generar_logros.py desde ../logros_datos.py: editar los datos y regenerar.
+\documentclass[a4paper,11pt]{article}
+\input{../informe_comun}
+\renewcommand{\tipodoc}{Logros del Laboratorio Integrado}
+\renewcommand{\tipocab}{Logros del laboratorio}
+\begin{document}
+\portada{6}{Control discreto en el PLC y middleware de telemetría}{martes 10 de noviembre de 2026}{martes 24 de noviembre de 2026}{semanas 14 y 15}
+\tableofcontents
+\newpage
+\nota{\textbf{Estado al 18/11/2026.} Laboratorio en curso (entrega el 24/11/2026). Fase 3: implementación, redes industriales y ERP. Este documento explica, objetivo por objetivo, qué pide la guía, qué logró la escuadra, qué es cada cosa y dónde está la evidencia; después explica el trabajo del docente: qué debía revisar en cada hito y qué tiene preparado la escuadra para esa revisión.}
+\section{Resumen}
+\begin{center}\small\begin{tabularx}{\linewidth}{c >{\raggedright}p{2.4cm} >{\raggedright}X c c}
+\toprule \textbf{Nº} & \textbf{Mención} & \textbf{Objetivo} & \textbf{Estado} & \textbf{\%}\\ \midrule
+1 & ETN-902 / ETN-1034 & Programación de control discreto en hardware & \parcial & 20\%\\
+2 & ETN-902 / ETN-1034 & Manejo de tiempos de ejecución & \parcial & 40\%\\
+3 & ETN-1000 & Desarrollo del middleware de telemetría & \parcial & 85\%\\
+4 & ETN-1000 & Conectividad entre capas (JSON $\to$ PostgreSQL) & \parcial & 30\%\\
+\bottomrule\end{tabularx}\end{center}
+El porcentaje mide cuánto del objetivo está hecho y comprobado en la planta o en el repositorio; no cuenta lo que solo está planificado.
+\section{Logros respecto de los objetivos}
+\subsection{Mención Control Automático (ETN-902 / ETN-1034)}
+\subsubsection{Programación de control discreto en hardware}
+\paragraph{Qué pide la guía.} Llevar la ecuación de diferencias del controlador D(z) al PLC con interrupciones temporizadas.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item El programa \codigo{brazo\_gemelo} del PLC ejecuta una ecuación de diferencias en cada paquete: n(k) = n(k-1) + $\Delta$n(k), con $\Delta$n = sign(n\_ref - n)$\cdot$min(100, |n\_ref - n|). Es un posicionamiento en lazo abierto, exacto mientras el motor no pierda pasos.
+\item Diseño del PI discreto u(k) = u(k-1) + b0$\cdot$e(k) + b1$\cdot$e(k-1) y de su rutina de interrupción (SMB34 = 25 ms, ATCH al evento 10), para cuando haya realimentación.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Una ecuación de diferencias es la forma en que un PLC calcula un controlador: la acción de ahora depende del error de ahora y de los valores guardados de la muestra anterior. La interrupción temporizada garantiza que el cálculo se haga exactamente cada Ts.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{gemelo-digital/plc/brazo\_gemelo.mwp}
+\item \codigo{laboratorios/lab06\_control\_discreto\_y\_middleware/informe\_lab06.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} Sensor de posición para tener e(k); programar y probar el PI en la interrupción.
+\paragraph{Estado:} \parcial~(20\%).
+\subsubsection{Manejo de tiempos de ejecución}
+\paragraph{Qué pide la guía.} Garantizar el determinismo de Ts y manejar las excepciones de hardware.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Paradas deterministas del tren de pulsos ante el paro (I0.6), el selector en manual (I0.5), un final de carrera en la dirección del movimiento o una orden fuera de recorrido o sin homing.
+\item Watchdog: si la PC deja de cambiar el latido \codigo{VW1102} durante 2 s, el PLC detiene el movimiento (error 3).
+\item Secuencia de homing modelada como red de Petri (manual técnico, capítulo 7).
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Determinismo significa que el sistema reacciona siempre igual y en un tiempo acotado. El watchdog es un perro guardián: si la PC se cuelga, el PLC no sigue moviendo el brazo a ciegas.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{gemelo-digital/plc/brazo\_gemelo.mwp}
+\item \codigo{gemelo-digital/manual/tecnico/manual\_tecnico.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} Rutina por interrupción temporizada y medición del periodo y el jitter con osciloscopio.
+\paragraph{Estado:} \parcial~(40\%).
+\subsection{Mención Sistemas Computacionales (ETN-1000)}
+\subsubsection{Desarrollo del middleware de telemetría}
+\paragraph{Qué pide la guía.} Programar la capa intermedia (Node-RED o Python) que lea cíclicamente los registros del PLC.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Middleware en Python sin dependencias (\codigo{brazo.py}, \codigo{ppi.py}) que lee entradas, salidas y la memoria del programa (desde VB1100) por PPI, puerto 0 RS-485 a 9600 bit/s.
+\item Lectura completa cada $\approx$ 155 ms (medido), con una pausa de 150 bits entre tramas para que el PLC no las ignore; un solo maestro PPI, así varios navegadores no cargan más al PLC.
+\item Escalado de pulsos a unidades: 190,3 pulsos/° en la base y 200 pulsos/mm en los carros.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} El middleware es el traductor entre el PLC, que habla en registros binarios por su protocolo, y el mundo web y la base, que hablan en JSON y SQL. Se usó PPI, el protocolo nativo del S7-200, porque no exige cambiar el programa ni comprar módulos.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{gemelo-digital/app/}
+\item \codigo{gemelo-digital/manual/tecnico/manual\_tecnico.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} nada para este objetivo.
+\paragraph{Estado:} \parcial~(85\%).
+\subsubsection{Conectividad entre capas (JSON $\to$ PostgreSQL)}
+\paragraph{Qué pide la guía.} Inyectar las variables empaquetadas en JSON hacia PostgreSQL.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Empaquetado JSON funcionando: \codigo{GET /api/estado} devuelve posición, entradas, salidas y mando.
+\item Diseño del registrador: un hilo aparte con \codigo{psycopg} y sentencias parametrizadas, una muestra por segundo y por variable, para que una base lenta no frene al PLC ni al watchdog.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Es unir la capa intermedia con la de datos: cada lectura del PLC se convierte en filas de la tabla \codigo{muestra}. Sin esto la base existe pero queda vacía.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{laboratorios/lab06\_control\_discreto\_y\_middleware/informe\_lab06.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} Programar el registrador e insertar datos reales en PostgreSQL desde la planta.
+\paragraph{Estado:} \parcial~(30\%).
+\section{Trabajo del docente}
+La guía asigna al docente el papel de auditor: en cada hito revisa el trabajo de la escuadra y decide si cumple antes de pasar a la etapa siguiente. Para cada tarea se explica qué debía revisar, cuándo, y qué tiene la escuadra para presentarle. El porcentaje es el del Excel \codigo{evaluacion\_tareas\_docente.xlsx}.
+\subsection{Aprobación del lazo flotante}
+\paragraph{Lo que dice la guía.} Auditar la acción de control calculada frente al error simulado y habilitar la conexión del actuador. \textit{Cuándo:} martes 17 o 24 de noviembre de 2026.
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Que la primera corrida del controlador se haga con el actuador desenergizado, midiendo la salida del PLC con multímetro.
+\item[$\square$] Que u(k) responda al error simulado como predice el diseño (signo, magnitud, saturación).
+\item[$\square$] Solo entonces autorizar la conexión mecánica del actuador.
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item Diseño del PI discreto y de la interrupción SMB34 (informe 6). Todavía sin programar.
+\end{itemize}
+\paragraph{Lo que falta para que el docente lo apruebe.} Programarlo en el PLC y probarlo con el actuador flotante.
+\paragraph{Estado:} \parcial~(10\%).
+\subsection{Evaluación de la latencia del middleware}
+\paragraph{Lo que dice la guía.} Verificar que la tasa de refresco del middleware no sature la interfaz de red del PLC. \textit{Cuándo:} martes 24 de noviembre de 2026.
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Periodo real de lectura, tramas fallidas y que el PLC siga respondiendo con varios clientes conectados.
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item $\approx$ 155 ms por lectura a 9600 bit/s, un solo maestro PPI, pausa de 150 bits; los clientes web no consultan al PLC.
+\end{itemize}
+\paragraph{Lo que falta para que el docente lo apruebe.} Registro formal de latencia y tramas fallidas.
+\paragraph{Estado:} \parcial~(80\%).
+\subsection{Evaluar los lazos cerrados en tiempo real (tarea de la fase 3)}
+\paragraph{Lo que dice la guía.} Actuar como auditor científico senior y evaluar los lazos cerrados en tiempo real. \textit{Cuándo:} fase 3 (semanas 14 a 20).
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Respuesta del lazo cerrado en la planta física: estabilidad, error en régimen y sobreimpulso.
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item Nada en lazo cerrado: el brazo trabaja en lazo abierto con supervisión discreta (finales, inductivo, watchdog).
+\end{itemize}
+\paragraph{Estado:} \textit{no aplica}~(—).
+\section{Conclusión}
+Con avance parcial: Programación de control discreto en hardware, Manejo de tiempos de ejecución, Desarrollo del middleware de telemetría, Conectividad entre capas (JSON $\to$ PostgreSQL).
+\par\smallskip Pendientes principales:
+\begin{enumerate}
+\item Sensor de posición para tener e(k); programar y probar el PI en la interrupción.
+\item Rutina por interrupción temporizada y medición del periodo y el jitter con osciloscopio.
+\item Programar el registrador e insertar datos reales en PostgreSQL desde la planta.
+\end{enumerate}
+\par\smallskip\noindent Repositorio: \url{https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad}
+\end{document}
