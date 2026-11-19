@@ -21,6 +21,22 @@ vuelve al menú para cambiar de modo sin cerrar la app.
 
 Para comprobar el cable sin mover nada: `python3 probar_plc.py` (Windows: `Probar conexion PLC.bat`).
 
+## Telemetría, dashboard, API y Modbus (laboratorios 6 a 8)
+
+- **Telemetría**: la app guarda siempre un CSV por sesión en `telemetria/`. Si la PC tiene PostgreSQL con la
+  base creada (`createdb brazo4gdl` y `psql -d brazo4gdl -f database/scripts/brazo_4gdl.sql`) y el paquete
+  `psycopg` (`pip install "psycopg[binary]"`), además inserta una muestra por segundo y por variable, los cambios
+  de señales, las alarmas, las órdenes y los ingresos. Otra base: variable `BRAZO_PG` o `base_datos.json` con
+  `{"conninfo": "dbname=... user=... host=..."}`. Sin base, la app funciona igual. `--sin-telemetria` lo apaga.
+- **Dashboard**: botón «Dashboard» de la barra (`/dashboard.html`): indicadores (con la eficiencia
+  homeostática), series de tiempo, alarmas, órdenes e ingresos. El observador solo lee.
+- **API REST** (guía 8): `POST /api/v1/token` con `{"usuario": ..., "clave": ...}` devuelve un token;
+  después `GET /api/v1/telemetria/planta/1?tag=ZI-102&desde=...&formato=csv`, `/api/v1/alertas/activas`,
+  `/api/v1/kpi`, `/api/v1/ciclos`, `/api/v1/ordenes`, `/api/v1/sesiones` (operador) con
+  `Authorization: Bearer <token>`.
+- **Modbus TCP**: `--modbus` (puerto 5020) publica el estado como registros 40001-40015 (mapa en `modbus.py`),
+  solo lectura. Prueba: `python3 modbus.py cliente --tcp IP:5020 --repetir 100`.
+
 ## Documentos (carpeta `documentos`)
 
 - `manual_linux.pdf` y `manual_windows.pdf`: instalación y uso en cada sistema.
@@ -37,8 +53,12 @@ Para comprobar el cable sin mover nada: `python3 probar_plc.py` (Windows: `Proba
 | `ventana.py` | Ventana propia: GTK + WebKit en Linux, Edge en modo aplicación en Windows |
 | `menu.html`, `ui/` | Interfaz: menú y página del gemelo |
 | `probar_plc.py` | Diagnóstico de solo lectura |
+| `telemetria.py` | Registrador: telemetría a CSV (`telemetria/`) y a PostgreSQL (muestras, señales, alarmas, órdenes, sesiones) |
+| `api_erp.py`, `ui/dashboard.html` | API REST de históricos (`/api/v1/...`, token Bearer) y dashboard con KPI y series de tiempo |
+| `modbus.py` | Pasarela Modbus TCP (opción `--modbus`), cliente de prueba TCP/RTU con estadísticas de CRC |
 | `*.sh` / `*.bat` | Lanzadores de Linux / Windows |
 | `empaquetar.py` | (Repositorio) actualiza `ui/` y exporta la app autónoma |
 
 Datos propios de cada PC (no se comparten ni se suben al repositorio): `usuarios.json`,
-`tls_certificado.pem`, `tls_clave.pem`, `calibracion.json`, `registro_gemelo.log`.
+`tls_certificado.pem`, `tls_clave.pem`, `calibracion.json`, `registro_gemelo.log`, `base_datos.json` y la
+carpeta `telemetria/`.

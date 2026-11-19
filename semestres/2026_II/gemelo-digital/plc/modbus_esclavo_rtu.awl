@@ -1,0 +1,62 @@
+// =====================================================================================================
+// Esclavo Modbus RTU en el puerto 0 del S7-200 (guía 8), con el MISMO mapa de registros que la pasarela
+// Modbus TCP de la app (gemelo-digital/app/modbus.py). NO PROBADO EN EL PLC.
+//
+// Requisitos: librería «Modbus Protocol» de STEP 7-Micro/WIN (Instrucciones > Librerías > Modbus Slave Port 0)
+// y asignar su memoria de librería (Archivo > Memoria de librería: 779 bytes, se propone desde VB3000).
+//
+// IMPORTANTE: con MBUS_SLAVE activo el puerto 0 habla Modbus y NO PPI: la app del gemelo deja de comunicarse.
+// Por eso el esclavo solo se habilita con M10.0 = 1 (se propone cablearlo a una entrada libre o forzarlo
+// desde Micro/WIN). Con M10.0 = 0 el puerto vuelve a PPI (modo 0) y la app funciona como siempre.
+// La alternativa sin este conflicto es la pasarela PPI -> Modbus TCP de la app (opción --modbus).
+//
+// Puerto: 9600 bit/s, paridad par (2), dirección de esclavo 1. Registros de retención desde VW2000:
+//   40001-40002 VD2000 posición base [pulsos]     40003-40004 VD2004 X     40005-40006 VD2008 Y
+//   40007 VW2012 tren X/Y [Hz]   40008 VW2014 tren base [Hz]   40009 VW2016 entradas   40010 VW2018 salidas
+//   40011..40015 VW2020..VW2028: reservados (la pasarela de la app los llena con mm y estado)
+// =====================================================================================================
+
+// ---------------------------------------------- redes para agregar al final de MAIN (OB1)
+// Network // Modbus: inicialización (al cambiar M10.0) y atención de peticiones
+// LD     M10.0
+// EU
+// LD     M10.0
+// ED
+// OLD
+// CALL   MBUS_INIT, M10.0, 1, 9600, 2, 0, 128, 32, 15, &VB2000, M10.1, MB11
+//        // Mode, Addr, Baud, Parity, Delay, MaxIQ, MaxAI, MaxHold, HoldStart, Done, Error
+//
+// Network
+// LD     SM0.0
+// CALL   MBUS_SLAVE, M10.2, MB12
+//
+// Network // Mapa de registros: copia del estado de brazo_gemelo en cada ciclo
+// LD     SM0.0
+// MOVD   VD1124, VD2000
+// MOVD   VD1128, VD2004
+// MOVD   VD1132, VD2008
+// MOVW   +0, VW2012
+// MOVW   +0, VW2014
+// MOVB   IB0, VB2017
+// MOVB   IB1, VB2016
+// MOVB   QB0, VB2019
+// MOVB   0, VB2018
+//
+// Network // 40007: frecuencia del tren X/Y = 1 000 000 / ciclo [us] mientras PTO1 está ocupado
+// LD     V1122.3
+// AW>    VW1156, +0
+// MOVD   +1000000, VD2040
+// ITD    VW1156, VD2044
+// /D     VD2044, VD2040
+// MOVW   VW2042, VW2012
+//
+// Network // 40008: frecuencia del tren de la base mientras PTO0 está ocupado
+// LD     V1122.2
+// AW>    VW1158, +0
+// MOVD   +1000000, VD2040
+// ITD    VW1158, VD2044
+// /D     VD2044, VD2040
+// MOVW   VW2042, VW2014
+//
+// Nota de bytes: el S7-200 guarda las palabras con el byte alto primero (VB2016 = byte alto de VW2016), por
+// eso IB1 va a VB2016 e IB0 a VB2017: así el bit 0 del registro 40009 es I0.0, igual que en la pasarela.

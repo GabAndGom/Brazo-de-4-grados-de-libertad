@@ -28,8 +28,10 @@ COPIAS = {
     'semestres/2026_II/modelo-3d/cinematica/parametros.json': 'parametros.json',
 }
 # Se conservan al volver a exportar (y nunca se copian desde el repositorio)
-DATOS_PLANTA = ['calibracion.json', 'registro_gemelo.log', 'usuarios.json', 'tls_certificado.pem', 'tls_clave.pem']
-EXCLUIR = {'__pycache__', '_prueba_calibracion.json', 'perfil_ventana'} | set(DATOS_PLANTA)
+DATOS_PLANTA = ['calibracion.json', 'registro_gemelo.log', 'usuarios.json', 'tls_certificado.pem', 'tls_clave.pem',
+                'base_datos.json']
+CARPETAS_PLANTA = ['telemetria']           # CSV de telemetría de esta PC: se conservan al volver a exportar
+EXCLUIR = {'__pycache__', '_prueba_calibracion.json', 'perfil_ventana'} | set(DATOS_PLANTA) | set(CARPETAS_PLANTA)
 # Documentos que acompañan a la app exportada (carpeta documentos/)
 DOCUMENTOS = ['manual_linux.pdf', 'manual_windows.pdf', 'guia_completa_brazo.pdf', 'arquitectura_gemelo_digital.pdf']
 
@@ -65,12 +67,19 @@ def exportar(destino):
         if os.path.exists(p):
             with open(p, 'rb') as f:
                 guardados[n] = f.read()
+    carpetas = os.path.join(os.path.dirname(destino), '.' + os.path.basename(destino) + '_datos')
+    for n in CARPETAS_PLANTA:
+        if os.path.isdir(os.path.join(destino, n)):
+            shutil.copytree(os.path.join(destino, n), os.path.join(carpetas, n), dirs_exist_ok=True)
     if os.path.exists(destino):
         shutil.rmtree(destino)
     shutil.copytree(APP, destino, ignore=lambda d, nombres: [n for n in nombres if n in EXCLUIR])
     for n, contenido in guardados.items():
         with open(os.path.join(destino, n), 'wb') as f:
             f.write(contenido)
+    if os.path.isdir(carpetas):
+        shutil.copytree(carpetas, destino, dirs_exist_ok=True)
+        shutil.rmtree(carpetas)
     docs = os.path.join(destino, 'documentos')
     os.makedirs(docs, exist_ok=True)
     for n in DOCUMENTOS:

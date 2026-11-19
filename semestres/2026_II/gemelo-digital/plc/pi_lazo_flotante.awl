@@ -1,0 +1,92 @@
+// =====================================================================================================
+// Controlador PI discreto por interrupción temporizada (guía 6) para agregar a brazo_gemelo.
+// NO PROBADO EN EL PLC: se entrega para la prueba de lazo flotante con el actuador DESENERGIZADO.
+//
+// Ley de control (forma de velocidad, ecuación de diferencias de la guía con a1 = -1, a2 = 0):
+//     e(k) = r(k) - y(k)
+//     u(k) = u(k-1) + b0 e(k) + b1 e(k-1),   saturada a +-5000 Hz (el valor saturado se guarda como
+//            u(k-1): así el integrador no se dispara, antiwindup por recorte)
+// Ts = 25 ms: SMB34 = 25 (base de la interrupción temporizada 0, evento 10).
+// b0 y b1 los calcula laboratorios/lab06_control_discreto_y_middleware/diseno_pi_discreto.py y los
+// escribe la PC; el PLC no los inventa.
+//
+// Memoria (libre en brazo_gemelo: este usa VB1100-VB1160 y V1200):
+//   VD1300 r   referencia [mm] (REAL, la escribe la PC)
+//   VD1304 y   medición   [mm] (REAL; en lazo flotante la escribe la PC: es el error SIMULADO)
+//   VD1308 e(k)   VD1312 e(k-1)   VD1316 u(k) [Hz]   VD1320 u(k-1) [Hz]
+//   VD1324 b0  [Hz/mm]   VD1328 b1 [Hz/mm]          VD1340 / VD1344 auxiliares
+//   VB1332 modo  0 = apagado, 1 = por pasos (lazo flotante auditable), 2 = continuo
+//   VW1334 k     contador de interrupciones ejecutadas
+//   VW1336 pasos pendientes (modo 1: la PC pide N pasos con e constante y lee u al terminar)
+//   Q1.0  cambia de estado en cada interrupción: con el osciloscopio se mide Ts y el jitter (tarea 38).
+// En modo 1 y 2 u(k) NO se envía al tren de pulsos: solo se calcula y se publica en VD1316. Cerrar el lazo
+// (u -> PTO1, y <- contador rápido HC0 con encoder) exige el sensor de posición (laboratorios 6 y 7).
+//
+// Cómo agregarlo en STEP 7-Micro/WIN: Archivo > Importar este .awl en el proyecto brazo_gemelo.mwp,
+// copiar la red «Arranque de la interrupción» al final de MAIN y compilar. Q1.0 debe estar libre (SUPUESTO:
+// en el plano eléctrico v2.0 no tiene carga).
+// =====================================================================================================
+
+// ---------------------------------------------- red para agregar en MAIN (OB1)
+// Network // Arranque de la interrupción temporizada del PI (primer ciclo)
+// LD     SM0.1
+// MOVB   25, SMB34
+// ATCH   INT0, 10
+// ENI
+// MOVB   0, VB1332
+// MOVW   +0, VW1334
+// MOVW   +0, VW1336
+// MOVR   0.0, VD1308
+// MOVR   0.0, VD1312
+// MOVR   0.0, VD1316
+// MOVR   0.0, VD1320
+
+INTERRUPT_BLOCK PI_DISCRETO:INT0
+TITLE=PI discreto cada 25 ms (lazo flotante)
+BEGIN
+Network 1 // Apagado: no calcula
+LDB=   VB1332, 0
+CRETI
+
+Network 2 // Modo por pasos sin pasos pendientes: espera a la PC
+LDB=   VB1332, 1
+AW=    VW1336, +0
+CRETI
+
+Network 3 // Modo por pasos: descuenta el paso que se va a ejecutar
+LDB=   VB1332, 1
+DECW   VW1336
+
+Network 4 // Pulso de prueba para el osciloscopio (Ts y jitter)
+LDN    Q1.0
+=I     Q1.0
+
+Network 5 // e(k) = r - y
+LD     SM0.0
+MOVR   VD1300, VD1308
+-R     VD1304, VD1308
+
+Network 6 // u(k) = u(k-1) + b0 e(k) + b1 e(k-1)
+LD     SM0.0
+MOVR   VD1324, VD1340
+*R     VD1308, VD1340
+MOVR   VD1328, VD1344
+*R     VD1312, VD1344
+MOVR   VD1320, VD1316
++R     VD1340, VD1316
++R     VD1344, VD1316
+
+Network 7 // Saturación a +-5000 Hz (máximo probado sin pérdida de pasos)
+LDR>   VD1316, 5000.0
+MOVR   5000.0, VD1316
+
+Network 8
+LDR<   VD1316, -5000.0
+MOVR   -5000.0, VD1316
+
+Network 9 // Memoria para la muestra siguiente y contador k
+LD     SM0.0
+MOVR   VD1308, VD1312
+MOVR   VD1316, VD1320
+INCW   VW1334
+END_INTERRUPT_BLOCK
