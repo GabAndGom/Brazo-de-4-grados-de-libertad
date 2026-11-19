@@ -1,0 +1,18 @@
+# Medición independiente de la garra para el índice de fidelidad del gemelo (guía 5, tarea 24 y 27).
+# Procedimiento: homing; mandar cada pose desde la app (theta, sX, sY); con el brazo detenido medir con
+# flexómetro o calibre el centro de las mordazas (TCP):
+#   r_medido_mm = distancia horizontal desde el eje de giro de la base hasta el TCP
+#   z_medido_mm = altura del TCP sobre la mesa donde apoya la base
+# Dejar vacías las filas no medidas. Luego: python3 indice_fidelidad.py --calibre medicion_calibre.csv
+theta_deg,sX_mm,sY_mm,r_medido_mm,z_medido_mm,observacion
+0,0,0,,,
+0,85,0,,,
+0,170,0,,,
+0,0,85,,,
+0,85,85,,,
+0,170,85,,,
+0,0,170,,,
+0,85,170,,,
+0,170,170,,,
+45,85,85,,,
+-45,85,85,,,

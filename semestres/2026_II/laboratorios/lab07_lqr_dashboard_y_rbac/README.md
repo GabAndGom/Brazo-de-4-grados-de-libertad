@@ -8,3 +8,6 @@ Guía: [`guia_laboratorio_7.pdf`](../../guias/guia_laboratorio_7.pdf) · entrega
 |---|---|
 | Consultas del dashboard | [`../../database/scripts/consultas_kpi.sql`](../../database/scripts/consultas_kpi.sql) |
 | Control de acceso de la app | [`../../gemelo-digital/app/acceso.py`](../../gemelo-digital/app/acceso.py) |
+| LQR discreto (simulación) | [`lqr_brazo.py`](lqr_brazo.py), [`lqr_brazo.m`](lqr_brazo.m), [`salida_lqr.txt`](salida_lqr.txt) |
+| Dashboard conectado a PostgreSQL | [`../../gemelo-digital/app/ui/dashboard.html`](../../gemelo-digital/app/ui/dashboard.html) |
+| Pruebas RBAC y certificado | [`prueba_rbac.py`](prueba_rbac.py), `certificado_rbac_*.md` |

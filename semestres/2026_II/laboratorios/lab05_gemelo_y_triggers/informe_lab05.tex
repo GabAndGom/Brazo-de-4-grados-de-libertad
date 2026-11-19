@@ -47,6 +47,13 @@ Posición con el programa \codigo{brazo\_gemelo} cargado & exacta al pulso mient
 \end{center}
 Con un recorrido de 170~mm, el error máximo de 1,35~mm equivale a un ajuste del $1 - 1{,}35/170 = 99{,}2\%$ en posición, por encima del 95\% que pide la guía. \textbf{Advertencia}: este índice compara el estimador con la cuenta de pulsos del PLC, no con una medición independiente de la garra. Falta medir con calibre la posición real en varios puntos (pendiente en el manual técnico) y presentar el índice de ajuste frente a esa medición.
 
+\subsection{Modelo de Simulink e índice de fidelidad}
+\paragraph{Simulink.} \codigo{crear\_gemelo\_simulink.m} construye por comandos el modelo \codigo{gemelo\_brazo.slx}: un bloque \emph{From Workspace} con las frecuencias del ensayo escalón (laboratorio 4), el bloque \emph{State-Space} continuo y el \emph{Discrete State-Space} con $G = I$, $H = T_sB$ y $T_s = 25$~ms, y los compara con la posición que informa el PLC. El modelo se genera al ejecutar el script en MATLAB; en la PC de desarrollo no hay MATLAB, así que el \codigo{.slx} no se pudo crear ni probar todavía.
+
+\paragraph{Equivalente en Python.} \codigo{indice\_fidelidad.py --ensayo} hace la misma simulación (continua y discreta ZOH) y calcula el índice de ajuste NRMSE $= 100\,(1 - \lVert y - \hat y\rVert / \lVert y - \bar y\rVert)$, como \codigo{compare} de MATLAB. Con los cuatro ensayos del PLC simulado da entre 99,5 y 99,9~\% (error máximo 0,5~mm, por la resolución de 25~ms). Igual que el 99,2~\% anterior, compara contra la cuenta de pulsos.
+
+\paragraph{Medición independiente (la que pide la firma).} \codigo{indice\_fidelidad.py --calibre medicion\_calibre.csv} compara la posición de la garra que calcula el gemelo con la medida a mano en 11 poses (distancia horizontal $r$ desde el eje de giro y altura $z$ sobre la mesa) e informa el error máximo y el índice $100\,(1 - e_{rms}/268~\text{mm})$. La plantilla ya tiene las poses y la predicción del gemelo; falta medirlas en la planta.
+
 \subsection{Discretización con retención de orden cero}
 Del laboratorio 4, cada eje es un integrador: $G(s) = b/s$, con $b = 9{,}17\cdot10^{-5}$~rad/Hz en la base y $b = 0{,}005$~mm/Hz en los carros. Con ZOH:
 \[
@@ -158,7 +165,8 @@ Con 18\,000 muestras sintéticas ya cargadas se repitió la inyección de un val
 
 \section{Entregables (Definition of Done)}
 \begin{dod}
-Archivos de simulación (.slx / .m) con el gemelo y el rango de matrices & \parcial & gemelo en la app (\codigo{gemelo-digital/}), \codigo{espacio\_estados\_brazo.m} y \codigo{.py}; no hay modelo \codigo{.slx} de Simulink\\
+Archivos de simulación (.slx / .m) con el gemelo y el rango de matrices & \parcial & gemelo en la app, \codigo{espacio\_estados\_brazo.m}/\codigo{.py}, \codigo{crear\_gemelo\_simulink.m} (genera el \codigo{.slx}; sin ejecutar por falta de MATLAB) e \codigo{indice\_fidelidad.py}\\
+Índice de fidelidad frente a la planta (más de 95~\%) & \parcial & procedimiento y plantilla \codigo{medicion\_calibre.csv} listos; faltan las mediciones con calibre\\
 Script SQL de lógica de servidor (PL/pgSQL) & \cumple & \codigo{database/scripts/brazo\_4gdl.sql} y \codigo{prueba\_reglas.sql}, ejecutados en PostgreSQL 16.2 (\codigo{registro\_ejecucion.txt})\\
 Informe de cierre de fase 2 & \cumple & este informe, con el del laboratorio 4\\
 Firma del escudo de seguridad del docente & \falta & pendiente de la revisión del docente\\

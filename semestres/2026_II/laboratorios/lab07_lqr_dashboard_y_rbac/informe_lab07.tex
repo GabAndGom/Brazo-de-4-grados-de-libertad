@@ -9,7 +9,7 @@
 \tableofcontents
 \newpage
 
-\nota{\textbf{Informe de avance al 12/11/2026.} El laboratorio 7 empieza el 24/11/2026. Este documento registra lo que ya está hecho y que la guía pide (el control de acceso por roles), el análisis de viabilidad del LQR con la planta actual y el plan para el dashboard.}
+\nota{\textbf{Informe de avance al 18/11/2026.} El laboratorio 7 empieza el 24/11/2026. Ya están hechos el control de acceso por roles con su certificado de pruebas, el dashboard conectado a PostgreSQL y el cálculo del LQR en simulación; el LQR en el PLC sigue sin ser viable con el hardware actual.}
 
 \section{Objetivos}
 \begin{itemize}
@@ -27,7 +27,7 @@ Del laboratorio 5 (\codigo{espacio\_estados\_brazo.py}):
 \item $G = I$, $H = T_sB(\kappa)$ con $\operatorname{rango} H = 2$ en cualquier estado de los relés: los tres ejes \emph{no} son controlables a la vez porque X e Y comparten un solo tren de pulsos;
 \item no hay sensor continuo: el estado no es medible y solo se conoce por la cuenta de pulsos, que es la propia entrada integrada.
 \end{itemize}
-\aviso{Con el hardware actual \textbf{no se puede implementar un LQR de los tres ejes}. Un LQR por eje (base, o un carro con su relé cerrado) es posible en teoría, pero sin medir la posición real sería un lazo cerrado sobre una estimación, no sobre la planta. No se presentan ganancias $K$ ni pruebas de sobreimpulso.}
+\aviso{Con el hardware actual \textbf{no se puede implementar un LQR de los tres ejes}. Un LQR por eje (base, o un carro con su relé cerrado) es posible en teoría, pero sin medir la posición real sería un lazo cerrado sobre una estimación, no sobre la planta. Las ganancias y respuestas de la sección siguiente son de \textbf{simulación}.}
 
 \subsection{Cambios necesarios}
 \begin{enumerate}
@@ -35,6 +35,32 @@ Del laboratorio 5 (\codigo{espacio\_estados\_brazo.py}):
 \item Un tren de pulsos independiente para X e Y (otra CPU o un módulo de posicionamiento), para que $\operatorname{rango} H = 3$.
 \item Con eso, para un eje: $x(k+1) = x(k) + bT_s\,u(k)$; con $Q = q$, $R = \rho$, la ecuación de Riccati discreta da una ganancia escalar $K$ y $K_r = K$ para seguimiento sin error en régimen.
 \end{enumerate}
+
+\subsection{Cálculo del LQR (simulación): \codigo{lqr\_brazo.py} y \codigo{lqr\_brazo.m}}
+\paragraph{Tres ejes con el hardware actual.} Con K1 y K2 cerrados, $\operatorname{rango}[H\;GH\;G^2H] = 2$. La ecuación de Riccati devuelve una $K$, pero los polos de lazo cerrado son $0{,}72$, $0{,}65$ y $\mathbf{1}$: el modo $s_X - s_Y$ (diferencia entre los carros) no se puede mover porque ambos reciben el mismo tren, y ninguna $K$ lo estabiliza. Queda demostrado numéricamente que no hay LQR de tres ejes.
+
+\paragraph{Tres ejes con un tren por eje.} Con $H = T_s\operatorname{diag}(b_\theta, b_{xy}, b_{xy})$, $Q = \operatorname{diag}(1/(1°)^2, 1/\text{mm}^2, 1/\text{mm}^2)$ y $R = \operatorname{diag}(1/(2500~\text{Hz})^2)$: $K = \operatorname{diag}(121\,636~\text{Hz/rad},\ 2140~\text{Hz/mm},\ 2140~\text{Hz/mm})$, polos 0,72; 0,73; 0,73.
+
+\paragraph{Un carro, distintas ponderaciones} ($Q = 1$, $R = 1/\rho^2$, escalón de 10~mm, saturación a 5~kHz):
+\begin{center}\small
+\begin{tabular}{c c c c c c}
+\toprule
+$\rho$ [Hz/mm] & $K$ [Hz/mm] & polo & sobreimpulso & $t_{5\%}$ [s] & $u_{max}$ [Hz]\\
+\midrule
+200 & 197,5 & 0,975 & 0~\% & 3,00 & 1975\\
+500 & 484,6 & 0,939 & 0~\% & 1,20 & 4846\\
+1000 & 939,5 & 0,883 & 0~\% & 0,68 & 5000\\
+2000 & 1765,6 & 0,779 & 0~\% & 0,48 & 5000\\
+5000 & 3676,0 & 0,541 & 0~\% & 0,40 & 5000\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{../lab07_lqr_dashboard_y_rbac/lqr_respuesta_simulada.png}
+\caption{LQR de un carro con distintas ponderaciones (\textbf{simulación}).}
+\end{figure}
+Con un integrador y realimentación de estado el lazo es de primer orden: no hay sobreimpulso con ninguna ponderación, a diferencia del PI del laboratorio 6. Un $\rho$ mayor acelera la respuesta hasta que manda la saturación de 5~kHz. La sintonía en vivo desde la HMI (tarea 48) requiere antes el lazo cerrado en el PLC.
 
 \section{ETN-1000: control de acceso por roles (RBAC)}
 \subsection{Implementación}
@@ -70,22 +96,34 @@ Acceso al menú de administración desde la red & 403 «solo desde la PC del lab
 \end{center}
 Estas pruebas se hicieron con la app en modo simulado y en la red local (manual técnico, capítulo 13).
 
-\section{ETN-1000: dashboard analítico (plan)}
+\subsection{Certificado de pruebas con tokens inválidos}
+\codigo{prueba\_rbac.py} automatiza la tarea 52 del auxiliar: pide un token por \codigo{POST /api/v1/token} para un operador y un observador y lanza 18 peticiones, entre ellas tokens inventados, vacíos o alterados en un carácter, órdenes y mando desde el observador, rearme de la planta, historial de sesiones, menú de administración desde la red y clave incorrecta. Cada resultado queda en un certificado en Markdown con espacio para la firma del auxiliar y del docente. Ejecución del 18/11/2026 por HTTPS contra la app con el PLC simulado: \textbf{18 de 18 pruebas aprobadas} (\codigo{certificado\_rbac\_20261118\_2234.md}).
+
+\section{ETN-1000: dashboard analítico}
+\subsection{Implementación}
+La vista \codigo{dashboard.html} de la app (botón «Dashboard» de la barra) lee la API \codigo{/api/v1} (laboratorio 8), que consulta PostgreSQL:
 \begin{itemize}
-\item \textbf{Datos}: las 14 consultas de \codigo{database/scripts/consultas\_kpi.sql} ya responden a cada elemento de los mockups (tiempo encendido, ciclos completados, sensores, alarmas activas, historial de sesiones, series de tiempo).
-\item \textbf{Frontend}: se propone agregar una vista \emph{Dashboard} a la app existente (gráficos con Chart.js), con los mismos roles: el observador solo lee.
-\item \textbf{KPI de Eficiencia Homeostática}: la guía no da su fórmula. Para el brazo se propone el porcentaje de tiempo en operación sin alarmas,
-\[
-\eta_H = 1 - \frac{\sum \text{tiempo con alarma activa}}{\text{tiempo total en operación}},
-\]
-calculable con \codigo{v\_ciclo} y \codigo{evento\_alarma}. Debe acordarse con el docente.
+\item \textbf{Indicadores}: eficiencia homeostática, horas en operación y ciclos, porcentaje de órdenes aceptadas, alarmas activas y muestras guardadas (últimos 7 días).
+\item \textbf{Series de tiempo}: un gráfico por variable (ZI-101, ZI-102, ZI-103, SY-100, SY-101), cada uno con su escala y unidad, con cruz y valor al pasar el puntero; periodos de 10 minutos a 30 días (promediados por minuto, 10 minutos u hora en los largos) y descarga en CSV. Se actualiza cada 5~s.
+\item \textbf{Tablas}: alarmas activas, historial de alarmas, órdenes recientes y, solo para el operador, el registro de ingresos.
 \end{itemize}
+Los gráficos se dibujan en canvas sin librerías externas (la app funciona sin internet). Se probó con el PLC simulado sobre la base de prueba: las curvas siguen los movimientos ordenados y las tablas muestran las órdenes, las alarmas y los ingresos registrados por \codigo{telemetria.py}.
+
+\subsection{RBAC en el dashboard}
+El observador («Público General» o «Investigador» de la guía) solo ve: no aparecen el botón «Rearmar planta» ni el registro de ingresos, y el servidor rechaza esas peticiones con 403 aunque se fuercen (certificado de la sección anterior). Los controles de movimiento y garra siguen solo en la vista del gemelo, con las mismas restricciones.
+
+\subsection{KPI de eficiencia homeostática}
+La guía no da su fórmula. Se implementó la propuesta del equipo:
+\[
+\eta_H = 1 - \frac{\text{tiempo con al menos una alarma de severidad} \ge 2 \text{ activa}}{\text{tiempo en operación}},
+\]
+donde una alarma está activa desde su evento \codigo{activa = true} hasta el siguiente evento de esa alarma o el fin del ciclo, y los solapes no se cuentan dos veces. Se calcula en \codigo{api\_erp.py} con lecturas directas de \codigo{evento\_alarma} y \codigo{ciclo\_operacion}. Debe acordarse con el docente.
 
 \section{Entregables (Definition of Done)}
 \begin{dod}
-Código LQR en el PLC & \falta & no viable con el hardware actual (sección 2)\\
-Frontend del dashboard conectado a PostgreSQL & \falta & consultas listas; falta la base instalada y la vista\\
-Certificado de seguridad RBAC & \parcial & roles, tokens y pruebas implementados (sección 3); falta el informe formal de pruebas con tokens inválidos ejecutado por el auxiliar\\
+Código LQR en el PLC & \falta & no viable con el hardware actual (sección 2); $K$ calculada y simulada en \codigo{lqr\_brazo.py}/\codigo{.m}\\
+Frontend del dashboard conectado a PostgreSQL & \cumple & \codigo{gemelo-digital/app/ui/dashboard.html} y \codigo{js/dashboard.js} sobre \codigo{/api/v1}; probado con el PLC simulado, falta con la planta\\
+Certificado de seguridad RBAC & \cumple & \codigo{prueba\_rbac.py}: 18 de 18 pruebas aprobadas; falta que el auxiliar lo ejecute y firme en el laboratorio\\
 \end{dod}
 
 \end{document}

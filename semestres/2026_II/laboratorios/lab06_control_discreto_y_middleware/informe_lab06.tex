@@ -9,7 +9,7 @@
 \tableofcontents
 \newpage
 
-\nota{\textbf{Estado al 12/11/2026.} Este laboratorio está en curso (entrega el 24/11/2026). El informe documenta lo que ya funciona en la planta y lo que falta; se actualizará antes de la entrega.}
+\nota{\textbf{Estado al 18/11/2026.} Este laboratorio está en curso (entrega el 24/11/2026). Desde la versión del 12/11 se agregaron el registrador de telemetría en PostgreSQL, el diseño del PI con su rutina de interrupción y la prueba de lazo flotante. Lo que se probó con la planta y lo que solo se probó en simulación se indica en cada sección.}
 
 \section{Objetivos}
 \begin{itemize}
@@ -24,11 +24,11 @@
 \begin{tikzpicture}[node distance=6mm and 10mm, every node/.style={font=\scriptsize}]
 \node[cajab, text width=3.3cm] (c) {\textbf{Campo}\\PLC S7-200 CPU 224\\programa \codigo{brazo\_gemelo}\\PTO, finales, relés};
 \node[cajan, right=of c, text width=3.6cm] (m) {\textbf{Middleware}\\app Python (\codigo{brazo.py}, \codigo{ppi.py})\\lectura cíclica por PPI\\API JSON (\codigo{/api/estado})};
-\node[cajab, right=of m, text width=3.3cm] (s) {\textbf{Servidor / cliente}\\gemelo 3D en el navegador\\PostgreSQL (pendiente)};
+\node[cajab, right=of m, text width=3.3cm] (s) {\textbf{Servidor / cliente}\\gemelo 3D y dashboard\\PostgreSQL (\codigo{telemetria.py})};
 \draw[dflecha] (c) -- node[above]{PPI RS-485} node[below]{9600 bit/s} (m);
 \draw[dflecha] (m) -- node[above]{HTTP/HTTPS} node[below]{JSON} (s);
 \end{tikzpicture}
-\caption{Capas del sistema. La capa de campo y el middleware funcionan con la planta real; la inserción en PostgreSQL es lo que falta.}
+\caption{Capas del sistema. La capa de campo y el middleware funcionan con la planta real; la inserción en PostgreSQL se probó con el PLC simulado.}
 \end{figure}
 
 \section{ETN-902: control discreto en el PLC}
@@ -45,7 +45,35 @@ Con un encoder o el contador rápido (HSC) leyendo la posición real $y(k)$, el 
 u(k) = u(k-1) + b_0\,e(k) + b_1\,e(k-1),
 \]
 que es la forma de la guía con $a_1 = -1$, $a_2 = 0$. Se ejecutaría en la interrupción temporizada del S7-200: \codigo{SMB34} fija la base de tiempo (1 a 255~ms; se propone 25~ms) y \codigo{ATCH} asocia la rutina al evento 10. En \codigo{VD} se guardan $e(k-1)$ y $u(k-1)$; $u(k)$ es la frecuencia del PTO, saturada a 500--5000~Hz.
-\aviso{Este controlador \textbf{no está implementado ni probado}: no hay sensor de posición en la planta y no hay ganancias $b_0$, $b_1$ calculadas porque falta la identificación (laboratorio 4). No se presenta una prueba de lazo flotante.}
+\subsection{Diseño de $b_0$ y $b_1$}
+Con la planta del laboratorio 4, $G(z) = bT_s/(z-1)$ y $b = 0{,}005$~mm/(Hz$\cdot$s), y el controlador $D(z) = (b_0 z + b_1)/(z-1)$, el polinomio característico es $z^2 + (bT_sb_0 - 2)z + (1 + bT_sb_1)$. Con un polo doble en $p$:
+\[
+b_0 = \frac{2 - 2p}{bT_s}, \qquad b_1 = \frac{p^2 - 1}{bT_s}; \qquad p = 0{,}9 \;\Rightarrow\; b_0 = 1600~\text{Hz/mm},\; b_1 = -1520~\text{Hz/mm}.
+\]
+\codigo{pi\_discreto.py diseno} (y \codigo{pi\_discreto.m}) verifica las raíces y simula el lazo con saturación a 5~kHz:
+\begin{center}\small
+\begin{tabular}{c c c c}
+\toprule
+Escalón & Sobreimpulso & Tiempo al 5~\% & Tiempo saturado\\
+\midrule
+1~mm & 15,0~\% & 0,20~s & 0~\%\\
+10~mm & 0~\% & 0,95~s & 0,3~\%\\
+50~mm & 0~\% & 2,10~s & 19,4~\%\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\linewidth]{../lab06_control_discreto_y_middleware/pi_respuesta_simulada.png}
+\caption{PI discreto sobre el modelo del carro (\textbf{simulación}).}
+\end{figure}
+El sobreimpulso en escalones pequeños lo produce el cero del PI; el LQR del laboratorio 7 no lo tiene.
+
+\subsection{Rutina de interrupción y prueba de lazo flotante}
+\codigo{gemelo-digital/plc/pi\_lazo\_flotante.awl} implementa la ecuación en la interrupción temporizada 0: \codigo{SMB34 = 25} (25~ms), \codigo{ATCH INT0, 10}, aritmética REAL, saturación a $\pm$5000~Hz con el valor saturado guardado como $u(k-1)$ (antiwindup), $e(k-1)$ y $u(k-1)$ en \codigo{VD1312} y \codigo{VD1320}, y la salida libre Q1.0 que cambia en cada interrupción para medir $T_s$ y el jitter con el osciloscopio. La acción $u(k)$ \textbf{no} se envía al tren de pulsos: solo se publica en \codigo{VD1316}.
+
+La prueba de lazo flotante (\codigo{pi\_discreto.py flotante}) ejecuta la rutina paso a paso (modo 1: la PC pide un paso con un error simulado y lee $u(k)$) con 60 pasos de escalones y rampa, y compara cada $u(k)$ del PLC con la ecuación. Contra el emulador de la rutina (REAL de 32 bits) la diferencia máxima es 0~Hz (\codigo{lazo\_flotante\_EMULADO.csv}).
+\aviso{La rutina \textbf{no se cargó ni probó en el PLC}. Antes de la entrega: importarla en \codigo{brazo\_gemelo.mwp}, con los drivers desenergizados correr \codigo{pi\_discreto.py flotante --puerto COMx} y medir Q1.0 con el osciloscopio. Cerrar el lazo de verdad sigue requiriendo un sensor de posición.}
 
 \section{ETN-1034: escalado y lógica de eventos discretos}
 \subsection{Escalado a unidades de ingeniería}
@@ -92,33 +120,36 @@ El estado se publica como objeto JSON en \codigo{GET /api/estado}. Ejemplo de la
  "mando": true, "mando_de": "operador1"}
 \end{lstlisting}
 
-\subsection{Inserción en PostgreSQL}
-\aviso{La inserción automática en PostgreSQL \textbf{no está implementada}. La base está creada y probada en PostgreSQL 16.2 con datos sintéticos (laboratorios 4 y 5) y el flujo está definido; falta agregar al middleware el registrador.}
-Diseño acordado (documento de base de datos, sección 11):
+\subsection{Inserción en PostgreSQL: \codigo{telemetria.py}}
+El registrador corre en un hilo aparte de la lectura del PLC: toma el último estado una vez por segundo, así una base lenta o caída no frena la lectura PPI ni el watchdog. Usa \codigo{psycopg} con sentencias parametrizadas (ningún dato se pega en el texto SQL) y guarda:
 \begin{itemize}
-\item un hilo aparte con la biblioteca \codigo{psycopg} y sentencias parametrizadas, para que una base lenta no frene la lectura del PLC ni el watchdog;
-\item una muestra por segundo y por variable en \codigo{muestra}; los cambios de señales en \codigo{estado\_io}; las órdenes, sesiones y alarmas cuando ocurren.
+\item \codigo{ciclo\_operacion}: uno por cada modo elegido, con su programa del PLC; al conectar cierra los ciclos que quedaron abiertos por un cierre inesperado;
+\item \codigo{muestra}: una muestra por segundo de ZI-101, ZI-102, ZI-103 (PV) y SY-100, SY-101 (MV, frecuencia de cada tren mientras está activo);
+\item \codigo{estado\_io}: cada cambio de las 22 señales; \codigo{evento\_alarma}: errores del PLC (watchdog, paro, fuera de recorrido, sin homing, ocupado) y pérdida de comunicación, con su despeje;
+\item \codigo{orden} y \codigo{orden\_parametro}: cada orden con quién la dio, si se aceptó y el motivo del rechazo; \codigo{sesion}: cada ingreso, exitoso o fallido.
 \end{itemize}
+Además escribe siempre un CSV por sesión en \codigo{app/telemetria/}, con o sin base. Si no hay PostgreSQL la app funciona igual y reintenta cada 30~s.
 \begin{lstlisting}[style=sql]
-INSERT INTO muestra (ciclo_id, variable_id, instante, valor)
-VALUES (%(ciclo)s, (SELECT id FROM variable WHERE tag_isa = %(tag)s), %(t)s, %(valor)s);
+INSERT INTO muestra (ciclo_id, variable_id, instante, valor) VALUES (%s, %s, %s, %s)
 \end{lstlisting}
+
+\paragraph{Auditoría de inserción (tarea 39).} Prueba con el PLC simulado sobre una base de prueba (\codigo{brazo4gdl\_prueba}, 18/11/2026): 3360 muestras, \textbf{ninguna duplicada} (clave ciclo--variable--instante), periodo entre muestras de 1,000~s (mínimo 0,998, máximo 1,002), 122 cambios de señales y 23 órdenes registradas. El trigger del laboratorio 5 sigue activo: una muestra fuera de rango no se guarda y deja la alarma.
 
 \subsection{Latencia y carga sobre el PLC}
 El PLC tiene un solo maestro PPI (la app) y la tasa de lectura está limitada por el protocolo, no por la app: unos 6 ciclos por segundo. Los clientes web no consultan al PLC; leen el último estado guardado por la app. Así, aunque haya varios navegadores conectados, el PLC recibe siempre la misma carga.
 
 \section{Entregables (Definition of Done)}
 \begin{dod}
-Código del PLC (.mwp) con interrupción y ecuación de diferencias & \parcial & \codigo{gemelo-digital/plc/brazo\_gemelo.mwp}: posicionamiento por paquetes y watchdog; sin interrupción temporizada ni controlador realimentado\\
-Flujo del middleware (Python) con JSON e inserción en PostgreSQL & \parcial & lectura PPI y API JSON funcionando; falta la inserción en PostgreSQL\\
+Código del PLC (.mwp) con interrupción y ecuación de diferencias & \parcial & \codigo{brazo\_gemelo.mwp} (posicionamiento y watchdog) y \codigo{pi\_lazo\_flotante.awl} (PI por interrupción, SMB34 = 25~ms); falta cargarlo y probarlo en el PLC\\
+Flujo del middleware (Python) con JSON e inserción en PostgreSQL & \cumple & \codigo{brazo.py} (PPI), \codigo{gemelo\_brazo.py} (JSON) y \codigo{telemetria.py} (PostgreSQL); inserción probada con el PLC simulado, falta una corrida con la planta\\
 Bitácora lazo abierto frente a lazo cerrado & \falta & no hay lazo cerrado (sin sensor de posición)\\
 \end{dod}
 
 \section{Pendientes antes de la entrega}
 \begin{enumerate}
-\item Instalar PostgreSQL en la PC del laboratorio, ejecutar \codigo{brazo\_4gdl.sql} y agregar el registrador al middleware.
-\item Agregar realimentación de posición (encoder o HSC) para poder cerrar un lazo; sin ella, el resto del laboratorio no es aplicable a esta planta.
-\item Medir con osciloscopio el periodo real de los paquetes de pulsos y el jitter (tarea del auxiliar).
+\item Instalar PostgreSQL y \codigo{psycopg} en la PC del laboratorio, crear la base y operar el brazo una sesión con la telemetría activa.
+\item Cargar \codigo{pi\_lazo\_flotante.awl}, correr la prueba de lazo flotante contra el PLC con los drivers desenergizados y medir Q1.0 con el osciloscopio (periodo y jitter).
+\item Para cerrar el lazo: sensor de posición (encoder leído con HSC); sin él, la bitácora lazo abierto frente a lazo cerrado solo puede ser simulada.
 \end{enumerate}
 
 \end{document}

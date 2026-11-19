@@ -23,18 +23,36 @@ La guía prohíbe excitar los actuadores con señales desproporcionadas. En el b
 \subsection{Qué se puede medir en esta planta}
 La identificación por curva de reacción necesita medir la salida $y(t)$. En el brazo no hay transmisor de posición: la posición que muestra el gemelo se \emph{calcula} contando los pulsos enviados, así que comparar esa posición con la entrada no identifica nada (es la entrada integrada). Las únicas mediciones independientes son los instantes en que se activan los finales de carrera (I0.1--I0.4) y el sensor inductivo (I0.0).
 
-\subsection{Estado de la prueba}
-\aviso{La prueba escalón con registro en CSV \textbf{no se realizó} todavía. No se presentan curvas ni parámetros $K$, $\tau$, $t_d$ porque no hay datos medidos; inventarlos violaría el criterio de la guía.}
+\subsection{Prueba automatizada: \codigo{prueba\_escalon.py}}
+La prueba se automatizó sobre la app del gemelo (actualización del 18/11/2026). El script toma el mando, hace homing si falta, lleva el eje a 0~mm y aplica un escalón de frecuencia de 0 a $f$ hacia el otro extremo (170~mm), registrando cada lectura del PLC en un CSV hasta que el eje se detiene:
+\begin{lstlisting}[language=bash]
+python3 prueba_escalon.py --eje X --frecuencias 1000 2000 3000 4000   # con la app abierta
+python3 prueba_escalon.py --analizar "datos/escalon_X_*.csv"
+\end{lstlisting}
+Columnas del CSV: tiempo desde la orden, frecuencia ordenada, posición y pulsos informados por el PLC, bandera de movimiento, finales de carrera, error del PLC y edad de la lectura.
 
-\subsection{Procedimiento propuesto (con los medios disponibles)}
-\begin{enumerate}
-\item Homing del eje (la app lo hace con la orden \emph{homing}).
-\item Aplicar un escalón de frecuencia $f_1$ (por ejemplo, de 0 a 2000~Hz) hacia el final opuesto.
-\item Registrar en CSV, en cada lectura PPI ($\approx$155~ms), el tiempo, la frecuencia ordenada, los pulsos enviados y el estado del final de carrera. La app hoy solo guarda un registro de eventos en texto: hay que agregarle esta exportación. El instante en que se activa el final da un punto real de la trayectoria.
-\item Repetir a 1000, 2000, 3000 y 4000~Hz y con y sin carga en la garra.
-\item Comparar el tiempo real hasta el final con el ideal $t = 170~\text{mm}\cdot 200~\text{pulsos/mm} / f$. Una diferencia sistemática indica pérdida de pasos o un paso de husillo distinto de 5~mm (SUPUESTO).
-\end{enumerate}
-Con un sensor continuo (encoder en el motor o regla lineal) la curva de reacción completa permitiría aplicar los métodos de Smith o Sundaresan para identificar la dinámica del conjunto driver--motor--carro.
+\paragraph{Qué se mide de verdad.} El PLC suma los pulsos del tramo al terminarlo: la posición intermedia que muestra la app es una interpolación con la frecuencia ordenada, no una medición. Por eso el análisis usa solo lo que informa el PLC: el instante en que empieza a moverse ($t_d$, tiempo muerto: latencia PPI más el ciclo del PLC) y el instante en que termina (velocidad media y ganancia $K = v/f$). La constante $\tau$ del conjunto motor--carro no se puede medir sin un sensor continuo.
+
+\subsection{Resultados con el PLC simulado}
+\aviso{Los datos de esta sección son del \textbf{PLC simulado} de la app (archivos \codigo{datos/escalon\_X\_*\_SIMULADO\_*.csv}): validan el procedimiento y el análisis, no la planta. La corrida en la planta queda pendiente para la próxima sesión de laboratorio, con el mismo comando y la app en «Operación local».}
+\begin{center}\small
+\begin{tabular}{c c c c c c}
+\toprule
+$f$ [Hz] & $t_d$ [s] & duración [s] & $d$ [mm] & $v$ [mm/s] & $K/K_{nom}$\\
+\midrule
+1000 & 0,027 & 34,008 & 170 & 5,00 & 1,000\\
+2000 & 0,050 & 17,012 & 170 & 9,99 & 0,999\\
+3000 & 0,027 & 11,342 & 170 & 14,99 & 0,999\\
+4000 & 0,027 & 8,514 & 170 & 19,97 & 0,998\\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\linewidth]{datos/escalon_respuesta.png}
+\caption{Respuesta al escalón de frecuencia (PLC simulado): posición informada por el PLC.}
+\end{figure}
+Modelo identificado por eje: $S(s)/F(s) = K e^{-t_d s}/s$, un integrador con tiempo muerto ($K_{nom} = 0{,}005$~mm/(Hz$\cdot$s)). Con la planta real se espera un $t_d$ mayor (cada lectura PPI tarda $\approx$155~ms) y, si el motor pierde pasos, una diferencia entre la posición contada y la real que solo revela una medición independiente (finales de carrera o calibre, laboratorio 5). Con un encoder o una regla lineal la curva completa permitiría aplicar los métodos de Smith o Sundaresan.
 
 \section{ETN-1034: modelo analítico en espacio de estados}
 \subsection{Leyes físicas}
@@ -135,15 +153,15 @@ La guía pide el nombre \codigo{estructura\_telemetria.sql}; en el repositorio e
 \section{Entregables (Definition of Done)}
 \begin{dod}
 Script SQL ejecutable (.sql) & \cumple & \codigo{database/scripts/brazo\_4gdl.sql} ejecutado sin errores en PostgreSQL 16.2; registro en \codigo{registro\_ejecucion.txt}; falta repetirlo en la PC del laboratorio\\
-Archivo de telemetría cruda del escalón (.csv) & \falta & la prueba no se hizo (sección 3)\\
-Función de transferencia parametrizada & \parcial & función analítica por eje (integrador); falta la identificación experimental\\
+Archivo de telemetría cruda del escalón (.csv) & \parcial & \codigo{prueba\_escalon.py} y 4 ensayos con el PLC simulado en \codigo{datos/}; falta la corrida en la planta\\
+Función de transferencia parametrizada & \parcial & $K e^{-t_d s}/s$ con $K$ y $t_d$ del análisis automático; con datos simulados hasta la corrida en la planta\\
 Matrices del espacio de estados & \cumple & sección 4 y \codigo{laboratorios/lab05\_gemelo\_y\_triggers/espacio\_estados\_brazo.py}\\
 \end{dod}
 
 \section{Conclusiones}
 \begin{enumerate}
 \item El brazo, en lazo abierto con motores paso a paso, es un integrador por eje: su modelo en espacio de estados tiene $A = 0$ y una matriz $B$ que conmuta con los relés K1 y K2. Esta estructura explica por qué X e Y no pueden moverse a velocidades distintas.
-\item La identificación por caja negra choca con la falta de un sensor continuo: sin medir la salida no hay curva de reacción. Es la misma ruptura de causalidad documentada en el laboratorio 1.
+\item La identificación por caja negra choca con la falta de un sensor continuo: sin medir la salida no hay curva de reacción completa. La prueba automatizada obtiene lo que sí es medible ($K$ y $t_d$ a partir de las banderas del PLC) y queda lista para correrla en la planta.
 \item El esquema físico de la base está completo, con integridad referencial explícita, y se ejecutó sin errores en PostgreSQL 16.2; queda repetirlo en la PC del laboratorio.
 \end{enumerate}
 

@@ -9,7 +9,7 @@
 \tableofcontents
 \newpage
 
-\nota{\textbf{Informe de avance al 12/11/2026.} El laboratorio 8 empieza el 8/12/2026. Este documento resume qué del cierre ya existe en el repositorio, qué falta y cómo se integrará el brazo a la red del laboratorio.}
+\nota{\textbf{Informe de avance al 18/11/2026.} El laboratorio 8 empieza el 8/12/2026. Ya funcionan, probados con el PLC simulado, la pasarela Modbus TCP del brazo, la API REST de históricos con token y los respaldos programados. Falta la red física con las otras plantas y el lazo cerrado.}
 
 \section{Objetivos}
 \begin{itemize}
@@ -40,31 +40,64 @@ El S7-200 puede ser esclavo Modbus RTU en el puerto 0 con la librería Modbus de
 \end{center}
 La guía propone 40001 = PV, 40002 = MV, 40003 = DV; aquí se usan dos registros por posición porque los pulsos de un recorrido completo (34\,000) y la base ($\pm$50\,000) no caben siempre en 16 bits con signo. El brazo no tiene DV medible.
 
-\aviso{Nada de esta sección está implementado ni probado: no hay programa Modbus en el PLC, ni cableado STP al anillo de datos, ni estadísticas de CRC. Es el plan de integración.}
+Este mapa está escrito en \codigo{gemelo-digital/plc/modbus\_esclavo\_rtu.awl} (con \codigo{MBUS\_INIT} a 9600~bit/s, paridad par, esclavo 1, registros desde \codigo{VW2000}). Como el puerto 0 deja de hablar PPI mientras el esclavo está activo, el esclavo se habilita con una marca (M10.0). \textbf{No se probó en el PLC.}
+
+\subsection{Pasarela Modbus TCP (implementada)}
+Para no perder la app ni el watchdog, se implementó la alternativa sin conflicto: la PC del brazo publica lo que lee por PPI como \textbf{esclavo Modbus TCP} (\codigo{gemelo-digital/app/modbus.py}, opción \codigo{--modbus}, puerto 5020). Usa el mismo mapa (40001--40010) y agrega 40011--40013 (posiciones en décimas de grado o de mm), 40014 (estado: conectado, referenciado, en movimiento, garra, automático, error) y 40015 (contador de lecturas, para saber que la pasarela está viva). Atiende las funciones 03 y 04. Las escrituras responden con la excepción 01: nadie puede mover el brazo desde la red industrial sin pasar por el mando y el watchdog de la app.
+
+\subsection{Pruebas y estadísticas de tramas (tarea 59)}
+El mismo módulo trae un maestro de prueba TCP y RTU (RS-485, CRC-16/Modbus) que cuenta respuestas correctas, sin respuesta, con CRC incorrecto y excepciones, y mide el tiempo de respuesta:
+\begin{lstlisting}[language=bash]
+python3 modbus.py cliente --tcp 127.0.0.1:5023 --repetir 1000            # pasarela de la app
+python3 modbus.py cliente --rtu COM5 --baudios 9600 --esclavo 1 --repetir 1000   # S7-200 con MBUS_SLAVE
+\end{lstlisting}
+\begin{center}\small
+\begin{tabular}{l c}
+\toprule
+\textbf{Prueba (18/11/2026, app con PLC simulado)} & \textbf{Resultado}\\
+\midrule
+CRC de la trama de referencia \codigo{01 03 00 00 00 01} & \codigo{84 0A} (correcto)\\
+1000 lecturas de 40001--40015 por Modbus TCP & 1000 correctas, 0 errores (0,00~\%)\\
+Tiempo de respuesta & mediana 0,03~ms, máximo 0,44~ms\\
+Lectura fuera del mapa (20 registros) & excepción 02, dirección no permitida\\
+Escritura (función 06) & excepción 01, función no permitida\\
+\bottomrule
+\end{tabular}
+\end{center}
+La posición leída por Modbus coincidió con la de la app (20,0°, 100,0~mm, 50,0~mm; salida completa en \codigo{salida\_modbus\_tcp.txt}).
+\aviso{Falta lo físico: el cableado STP al anillo de datos, el direccionamiento IP con la planta de nivel (MicroLogix 1100) y las estadísticas de CRC en el bus RS-485 real, que solo se pueden medir con las otras plantas conectadas.}
 
 \section{ETN-1000: API REST del ERP}
-\subsection{Lo que existe}
-La app del gemelo ya expone una API HTTP/HTTPS con JSON y sesión por token (laboratorios 6 y 7): \codigo{GET /api/estado}, \codigo{GET /api/info}, \codigo{POST /api/orden/\{nombre\}} y \codigo{POST /api/mando}. Es la API de \emph{operación} en tiempo real, no la de históricos.
+\subsection{API de operación}
+La app del gemelo expone desde los laboratorios 6 y 7 la API de \emph{operación} en tiempo real: \codigo{GET /api/estado}, \codigo{GET /api/info}, \codigo{POST /api/orden/\{nombre\}} y \codigo{POST /api/mando}.
 
-\subsection{API de históricos propuesta}
-Sobre la base \codigo{brazo4gdl}, con FastAPI y token, reutilizando las consultas de \codigo{consultas\_kpi.sql}:
+\subsection{API de históricos (implementada)}
+\codigo{gemelo-digital/app/api\_erp.py}, servida por la misma app, con JSON y acceso por token. Se implementó con la biblioteca estándar de Python y \codigo{psycopg}, en lugar de FastAPI, para no agregar dependencias a la PC del laboratorio:
 \begin{center}\small
-\begin{tabularx}{\linewidth}{>{\ttfamily\raggedright}p{6.6cm} >{\raggedright\arraybackslash}X}
+\begin{tabularx}{\linewidth}{>{\ttfamily\raggedright}p{6.4cm} >{\raggedright\arraybackslash}X}
 \toprule
 \textrm{\textbf{Endpoint}} & \textbf{Respuesta}\\
 \midrule
-GET /api/v1/telemetria/planta/\{id\}?tag=\&desde=\&hasta= & serie de tiempo de \codigo{muestra}\\
-GET /api/v1/alertas/activas & consulta 11: alarmas cuyo último evento está activo\\
-GET /api/v1/ciclos & vista \codigo{v\_ciclo}\\
-GET /api/v1/sesiones & consulta 9 (solo operador)\\
+POST /api/v1/token & \{usuario, clave\} $\to$ token para \codigo{Authorization: Bearer}\\
+GET /api/v1/telemetria/planta/\{id\} & serie de tiempo: \codigo{?tag=\&desde=\&hasta=\&cada=\&limite=}; \codigo{\&formato=csv} para descargar\\
+GET /api/v1/alertas/activas & alarmas cuyo último evento está activo\\
+GET /api/v1/alertas & historial de eventos de alarma\\
+GET /api/v1/ciclos, /api/v1/ordenes & ciclos de operación y órdenes con su resultado\\
+GET /api/v1/kpi & indicadores del dashboard (eficiencia homeostática)\\
+GET /api/v1/sesiones & registro de ingresos (solo operador)\\
+POST /api/v1/planta/rearmar & vuelve a poner la planta en operación tras un disparo del trigger (solo operador)\\
 \bottomrule
 \end{tabularx}
 \end{center}
+Sin token o con un token inválido responde 401; con un rol sin permiso, 403; con parámetros mal formados (fecha, id), 400 con el motivo. Todas las consultas son parametrizadas.
 
-\subsection{Respaldos}
+\subsection{Auditoría de endpoints (tarea 65)}
+\codigo{prueba\_api\_concurrente.py}: 10 clientes simultáneos con 50 peticiones cada uno sobre seis rutas, por HTTPS con token de observador (18/11/2026, PLC simulado, base de prueba con 20\,000 muestras): \textbf{500 de 500 respuestas JSON válidas (100~\%)}, 228 peticiones/s, mediana de 25~ms por ruta y 110~ms para \codigo{/kpi} (salida en \codigo{salida\_api\_concurrente.txt}).
+
+\subsection{Respaldos (tarea 63)}
+\codigo{database/scripts/respaldo.sh} (Linux, con cron) y \codigo{respaldo.bat} (Windows, con el Programador de tareas) hacen \codigo{pg\_dump -Fc}, verifican que el archivo se pueda leer con \codigo{pg\_restore -l} y conservan los últimos 30. Prueba: respaldo de la base de prueba (260~kB) restaurado en una base nueva con las 20\,705 muestras.
 \begin{lstlisting}[language=bash]
-# respaldo diario a las 23:00 (cron), se guardan los últimos 30
-0 23 * * * pg_dump -Fc brazo4gdl > /respaldos/brazo4gdl_$(date +\%F).dump
+0 23 * * * /ruta/database/scripts/respaldo.sh >> /ruta/database/scripts/respaldos/respaldo.log 2>&1
 \end{lstlisting}
 
 \section{Estado del cierre del proyecto}
@@ -77,9 +110,9 @@ Documentación y manuales técnicos & \cumple & \codigo{gemelo-digital/manual/} 
 Planos eléctricos IEC y P\&ID ISA-5.1 actualizados & \cumple & \codigo{documentacion/planos\_isa/}\\
 Código de control cargado en el PLC & \cumple & \codigo{gemelo-digital/plc/brazo\_gemelo.mwp}\\
 Scripts SQL con triggers & \cumple & \codigo{database/scripts/}, probados en PostgreSQL 16.2; falta instalarlos en la PC del laboratorio\\
-Middleware & \parcial & app Python con PPI; sin Node-RED ni inserción en la base\\
-API REST y dashboard ERP & \falta & sección 3\\
-Lazo cerrado y red Modbus & \falta & sección 2\\
+Middleware & \cumple & app Python: PPI, JSON, inserción en PostgreSQL y pasarela Modbus TCP (probados con el PLC simulado)\\
+API REST y dashboard ERP & \cumple & \codigo{api\_erp.py} y \codigo{dashboard.html} (sección 3)\\
+Lazo cerrado y red Modbus & \parcial & pasarela Modbus TCP lista; faltan la red física y el sensor de posición\\
 Memorias firmadas con ORCID & \falta & ver informe del laboratorio 3\\
 \bottomrule
 \end{tabularx}
@@ -87,9 +120,9 @@ Memorias firmadas con ORCID & \falta & ver informe del laboratorio 3\\
 
 \section{Entregables (Definition of Done)}
 \begin{dod}
-Repositorio GitHub unificado final & \parcial & repositorio organizado por laboratorio; faltan API, dashboard e inserción en la base\\
+Repositorio GitHub unificado final & \parcial & repositorio con planos, PLC, SQL con triggers, middleware, API y dashboard; faltan las pruebas con la planta\\
 Manual técnico del ciclo de vida y Kaizen con ORCID & \parcial & manual técnico de 87 páginas; faltan ORCID y firmas\\
-Demostración física en lazo cerrado con Modbus & \falta & requiere sensor de posición y red Modbus\\
+Demostración física en lazo cerrado con Modbus & \falta & requiere sensor de posición y la red con las otras plantas\\
 \end{dod}
 
 \end{document}

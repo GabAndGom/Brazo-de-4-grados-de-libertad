@@ -8,11 +8,11 @@
 \portada{4}{Identificación de la planta y estructura física de la base de datos}{martes 15 de septiembre de 2026}{martes 29 de septiembre de 2026}{semanas 7 y 8}
 \tableofcontents
 \newpage
-\nota{\textbf{Estado al 18/11/2026.} Laboratorio entregado; la base se ejecutó en PostgreSQL el 12/11/2026. Fase 2: modelado dinámico, caja negra y backend. Este documento explica, objetivo por objetivo, qué pide la guía, qué logró la escuadra, qué es cada cosa y dónde está la evidencia; después explica el trabajo del docente: qué debía revisar en cada hito y qué tiene preparado la escuadra para esa revisión.}
+\nota{\textbf{Estado al 18/11/2026 (actualizado por la noche).} Laboratorio entregado; la base se ejecutó en PostgreSQL el 12/11/2026. Fase 2: modelado dinámico, caja negra y backend. Este documento explica, objetivo por objetivo, qué pide la guía, qué logró la escuadra, qué es cada cosa y dónde está la evidencia; después explica el trabajo del docente: qué debía revisar en cada hito y qué tiene preparado la escuadra para esa revisión.}
 \section{Resumen}
 \begin{center}\small\begin{tabularx}{\linewidth}{c >{\raggedright}p{2.4cm} >{\raggedright}X c c}
 \toprule \textbf{Nº} & \textbf{Mención} & \textbf{Objetivo} & \textbf{Estado} & \textbf{\%}\\ \midrule
-1 & ETN-902 / ETN-1034 & Identificación experimental por caja negra & \parcial & 10\%\\
+1 & ETN-902 / ETN-1034 & Identificación experimental por caja negra & \parcial & 40\%\\
 2 & ETN-902 / ETN-1034 & Modelado analítico multivariable & \parcial & 80\%\\
 3 & ETN-1000 & Estructuración física de la base de datos & \parcial & 85\%\\
 4 & ETN-1000 & Diccionarios y restricciones & \cumple & 100\%\\
@@ -26,14 +26,16 @@ El porcentaje mide cuánto del objetivo está hecho y comprobado en la planta o 
 \begin{itemize}
 \item Procedimiento de la prueba escrito: homing, escalón de frecuencia del tren de pulsos (1000 a 4000 Hz), registro en CSV del tiempo, la frecuencia, los pulsos y el instante en que se activa el final de carrera.
 \item Explicación de por qué la curva de reacción no se puede medir hoy: el brazo no tiene sensor de posición; la posición mostrada es la cuenta de pulsos, es decir, la propia entrada integrada.
+\item Prueba automatizada \codigo{prueba\_escalon.py}: toma el mando, aplica el escalón de frecuencia, guarda el CSV crudo y calcula K y el tiempo muerto t\_d a partir de las banderas del PLC. Probada con el PLC simulado (4 ensayos, K/K\_nom = 0,998 a 1,000); modelo identificado K$\cdot$e\^{}(-td$\cdot$s)/s.
 \end{itemize}
 \paragraph{Qué es y por qué importa.} La identificación por caja negra excita la planta con un escalón y mide cómo responde para estimar K, $\tau$ y el tiempo muerto de G(s) = K$\cdot$e\^{}(-td$\cdot$s)/($\tau$s+1), sin conocer su física. Necesita medir la salida y(t) de forma independiente.
 \paragraph{Evidencia.}
 \begin{itemize}\small
 \item \codigo{laboratorios/lab04\_identificacion\_y\_ddl/informe\_lab04.pdf}
+\item \codigo{laboratorios/lab04\_identificacion\_y\_ddl/prueba\_escalon.py}
 \end{itemize}
-\paragraph{Lo que falta.} Hacer la prueba y exportar el CSV; para la curva completa hace falta un encoder o una regla lineal.
-\paragraph{Estado:} \parcial~(10\%).
+\paragraph{Lo que falta.} Correr prueba\_escalon.py con la planta real; para la curva completa ($\tau$) hace falta un encoder o una regla lineal.
+\paragraph{Estado:} \parcial~(40\%).
 \subsubsection{Modelado analítico multivariable}
 \paragraph{Qué pide la guía.} Formular las ecuaciones del sistema y representarlo en espacio de estados $\dot{x}$ = Ax + Bu.
 \paragraph{Qué se logró.}
@@ -140,7 +142,7 @@ La guía asigna al docente el papel de auditor: en cada hito revisa el trabajo d
 Cumplidos: Diccionarios y restricciones. Con avance parcial: Identificación experimental por caja negra, Modelado analítico multivariable, Estructuración física de la base de datos.
 \par\smallskip Pendientes principales:
 \begin{enumerate}
-\item Hacer la prueba y exportar el CSV; para la curva completa hace falta un encoder o una regla lineal.
+\item Correr prueba\_escalon.py con la planta real; para la curva completa ($\tau$) hace falta un encoder o una regla lineal.
 \item Modelo dinámico con inercia y fricción, que requiere medir esos parámetros.
 \item Ejecutarlo en la PC del laboratorio asignada a la planta.
 \end{enumerate}

@@ -11,3 +11,6 @@ Guía: [`guia_laboratorio_5.pdf`](../../guias/guia_laboratorio_5.pdf) · entrega
 | Salida del cálculo | [`salida_espacio_estados.txt`](salida_espacio_estados.txt) |
 | Trigger y pruebas de inyección | [`../../database/scripts/`](../../database/scripts/) |
 | Gemelo digital (app) | [`../../gemelo-digital/`](../../gemelo-digital/) |
+| Generador del modelo de Simulink (State-Space continuo y discreto) | [`crear_gemelo_simulink.m`](crear_gemelo_simulink.m) |
+| Índice de fidelidad del gemelo (ensayo y calibre) | [`indice_fidelidad.py`](indice_fidelidad.py) |
+| Plantilla de medición de la garra con calibre | [`medicion_calibre.csv`](medicion_calibre.csv) |

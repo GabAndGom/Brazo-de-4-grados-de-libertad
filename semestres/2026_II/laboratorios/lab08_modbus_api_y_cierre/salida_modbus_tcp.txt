@@ -1,0 +1,17 @@
+# Prueba del esclavo Modbus TCP de la app (PLC SIMULADO), 2026-11-18 22:35
+# python3 gemelo-digital/app/modbus.py cliente --tcp 127.0.0.1:5023 --repetir 1000
+  pulsos_base    278
+  pulsos_x       20000
+  pulsos_y       10000
+  f_xy_hz        0
+  f_base_hz      0
+  entradas       00000100000000
+  salidas        00000000
+  theta_deg      20.0
+  sX_mm          100.0
+  sY_mm          50.0
+  estado         {'conectado': True, 'referenciado': True, 'en_movimiento': False, 'garra': False, 'modo_auto': True, 'error': False}
+  contador       1902
+
+Peticiones: 1000  correctas: 1000  sin respuesta: 0  CRC incorrecto: 0  otras: 0  tasa de error: 0.00 %
+Tiempo de respuesta [ms]: mínimo 0.03  mediana 0.03  máximo 0.44
