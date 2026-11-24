@@ -8,7 +8,7 @@
 
 \title{\textbf{Gemelo digital del brazo XK-JS1-1}\\[4pt]\large Manual de instalación y uso en Windows}
 \author{ETN-902 / ETN-1034 / ETN-1000 · UMSA · II-2026}
-\date{10 de noviembre de 2026}
+\date{24 de noviembre de 2026}
 
 \begin{document}
 \maketitle
@@ -46,12 +46,15 @@ No hay que instalar nada más que Python: la app usa solo su biblioteca estánda
 \archivo{Probar conexion PLC.bat} & Prueba la conexión con el PLC, \textbf{solo lectura}.\\
 \archivo{Crear acceso directo.bat} & Pone el acceso \emph{Gemelo digital del brazo} en el escritorio.\\
 \codigo{gemelo\_brazo.py}, \codigo{brazo.py}, \codigo{ppi.py}, \codigo{serie.py}, \dots & La app.\\
-\codigo{ui\textbackslash}, \codigo{menu.html} & La interfaz (página del gemelo y menú).\\
+\codigo{telemetria.py}, \codigo{api\_erp.py}, \codigo{modbus.py} & Telemetría, API y Modbus (sección \ref{sec:datos}).\\
+\codigo{base\_datos\textbackslash} & Script para crear la base de datos.\\
+\codigo{ui\textbackslash}, \codigo{menu.html} & La interfaz (página del gemelo, dashboard y menú).\\
+\codigo{documentos\textbackslash} & Este manual y los demás documentos.\\
 \codigo{*.sh} & Lanzadores de Linux (no se usan en Windows).\\
 \bottomrule
 \end{tabularx}
 \end{center}
-Al usarla, la app crea: \codigo{usuarios.json}, \codigo{tls\_certificado.pem} y \codigo{tls\_clave.pem} (acceso por red), \codigo{calibracion.json}, \codigo{registro\_gemelo.log} y \codigo{perfil\_ventana\textbackslash} (datos de la ventana de Edge). Son propios de esa PC: no los comparta.
+Al usarla, la app crea: \codigo{usuarios.json}, \codigo{tls\_certificado.pem} y \codigo{tls\_clave.pem} (acceso por red), \codigo{calibracion.json}, \codigo{registro\_gemelo.log}, la carpeta \codigo{telemetria\textbackslash} y \codigo{perfil\_ventana\textbackslash} (datos de la ventana de Edge). Son propios de esa PC: no los comparta.
 
 % =====================================================================
 \section{Requisitos}
@@ -155,8 +158,25 @@ netsh advfirewall firewall add rule name="Gemelo brazo" dir=in action=allow prot
 \item \textbf{La red debe ser «privada»}: \emph{Configuración $\rightarrow$ Red e Internet $\rightarrow$ Wi-Fi (o Ethernet) $\rightarrow$} la red $\rightarrow$ \emph{Tipo de perfil de red: Privada}. En una red «pública» Windows bloquea las conexiones entrantes.
 \end{itemize}
 
+\subsection*{Base de datos para la telemetría (opcional)}\label{sec:postgres}
+Para que la app guarde la telemetría en PostgreSQL y el dashboard tenga datos (sección \ref{sec:datos}), una sola vez:
+\begin{enumerate}
+\item Instale PostgreSQL con el instalador de \url{https://www.postgresql.org/download/windows/}. Anote la contraseña que pide para el usuario \codigo{postgres}.
+\item En un \emph{Símbolo del sistema}, dentro de la carpeta de la app (cambie 16 por la versión instalada):
+\begin{lstlisting}
+py -m pip install "psycopg[binary]"
+"C:\Program Files\PostgreSQL\16\bin\createdb" -U postgres brazo4gdl
+"C:\Program Files\PostgreSQL\16\bin\psql" -U postgres -d brazo4gdl -f base_datos\brazo_4gdl.sql
+\end{lstlisting}
+\item Cree en la carpeta de la app el archivo \codigo{base\_datos.json} con la conexión:
+\begin{lstlisting}
+{"conninfo": "dbname=brazo4gdl user=postgres password=LA_CONTRASEÑA host=localhost"}
+\end{lstlisting}
+\end{enumerate}
+Al abrir la app, el registro muestra \emph{telemetría: conectada a PostgreSQL}. Este archivo guarda una contraseña: no lo comparta.
+
 \subsection*{Opciones de la línea de comandos}
-No hacen falta para el uso normal. Se agregan al final de la línea \codigo{\%PY\% gemelo\_brazo.py \%*} del \codigo{.bat}: \codigo{-{}-modo local} (entra directo a un modo: \codigo{simulacion}, \codigo{local} o \codigo{red}), \codigo{-{}-puerto COM4} (fija el puerto), \codigo{-{}-navegador}, \codigo{-{}-sin-ventana}, \codigo{-{}-puerto-red 9443}.
+No hacen falta para el uso normal. Se agregan al final de la línea \codigo{\%PY\% gemelo\_brazo.py \%*} del \codigo{.bat}: \codigo{-{}-modo local} (entra directo a un modo: \codigo{simulacion}, \codigo{local} o \codigo{red}), \codigo{-{}-puerto COM4} (fija el puerto), \codigo{-{}-navegador}, \codigo{-{}-sin-ventana}, \codigo{-{}-puerto-red 9443}, \codigo{-{}-modbus} (Modbus TCP en el puerto 5020, sección \ref{sec:datos}) y \codigo{-{}-sin-telemetria}.
 
 % =====================================================================
 \input{uso_comun}

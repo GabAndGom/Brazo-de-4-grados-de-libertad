@@ -43,7 +43,7 @@
 
 \title{\textbf{Brazo XK-JS1-1 y su gemelo digital}\\[4pt]\large Guía completa: planta, programas del PLC, modelado y software}
 \author{ETN-902 / ETN-1034 / ETN-1000 · UMSA · II-2026}
-\date{10 de noviembre de 2026}
+\date{24 de noviembre de 2026}
 
 \begin{document}
 \maketitle
@@ -726,6 +726,10 @@ El archivo \codigo{brazo\_xk-js1-1.glb} usa las piezas del modelo de Inventor de
 \codigo{certificado\_tls.py} & Certificado HTTPS autofirmado generado en Python (RSA 2048, SHA-256).\\
 \codigo{ventana.py} & Ventana propia: GTK + WebKit en Linux, Edge en modo aplicación en Windows.\\
 \codigo{probar\_plc.py} & Diagnóstico de solo lectura del cable y del PLC.\\
+\codigo{telemetria.py} & Guarda la telemetría en CSV y en PostgreSQL, en un hilo aparte.\\
+\codigo{api\_erp.py} & API \codigo{/api/v1/} con token para el dashboard y otros programas.\\
+\codigo{modbus.py} & Esclavo Modbus TCP de solo lectura (registros 40001--40015) y cliente de prueba.\\
+\codigo{ui/dashboard.html} & Dashboard: indicadores, series de tiempo, alarmas, órdenes e ingresos.\\
 \codigo{web/js/cinematica.js} & Modelo matemático (sección anterior).\\
 \codigo{web/js/modelo3d.js} & Visor 3D, pestañas de mando, simulación en la página, seguimiento del brazo real.\\
 \codigo{web/js/conexion-plc.js} & Llamadas a la API de la app.\\
@@ -856,6 +860,8 @@ Secuencias & se graban puntos (pose + garra) y se reproducen esperando el reposo
 
 El visor sigue al brazo real \emph{interpolando} entre las dos últimas lecturas con un retardo de 0,1--0,5~s, para que el movimiento se vea continuo aunque las lecturas lleguen cada 150~ms.
 
+\input{datos_comun}
+
 \section{Seguridad por capas}
 \begin{figure}[H]
 \centering
@@ -882,7 +888,10 @@ Brazo-4GDL-gemelo-digital/
   semestres/2026_II/
     modelo-3d/                         levantamiento, cinemática, gráficas
     gemelo-digital/
-      app/                             app unificada (Linux y Windows)
+      app/                             app unificada (Linux y Windows), dashboard, API y Modbus
+    database/scripts/brazo_4gdl.sql    base de datos de la telemetría (PostgreSQL)
+    laboratorios/                      informes de los laboratorios 1 a 8
+    documentacion/planos_isa/          planos v2.0 y su guía de lectura
       plc/brazo_gemelo.awl, .mwp       programa del gemelo
       manual/                          manuales, arquitectura y esta guía
 ETN 1034/respaldo_vm/                  programas originales respaldados

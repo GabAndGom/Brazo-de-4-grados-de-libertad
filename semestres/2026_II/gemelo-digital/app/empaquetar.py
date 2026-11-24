@@ -6,7 +6,7 @@ exporta la app autónoma a otra carpeta y a un .zip.
     python3 empaquetar.py --destino ~/gemelo_brazo_app     # además copia la app allí (+ .zip)
 
 Copia: web/js/cinematica.js, web/js/conexion-plc.js, web/js/modelo3d.js, web/css/estilos.css,
-global/modelo-3d/brazo_xk-js1-1.glb y parametros.json. La sección "Modelo 3D" de index.html
+global/modelo-3d/brazo_xk-js1-1.glb, parametros.json y el script de la base (base_datos/). La sección "Modelo 3D" de index.html
 se inserta en plantilla.html: así la ventana de la app y la página usan los mismos controles.
 """
 import argparse
@@ -26,6 +26,7 @@ COPIAS = {
     'global/modelo-3d/brazo_xk-js1-1.glb': 'ui/modelo/brazo_xk-js1-1.glb',
     'web/img/favicon.svg': 'ui/icono.svg',
     'semestres/2026_II/modelo-3d/cinematica/parametros.json': 'parametros.json',
+    'semestres/2026_II/database/scripts/brazo_4gdl.sql': 'base_datos/brazo_4gdl.sql',
 }
 # Se conservan al volver a exportar (y nunca se copian desde el repositorio)
 DATOS_PLANTA = ['calibracion.json', 'registro_gemelo.log', 'usuarios.json', 'tls_certificado.pem', 'tls_clave.pem',

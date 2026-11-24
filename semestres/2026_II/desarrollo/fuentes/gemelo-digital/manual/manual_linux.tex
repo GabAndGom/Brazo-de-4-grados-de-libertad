@@ -8,7 +8,7 @@
 
 \title{\textbf{Gemelo digital del brazo XK-JS1-1}\\[4pt]\large Manual de instalación y uso en Linux}
 \author{ETN-902 / ETN-1034 / ETN-1000 · UMSA · II-2026}
-\date{10 de noviembre de 2026}
+\date{24 de noviembre de 2026}
 
 \begin{document}
 \maketitle
@@ -46,12 +46,15 @@ La app del gemelo digital muestra el brazo XK-JS1-1 en 3D, lo sigue en vivo y pe
 \archivo{probar\_plc.py} & Prueba la conexión con el PLC, \textbf{solo lectura}.\\
 \codigo{usuarios.py} & Administra usuarios desde la terminal (también se hace desde el menú).\\
 \codigo{gemelo\_brazo.py}, \codigo{brazo.py}, \codigo{ppi.py}, \codigo{serie.py}, \dots & La app.\\
-\codigo{ui/}, \codigo{menu.html} & La interfaz (página del gemelo y menú).\\
+\codigo{telemetria.py}, \codigo{api\_erp.py}, \codigo{modbus.py} & Telemetría, API y Modbus (sección \ref{sec:datos}).\\
+\codigo{base\_datos/} & Script para crear la base de datos.\\
+\codigo{ui/}, \codigo{menu.html} & La interfaz (página del gemelo, dashboard y menú).\\
+\codigo{documentos/} & Este manual y los demás documentos.\\
 \codigo{*.bat}, \codigo{icono.ico} & Lanzadores de Windows (no se usan en Linux).\\
 \bottomrule
 \end{tabularx}
 \end{center}
-Al usarla, la app crea: \codigo{usuarios.json}, \codigo{tls\_certificado.pem} y \codigo{tls\_clave.pem} (acceso por red), \codigo{calibracion.json} (calibración de la base) y \codigo{registro\_gemelo.log}. Son propios de esa PC: no los comparta.
+Al usarla, la app crea: \codigo{usuarios.json}, \codigo{tls\_certificado.pem} y \codigo{tls\_clave.pem} (acceso por red), \codigo{calibracion.json} (calibración de la base), \codigo{registro\_gemelo.log} y la carpeta \codigo{telemetria/}. Son propios de esa PC: no los comparta.
 
 % =====================================================================
 \section{Requisitos}
@@ -150,14 +153,27 @@ No hacen falta para el uso normal (todo se elige en el menú):
 \codigo{-{}-sin-ventana} & solo el servidor (por ejemplo, para que manden solo los celulares)\\
 \codigo{-{}-puerto-red 9443} & otro puerto para el acceso por red\\
 \codigo{-{}-clave-local} & pide contraseña también en la PC del laboratorio\\
+\codigo{-{}-modbus} & publica el estado por Modbus TCP en el puerto 5020 (sección \ref{sec:datos})\\
+\codigo{-{}-sin-telemetria} & no guarda CSV ni base de datos\\
 \bottomrule
 \end{tabular}
 \end{center}
+
+\subsection*{Base de datos para la telemetría (opcional)}\label{sec:postgres}
+Para que la app guarde la telemetría en PostgreSQL y el dashboard tenga datos (sección \ref{sec:datos}), una sola vez:
+\begin{lstlisting}
+sudo apt install postgresql python3-psycopg
+sudo -u postgres createuser -s "$USER"
+createdb brazo4gdl
+psql -d brazo4gdl -f base_datos/brazo_4gdl.sql
+\end{lstlisting}
+Al abrir la app, el registro muestra \emph{telemetría: conectada a PostgreSQL}. Si la base está en otra PC o con otro nombre, cree \codigo{base\_datos.json} con \codigo{\{"conninfo": "dbname=... host=... user=..."\}}.
 
 \subsection*{Cortafuegos}
 Ubuntu y Mint traen el cortafuegos \codigo{ufw} desactivado. Si está activo y los celulares no llegan a la página, permita el puerto una vez:
 \begin{lstlisting}
 sudo ufw allow 8443/tcp
+sudo ufw allow 5020/tcp      # solo si usa Modbus
 \end{lstlisting}
 
 % =====================================================================
