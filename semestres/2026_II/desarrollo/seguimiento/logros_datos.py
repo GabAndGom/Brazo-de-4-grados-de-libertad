@@ -191,7 +191,7 @@ LABS = [
             dict(mencion=CONTROL, nombre='Gestión del ciclo de vida del software de control',
                  guia='Custodiar la documentación y los scripts con Git y GitHub.',
                  logrado=[
-                     'Repositorio público en GitHub con 67 commits (`main` y ramas `feature/*`); cada cambio de planos, PLC, gemelo y base de datos queda registrado con su mensaje.',
+                     'Repositorio público en GitHub con 70 commits (`main` y ramas `feature/*`); cada cambio de planos, PLC, gemelo y base de datos queda registrado con su mensaje.',
                      'Historial generado con `git log --oneline --graph` en `git_log.txt`.',
                      'La página del proyecto (brazo-4gdl.pages.dev) se publica sola con cada cambio en `main`.',
                  ],
@@ -250,7 +250,7 @@ LABS = [
                  guia='Establecer los repositorios locales y el control de versiones inicial.',
                  cuando='fase 1 (semanas 1 a 6)',
                  revisar=['Que cada escuadra tenga su repositorio con la estructura de la guía 3 y acceso de todos los integrantes.'],
-                 presenta=['Repositorio público con 67 commits, ramas por componente, el Pull Request #1 y una carpeta por laboratorio.']),
+                 presenta=['Repositorio público con 70 commits, ramas por componente, el Pull Request #1 y una carpeta por laboratorio.']),
         ],
         hito='**Hito de la fase 1 (fin de la semana 6):** versión 2.0 corregida de los P&ID y esquemas eléctricos. Para el brazo está cumplido: P&ID y eléctrico v2.0 en DWG, DXF y PDF, con las correcciones verificadas. El informe de cierre de fase pide además los perfiles ORCID del equipo, que todavía faltan.',
     ),
