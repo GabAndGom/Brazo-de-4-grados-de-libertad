@@ -1,3 +1,6 @@
+* 490293e Garra con solenoide directo en Q0.7 e informes 1 a 3 completos
+* 8dcf183 Planilla de mediciones: se quita un enlace externo
+* 276724c Fase 1: informe de cierre (labs 1 a 3) con hoja de firmas y ORCID; informe 3 y conteos corregidos
 * b4f5a0a Reorganización II/2026: solo entregables por laboratorio; fuentes y seguimiento en desarrollo/
 * 20995a2 Laboratorios 4 a 8: prueba escalón, Simulink, PI discreto, LQR, certificado RBAC y auditoría de la API
 * a6f1e4c App: telemetría a PostgreSQL, API REST con token, dashboard, pasarela Modbus TCP y respaldos
