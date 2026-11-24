@@ -6,7 +6,7 @@ Gráficas de la cinemática del brazo XK-JS1-1 para el informe.
 
 Lee parametros.json (fuente: web/js/cinematica.js), vuelve a implementar la
 cinemática directa en Python, la compara con tabla_cinematica.csv (generada por
-el módulo JavaScript) y guarda las figuras en ../informe/figuras/.
+el módulo JavaScript) y guarda las figuras en desarrollo/fuentes/modelo-3d/informe/figuras/.
 Requiere numpy y matplotlib.
 """
 import csv
@@ -19,7 +19,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 DIR = os.path.dirname(os.path.abspath(__file__))
-FIG = os.path.join(DIR, "..", "informe", "figuras")
+FIG = os.path.join(DIR, "..", "..", "desarrollo", "fuentes", "modelo-3d", "informe", "figuras")   # figuras fuente del informe
 os.makedirs(FIG, exist_ok=True)
 
 with open(os.path.join(DIR, "parametros.json"), encoding="utf-8") as f:

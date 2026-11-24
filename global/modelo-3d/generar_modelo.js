@@ -119,8 +119,8 @@ const pasador = (geo, u, h, z0, z1) => cilindro(geo, 'acero', [u, h, z0], [u, h,
 // Las piezas son las del modelo de Inventor del equipo, exportado a STL "un archivo por instancia"
 // (inventor/stl/). medidas_inventor.json da el marco del ensamble (R, o) y la pose en que se exportó.
 const DIR_STL = path.join(__dirname, 'inventor', 'stl');
-const INV = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'semestres', '2026_II', 'modelo-3d',
-  'levantamiento', 'medidas_inventor.json'), 'utf8'));
+const INV = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'semestres', '2026_II', 'desarrollo',
+  'fuentes', 'modelo-3d', 'levantamiento', 'medidas_inventor.json'), 'utf8'));
 
 function leerStl(nombre) {
   const b = fs.readFileSync(path.join(DIR_STL, 'ensambleGeneral_1_' + nombre + '.stl'));

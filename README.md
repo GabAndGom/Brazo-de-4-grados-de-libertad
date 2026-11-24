@@ -91,7 +91,7 @@ Según el vector multifase medido con multímetro (Informe 1, II-2026).
 ## Cinemática y modelo 3D
 
 <p align="center">
-  <img src="semestres/2026_II/modelo-3d/informe/figuras/modelo_3d_lateral.png" width="640" alt="Modelo 3D articulado del brazo, vista lateral"><br>
+  <img src="semestres/2026_II/desarrollo/fuentes/modelo-3d/informe/figuras/modelo_3d_lateral.png" width="640" alt="Modelo 3D articulado del brazo, vista lateral"><br>
   <sub>Modelo 3D articulado con las piezas del modelo de Inventor del equipo (<code>global/modelo-3d/inventor/</code>), generado con <code>global/modelo-3d/generar_modelo.js</code>.</sub>
 </p>
 
@@ -113,8 +113,8 @@ En el plano del brazo la movilidad es 2 (Grübler: 7 eslabones, 8 pares). Con el
 Las cotas del mecanismo vienen del modelo de Inventor del equipo (la cinemática reproduce su ensamble con 0,4 mm de error). Siguen siendo **SUPUESTOS**, a medir en la planta: paso del husillo de 5 mm/rev, micropasos del driver de la base, reducción 5:1 de la base y la posición de los finales de carrera. Los carros X e Y recorren 170 mm cada uno.
 
 - Desarrollo completo: [informe de cinemática y modelo 3D](semestres/2026_II/modelo-3d/informe/informe_cinematica_modelo_3d.pdf).
-- Ecuaciones resumidas: [cinematica_y_modelo_3d.md](semestres/2026_II/modelo-3d/cinematica_y_modelo_3d.md).
-- Medidas: [levantamiento](semestres/2026_II/modelo-3d/levantamiento/levantamiento_medidas.md).
+- Ecuaciones resumidas: [cinematica_y_modelo_3d.md](semestres/2026_II/desarrollo/notas/cinematica_y_modelo_3d.md).
+- Medidas: [levantamiento](semestres/2026_II/desarrollo/fuentes/modelo-3d/levantamiento/levantamiento_medidas.md).
 
 En la [página](https://brazo-4gdl.pages.dev/#modelo3d) el modelo se controla desde el navegador:
 
@@ -184,11 +184,11 @@ El modelo entidad-relación preliminar está en [`semestres/2026_II/database/mod
 
 ### II-2026 (en curso)
 
-Cada laboratorio tiene su carpeta en [`semestres/2026_II/laboratorios/`](semestres/2026_II/laboratorios) con el informe y el índice de sus entregables. La evaluación de las tareas del docente está en [`evaluacion_tareas_docente.xlsx`](semestres/2026_II/laboratorios/evaluacion_tareas_docente.xlsx).
+Cada laboratorio tiene su carpeta en [`semestres/2026_II/laboratorios/`](semestres/2026_II/laboratorios) con el **informe completo** y el índice de los entregables que pide su guía. La carpeta del semestre contiene solo entregables; las fuentes y el material de trabajo están en [`semestres/2026_II/desarrollo/`](semestres/2026_II/desarrollo).
 
 | Lab | Tema | Informe |
 |---|---|---|
-| [Guía 1](semestres/2026_II/guias/guia_laboratorio_1.pdf) | Auditoría Kaizen y levantamiento de requerimientos | [Informe 1](semestres/2026_II/documentacion/manuales_inversa/informe_1_auditoria_y_requerimientos.pdf) |
+| [Guía 1](semestres/2026_II/guias/guia_laboratorio_1.pdf) | Auditoría Kaizen y levantamiento de requerimientos | [Informe 1](semestres/2026_II/laboratorios/lab01_auditoria/informe_lab01.pdf) |
 | [Guía 2](semestres/2026_II/guias/guia_laboratorio_2.pdf) | Planos v2.0 (ISA-5.1 / IEC 60617) y mockups | [Informe 2](semestres/2026_II/laboratorios/lab02_planos_e_interfaces/informe_lab02.pdf) |
 | [Guía 3](semestres/2026_II/guias/guia_laboratorio_3.pdf) | Git/GitHub y modelo relacional (cierre de la fase 1) | [Informe 3](semestres/2026_II/laboratorios/lab03_git_y_modelo_er/informe_lab03.pdf) |
 | [Guía 4](semestres/2026_II/guias/guia_laboratorio_4.pdf) | Identificación, espacio de estados y base física | [Informe 4](semestres/2026_II/laboratorios/lab04_identificacion_y_ddl/informe_lab04.pdf) |
@@ -197,7 +197,7 @@ Cada laboratorio tiene su carpeta en [`semestres/2026_II/laboratorios/`](semestr
 | [Guía 7](semestres/2026_II/guias/guia_laboratorio_7.pdf) | LQR, dashboard y roles (avance) | [Informe 7](semestres/2026_II/laboratorios/lab07_lqr_dashboard_y_rbac/informe_lab07.pdf) |
 | [Guía 8](semestres/2026_II/guias/guia_laboratorio_8.pdf) | Modbus, API REST y cierre (avance) | [Informe 8](semestres/2026_II/laboratorios/lab08_modbus_api_y_cierre/informe_lab08.pdf) |
 
-Documentos de apoyo: [manual técnico](semestres/2026_II/gemelo-digital/manual/tecnico/manual_tecnico.pdf), [base de datos](semestres/2026_II/database/documentacion/base_datos_brazo.pdf), [cinemática y modelo 3D](semestres/2026_II/modelo-3d/informe/informe_cinematica_modelo_3d.pdf), [planos v2.0](semestres/2026_II/documentacion/planos_isa).
+Documentos de apoyo: [manual técnico](semestres/2026_II/gemelo-digital/manual/manual_tecnico.pdf), [base de datos](semestres/2026_II/database/documentacion/base_datos_brazo.pdf), [cinemática y modelo 3D](semestres/2026_II/modelo-3d/informe/informe_cinematica_modelo_3d.pdf), [planos v2.0](semestres/2026_II/documentacion/planos_isa).
 
 **Discrepancias Kaizen** encontradas entre el plano histórico y la planta real:
 

@@ -20,7 +20,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.abspath(os.path.join(AQUI, '..', '..'))
 GLB = os.path.join(AQUI, 'brazo_xk-js1-1.glb')
-FIG = os.path.join(RAIZ, 'semestres', '2026_II', 'modelo-3d', 'informe', 'figuras')
+FIG = os.path.join(RAIZ, 'semestres', '2026_II', 'desarrollo', 'fuentes', 'modelo-3d', 'informe', 'figuras')
 COLOR = {0: (0.80, 0.82, 0.85), 1: (0.55, 0.58, 0.63), 2: (0.15, 0.15, 0.16), 3: (0.76, 0.38, 0.05),
          4: (0.85, 0.72, 0.30), 5: (0.2, 0.2, 0.22)}
 

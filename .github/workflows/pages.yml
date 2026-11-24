@@ -31,6 +31,7 @@ jobs:
         run: |
           mkdir -p _site
           cp -r index.html README.md manifest.webmanifest sw.js web global semestres _site/
+          rm -rf _site/semestres/*/desarrollo   # material de trabajo: queda en el repositorio, no en la página
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:

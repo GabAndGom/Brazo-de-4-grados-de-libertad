@@ -24,4 +24,4 @@ psql -d brazo4gdl -f scripts/datos_sinteticos.sql
 psql -d brazo4gdl -f scripts/consultas_kpi.sql
 ```
 
-Para regenerar el documento: `cd documentacion && python3 generar_diccionario.py && pdflatex base_datos_brazo.tex` (dos veces).
+El documento [`documentacion/base_datos_brazo.pdf`](documentacion/base_datos_brazo.pdf) se regenera con `python3 desarrollo/fuentes/database/documentacion/generar_diccionario.py` y `python3 desarrollo/compilar_documentos.py base_datos` (fuentes en `desarrollo/fuentes/database/`).

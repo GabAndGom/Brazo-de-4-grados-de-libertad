@@ -6,14 +6,15 @@
 | `pid/brazo_pid_v2.dwg` / `.dxf` / `.pdf` | P&ID v2.0 · ISA-5.1-2009 · plano P&ID-B4G-01 |
 | `electrico/brazo_electrico_historico.dwg` | Plano eléctrico histórico (sin cambios) |
 | `electrico/brazo_electrico_v2.dwg` / `.dxf` / `.pdf` | Esquema eléctrico v2.0 · IEC 60617 / 60204-1 · plano E-B4G-01, hoja 1 (potencia) y hoja 2 (mando PLC) |
-| `generar_planos_v2.py` | Genera los DXF y PDF (Python 3; matplotlib solo para el PDF) |
 
 En el DWG eléctrico las dos hojas están lado a lado en el espacio modelo (la hoja 2 empieza en x = 450 mm).
 
 ## Regenerar
 
+Los genera [`desarrollo/fuentes/documentacion/planos_isa/generar_planos_v2.py`](../../desarrollo/fuentes/documentacion/planos_isa/generar_planos_v2.py) (Python 3; matplotlib solo para el PDF), que escribe en esta carpeta:
+
 ```bash
-python3 generar_planos_v2.py
+python3 desarrollo/fuentes/documentacion/planos_isa/generar_planos_v2.py
 ODAFileConverter entrada/ salida/ ACAD2018 DWG 0 1 "*.dxf"
 ```
 
