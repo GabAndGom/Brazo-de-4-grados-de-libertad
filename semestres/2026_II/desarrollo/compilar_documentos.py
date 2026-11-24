@@ -22,6 +22,7 @@ LABS = ['lab02_planos_e_interfaces', 'lab03_git_y_modelo_er', 'lab04_identificac
 # fuente (relativa a fuentes/) -> PDF público (relativo a semestres/2026_II/); None = queda junto a la fuente
 DOCUMENTOS = {f'laboratorios/{l}/informe_{l[:5]}.tex': f'laboratorios/{l}/informe_{l[:5]}.pdf' for l in LABS}
 DOCUMENTOS.update({
+    'laboratorios/lab03_git_y_modelo_er/informe_cierre_fase1.tex': 'laboratorios/lab03_git_y_modelo_er/informe_cierre_fase1.pdf',
     'gemelo-digital/manual/tecnico/manual_tecnico.tex': 'gemelo-digital/manual/manual_tecnico.pdf',
     'gemelo-digital/manual/guia_completa_brazo.tex': 'gemelo-digital/manual/guia_completa_brazo.pdf',
     'gemelo-digital/manual/arquitectura_gemelo_digital.tex': 'gemelo-digital/manual/arquitectura_gemelo_digital.pdf',

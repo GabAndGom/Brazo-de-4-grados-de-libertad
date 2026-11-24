@@ -23,7 +23,7 @@ el equipo usa para producirlos (fuentes LaTeX, generadores, seguimiento interno)
 |---|---|---|
 | 1 | [informe_lab01.pdf](laboratorios/lab01_auditoria/informe_lab01.pdf) | ficha técnica, discrepancias Kaizen, diagrama de bloques, arquitectura de 3 capas |
 | 2 | [informe_lab02.pdf](laboratorios/lab02_planos_e_interfaces/informe_lab02.pdf) | [P&ID v2.0](documentacion/planos_isa/pid/), [eléctrico v2.0](documentacion/planos_isa/electrico/), [mockups](database/mockups/) |
-| 3 | [informe_lab03.pdf](laboratorios/lab03_git_y_modelo_er/informe_lab03.pdf) | [modelo E-R en 3FN](database/documentacion/base_datos_brazo.pdf), [git log](laboratorios/lab03_git_y_modelo_er/git_log.txt) |
+| 3 | [informe_lab03.pdf](laboratorios/lab03_git_y_modelo_er/informe_lab03.pdf) y [cierre de la fase 1](laboratorios/lab03_git_y_modelo_er/informe_cierre_fase1.pdf) | [modelo E-R en 3FN](database/documentacion/base_datos_brazo.pdf), [git log](laboratorios/lab03_git_y_modelo_er/git_log.txt) |
 | 4 | [informe_lab04.pdf](laboratorios/lab04_identificacion_y_ddl/informe_lab04.pdf) | [script SQL](database/scripts/brazo_4gdl.sql), [CSV del escalón](laboratorios/lab04_identificacion_y_ddl/datos/) |
 | 5 | [informe_lab05.pdf](laboratorios/lab05_gemelo_y_triggers/informe_lab05.pdf) | [.m / Simulink](laboratorios/lab05_gemelo_y_triggers/), [triggers PL/pgSQL](database/scripts/) |
 | 6 | [informe_lab06.pdf](laboratorios/lab06_control_discreto_y_middleware/informe_lab06.pdf) | [programa del PLC](gemelo-digital/plc/), [middleware](gemelo-digital/app/) |

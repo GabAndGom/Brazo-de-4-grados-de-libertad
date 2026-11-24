@@ -8,10 +8,11 @@ Guía: [`guia_laboratorio_3.pdf`](../../guias/guia_laboratorio_3.pdf) · entrega
 
 | Entregable | Archivo | Estado |
 |---|---|---|
-| Enlace al repositorio de GitHub | [`Brazo-de-4-grados-de-libertad`](https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad) | parcial: falta actividad de todos los integrantes |
+| Enlace al repositorio de GitHub | [`Brazo-de-4-grados-de-libertad`](https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad) | cumplido |
 | Diagrama E-R y lógico en 3FN (PK, FK, tipos, cardinalidad) | [`base_datos_brazo.pdf`](../../database/documentacion/base_datos_brazo.pdf) | cumplido |
 | Historial de cambios (git log --oneline --graph) | [`git_log.txt`](git_log.txt) | cumplido |
-| Informe de cierre de fase 1 (labs 1 a 3) con ORCID | [`informe_lab03.pdf`](informe_lab03.pdf) | parcial: faltan los ORCID |
+| Informe de cierre de la fase 1 (labs 1 a 3) firmado con ORCID | [`informe_cierre_fase1.pdf`](informe_cierre_fase1.pdf) | listo; falta que cada integrante firme y anote su ORCID |
+| Informe del laboratorio 3 | [`informe_lab03.pdf`](informe_lab03.pdf) | cumplido |
 
 ## Programas y material de soporte
 

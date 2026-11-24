@@ -1,4 +1,15 @@
-* cb2d9e6 (HEAD -> main) Reorganiza la gestión II/2026 según las guías de laboratorio
+* b4f5a0a Reorganización II/2026: solo entregables por laboratorio; fuentes y seguimiento en desarrollo/
+* 20995a2 Laboratorios 4 a 8: prueba escalón, Simulink, PI discreto, LQR, certificado RBAC y auditoría de la API
+* a6f1e4c App: telemetría a PostgreSQL, API REST con token, dashboard, pasarela Modbus TCP y respaldos
+* 943e93c Objetivos de los laboratorios: Excel y documento de logros por laboratorio con el trabajo del docente
+* 3adb135 Modelo 3D con las piezas de Inventor y pinza inclinable (no paralelogramo)
+* ca37112 Evaluación de tareas del docente: ajustes del equipo
+* 8481834 Cotas del brazo tomadas del modelo de Inventor del equipo
+* 59e0315 Evaluación de tareas del docente: alcance logrado concreto, lo que falta y porcentaje (sin promedio)
+* c373ad0 Evaluación de tareas del docente: sí / parcial / no, lo realizado y lo que falta (sin porcentajes)
+* 2816742 Base de datos ejecutada y probada en PostgreSQL 16.2
+* 8111f00 Informes de los laboratorios 2 a 8 y evaluación de las tareas del docente
+* cb2d9e6 Reorganiza la gestión II/2026 según las guías de laboratorio
 * 0d80af7 Evaluación de las 8 guías: tareas del docente y entregables frente a lo realizado
 * 565f8f4 Base de datos: documento completo (E-R, modelo lógico, normalización, DFD, diccionario), pruebas de reglas y consultas del dashboard
 * 07fa0c9 Planos v2.0 (laboratorio 2): P&ID ISA-5.1 y esquema eléctrico IEC 60617 con las correcciones Kaizen
@@ -33,7 +44,7 @@
 * a696225 Garra con dedos horizontales, como en las fotos de la planta
 * 7805a3a Corrige el modelo 3D con la foto de perfil del manual y la ficha del fabricante
 * 4511b19 Cinemática, modelo 3D articulado y visor controlable en la página
-* 2feec8a (origin/main, origin/HEAD) Actualiza enlaces a la página publicada en Cloudflare Pages
+* 2feec8a Actualiza enlaces a la página publicada en Cloudflare Pages
 * b17fd8f Prepara el catálogo para Cloudflare Pages (límite de 25 MB por archivo)
 * e44fb84 Agrega fotos reales de la planta y completa el README
 * 1006e77 Create pages.yml
@@ -51,7 +62,7 @@
 * 0171eb4 docs: organizacion modular de documentacion tecnica y exclusion de videos pesados
 *   ac8ab17 Merge branch 'main' of https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad
 |\  
-| * ad096df (origin/feature/planos-v2-kaizen, origin/feature/ladder-s7200-homing, origin/feature/db-y-supervision, feature/planos-v2-kaizen, feature/ladder-s7200-homing, feature/db-y-supervision) feat(repo): inicializacion de estructura modular, .gitignore, README y guia PDF
+| * ad096df feat(repo): inicializacion de estructura modular, .gitignore, README y guia PDF
 | * 547a71d Revise README for project clarity and detail
 | * e5092eb Initial commit
 * 0f463d8 Adición de planos P&ID iniciales en formato DWG y manuales técnicos del Lab 1

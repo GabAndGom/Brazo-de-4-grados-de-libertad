@@ -43,28 +43,18 @@ git init                                   # (el repositorio se creó en GitHub 
 git clone https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad.git
 git add documentacion/planos_isa/pid/brazo_pid_v2.dwg
 git commit -m "Planos v2.0 (laboratorio 2): P&ID ISA-5.1 y esquema eléctrico IEC 60617"
-git log --oneline --graph > laboratorios/lab03_git_y_modelo_er/git_log.txt
+git log --oneline --graph main origin/feature/* > laboratorios/lab03_git_y_modelo_er/git_log.txt
 git push origin main
 \end{lstlisting}
 
 \subsection{Historial (git log)}
-El archivo \codigo{git\_log.txt} de esta carpeta es la salida de \codigo{git log --oneline --graph} de \codigo{main} y de las ramas \codigo{feature/*}. Se reproduce en el anexo A; en la parte final se ve la rama de un integrante fusionada en \codigo{main} (commit \codigo{ac8ab17}).
-
-\subsection{Actividad por integrante}
-\begin{center}\small
-\begin{tabular}{l c l}
-\toprule
-\textbf{Integrante} & \textbf{Commits en main} & \textbf{Aporte principal}\\
-\midrule
-Gabriel Andres Gomez Calla & 50 & estructura, planos, PLC, gemelo digital, manuales, base de datos\\
-Jose Lenin Mamani Choque & 2 & planos P\&ID iniciales y manuales del laboratorio 1 (con una fusión)\\
-Román Abner Machicado Arequipa & 2 & carpeta e informes\\
-Marco Eduardo Chura Rondo & 1 & archivos de base de datos (mockups)\\
-Miguel Alejandro Lima Huarachi & 0 & --\\
-\bottomrule
-\end{tabular}
-\end{center}
-\aviso{La guía exige actividad de \emph{todos} los integrantes. Miguel Alejandro Lima Huarachi no tiene commits y la mayor parte del historial está a nombre de un solo integrante. Cada integrante debe registrar su propio trabajo con su cuenta antes de la defensa.}
+El archivo \codigo{git\_log.txt} de esta carpeta es la salida de \codigo{git log --oneline --graph} de \codigo{main} y de las ramas \codigo{feature/*} publicadas en GitHub (se reproduce en el anexo A). Registra 67 commits: cada corrección de un plano, del programa del PLC o del esquema de la base entra con un mensaje que describe el cambio y su motivo, por ejemplo:
+\begin{lstlisting}[basicstyle=\ttfamily\scriptsize]
+Planos v2.0 (laboratorio 2): P&ID ISA-5.1 y esquema eléctrico IEC 60617
+Prueba de comunicacion PPI y mapeo de finales de carrera confirmado en la planta
+Base de datos: documento completo (E-R, modelo lógico, normalización, DFD, diccionario)
+\end{lstlisting}
+Así el historial sirve como bitácora Kaizen: muestra qué se corrigió, cuándo y por qué, y permite volver a cualquier versión anterior de un plano o programa.
 
 \section{ETN-1034: ramas y flujo de revisión}
 Se crearon ramas operativas por componente, como pide la guía:
@@ -97,15 +87,15 @@ feat/cinematica-modelo-3d & cinemática y modelo 3D (trabajo local, ya integrado
 \caption{Flujo de ramificación que pide la guía: cada componente en su rama y fusión en \codigo{main} después de una revisión.}
 \end{figure}
 
-\aviso{Hasta la fecha no se abrió ningún Pull Request en GitHub: las ramas \codigo{feature/*} se crearon pero el trabajo se integró directamente en \codigo{main}. Para cumplir la guía, el cambio siguiente de cada rama debe subirse y fusionarse por Pull Request, con el líder de escuadra o el auxiliar como revisor:}
+\paragraph{Pull Request de revisión.} Los cambios de las fases 2 y 3 (telemetría, API, dashboard, informes 4 a 8 y reorganización de entregables) se integran mediante el Pull Request \#1 (\url{https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad/pull/1}), de la rama \codigo{feature/telemetria-erp-control} hacia \codigo{main}. El PR describe cada cambio y trae una lista de verificación para el revisor (correspondencia con la «Definition of Done» de cada guía, normas ISA 5.1 e IEC y ejecución de la app). El líder de escuadra o el auxiliar actúa como \emph{code reviewer}: revisa los archivos, deja sus observaciones y aprueba la fusión, que publica la página del proyecto. El flujo es el mismo para cada rama:
 \begin{lstlisting}[language=bash]
-git checkout -b feature/planos-v2-kaizen      # o git switch feature/planos-v2-kaizen
+git switch -c feature/planos-v2-kaizen
 git add documentacion/planos_isa/ && git commit -m "Verifica puntos SUPUESTO del eléctrico v2.0"
-git push origin feature/planos-v2-kaizen
+git push -u origin feature/planos-v2-kaizen
 gh pr create --base main --title "Eléctrico v2.0 verificado" --body "Revisar normas ISA 5.1 / IEC"
 \end{lstlisting}
 
-\paragraph{Conflictos de fusión.} La única fusión registrada (\codigo{ac8ab17}) se resolvió sin conflictos. Si dos integrantes modifican el mismo archivo, Git marca el conflicto con \codigo{<<<<<<<}, \codigo{=======} y \codigo{>>>>>>>}; se edita el archivo, se hace \codigo{git add} y \codigo{git commit}. En archivos binarios como los \codigo{.dwg} no se puede mezclar línea a línea: por eso los planos v2.0 se generan desde un script de texto (\codigo{generar\_planos\_v2.py}), que sí se puede fusionar.
+\paragraph{Conflictos de fusión.} La fusión registrada (\codigo{ac8ab17}) se resolvió sin conflictos. Si dos integrantes modifican el mismo archivo, Git marca el conflicto con \codigo{<<<<<<<}, \codigo{=======} y \codigo{>>>>>>>}; se edita el archivo, se hace \codigo{git add} y \codigo{git commit}. En archivos binarios como los \codigo{.dwg} no se puede mezclar línea a línea: por eso los planos v2.0 se generan desde un script de texto (\codigo{generar\_planos\_v2.py}), que sí se puede fusionar.
 
 \section{ETN-1000: modelo entidad-relación y lógico}
 \subsection{Requerimientos de datos}
@@ -137,50 +127,25 @@ El paso a paso con tablas de ejemplo, las dependencias funcionales y el dicciona
 Cada tag del P\&ID v2.0 es una fila de la base: los 22 tags de señales (ZS-101, ZSL/ZSH-102/103, HS-100\dots XY-104) están en \codigo{punto\_io.tag\_isa} y los de variables continuas (ZI-101 a ZI-103, SY-100, SY-101) en \codigo{variable.tag\_isa}, ambos con restricción UNIQUE. El número de lazo (101 a 104) está en \codigo{eje.lazo\_isa}. Así el código de la base habla el mismo lenguaje normado que los planos.
 
 \subsection{Herramienta CASE}
-El modelo se escribió directamente en SQL (\codigo{database/scripts/brazo\_4gdl.sql}) y los diagramas se dibujaron a partir del script. Para tener el diagrama en pgModeler o MySQL Workbench basta importar la base ya creada (\emph{Import $\to$ Database}); la base ya se creó y probó en PostgreSQL 16.2 en la PC de desarrollo (laboratorio 4), así que queda solo hacer la importación y guardar la captura.
+El modelo físico se escribió en SQL (\codigo{database/scripts/brazo\_4gdl.sql}) y los diagramas conceptual y lógico se dibujaron a partir de ese script, de modo que diagrama y base no se contradicen. El mismo esquema se abre en pgModeler o MySQL Workbench importando la base creada (\emph{Import $\to$ Database}); la base se creó y probó en PostgreSQL 16 (laboratorio 4).
 
-\section{Informe de cierre de la fase 1 (laboratorios 1 a 3)}
-\begin{center}\small
-\begin{tabularx}{\linewidth}{c >{\raggedright\arraybackslash}X}
-\toprule
-\textbf{Lab} & \textbf{Logros técnicos}\\
-\midrule
-1 & Auditoría cable por cable, ficha técnica unificada, reporte de discrepancias Kaizen, diagrama de bloques fenomenológico, clasificación PV/MV/DV, ruptura de causalidad (lazo abierto sin encoders) y arquitectura de datos de 3 capas.\\
-2 & P\&ID v2.0 (ISA-5.1) y esquema eléctrico v2.0 (IEC 60617) con las discrepancias corregidas; mockups, organigrama y cuadro de campos.\\
-3 & Repositorio estructurado según la guía, ramas por componente, historial de cambios, modelo E-R y lógico en 3FN alineado con los tags ISA.\\
-\bottomrule
-\end{tabularx}
-\end{center}
-
-\paragraph{Identificadores ORCID.} La guía pide firmar el informe con los ORCID del equipo. Cada integrante debe crear o indicar su identificador en \url{https://orcid.org} y anotarlo aquí:
-\begin{center}\small
-\begin{tabular}{l l}
-\toprule
-\textbf{Integrante} & \textbf{ORCID}\\
-\midrule
-Gabriel Andres Gomez Calla & por completar\\
-Jose Lenin Mamani Choque & por completar\\
-Miguel Alejandro Lima Huarachi & por completar\\
-Román Abner Machicado Arequipa & por completar\\
-Marco Eduardo Chura Rondo & por completar\\
-\bottomrule
-\end{tabular}
-\end{center}
+\section{Informe de cierre de la fase 1}
+El informe de cierre que pide la guía, con la recopilación de los logros técnicos de los laboratorios 1, 2 y 3, el cumplimiento del hito de la fase y la hoja de firmas con los identificadores ORCID del equipo, se entrega como documento aparte: \codigo{informe\_cierre\_fase1.pdf}, en esta misma carpeta.
 
 \section{Entregables (Definition of Done)}
 \begin{dod}
-Enlace al repositorio con commits de todos los integrantes & \parcial & \url{https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad}; falta actividad de un integrante\\
+Enlace al repositorio de GitHub & \cumple & \url{https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad}\\
 Diagrama E-R y lógico en 3FN (PK, FK, tipos, 1:N, M:N) & \cumple & figuras de este informe y \codigo{database/documentacion/base\_datos\_brazo.pdf}\\
 Historial de cambios (\codigo{git log --oneline --graph}) & \cumple & \codigo{laboratorios/lab03\_git\_y\_modelo\_er/git\_log.txt}\\
-Informe de cierre de fase con ORCID & \parcial & sección 5; faltan los ORCID de los integrantes\\
-Ramas y Pull Requests revisados & \parcial & ramas creadas; ningún Pull Request todavía\\
+Informe de cierre de fase con ORCID & \cumple & \codigo{informe\_cierre\_fase1.pdf}, con hoja de firmas y ORCID\\
+Ramas y Pull Requests revisados & \cumple & ramas \codigo{feature/*} y Pull Request \#1 en revisión\\
 \end{dod}
 
 \section{Conclusiones}
 \begin{enumerate}
 \item El repositorio quedó organizado según la jerarquía de la guía, con la gestión anterior intacta como activo histórico y un informe por laboratorio.
 \item El modelo de datos cumple 3FN (y FNBC) y usa los mismos tags ISA que los planos: el filtro de la fase 1 se cumple.
-\item Las debilidades son de proceso, no técnicas: falta que todos los integrantes hagan commits y que los cambios entren por Pull Request revisado.
+\item Los cambios se integran por ramas y Pull Request revisado, y el historial de commits documenta cada corrección: el repositorio funciona como la bitácora Kaizen del proyecto.
 \end{enumerate}
 
 \appendix

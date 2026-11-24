@@ -190,7 +190,7 @@ Cada laboratorio tiene su carpeta en [`semestres/2026_II/laboratorios/`](semestr
 |---|---|---|
 | [Guía 1](semestres/2026_II/guias/guia_laboratorio_1.pdf) | Auditoría Kaizen y levantamiento de requerimientos | [Informe 1](semestres/2026_II/laboratorios/lab01_auditoria/informe_lab01.pdf) |
 | [Guía 2](semestres/2026_II/guias/guia_laboratorio_2.pdf) | Planos v2.0 (ISA-5.1 / IEC 60617) y mockups | [Informe 2](semestres/2026_II/laboratorios/lab02_planos_e_interfaces/informe_lab02.pdf) |
-| [Guía 3](semestres/2026_II/guias/guia_laboratorio_3.pdf) | Git/GitHub y modelo relacional (cierre de la fase 1) | [Informe 3](semestres/2026_II/laboratorios/lab03_git_y_modelo_er/informe_lab03.pdf) |
+| [Guía 3](semestres/2026_II/guias/guia_laboratorio_3.pdf) | Git/GitHub y modelo relacional (cierre de la fase 1) | [Informe 3](semestres/2026_II/laboratorios/lab03_git_y_modelo_er/informe_lab03.pdf) · [Cierre de la fase 1](semestres/2026_II/laboratorios/lab03_git_y_modelo_er/informe_cierre_fase1.pdf) |
 | [Guía 4](semestres/2026_II/guias/guia_laboratorio_4.pdf) | Identificación, espacio de estados y base física | [Informe 4](semestres/2026_II/laboratorios/lab04_identificacion_y_ddl/informe_lab04.pdf) |
 | [Guía 5](semestres/2026_II/guias/guia_laboratorio_5.pdf) | Gemelo digital, discretización y triggers (cierre de la fase 2) | [Informe 5](semestres/2026_II/laboratorios/lab05_gemelo_y_triggers/informe_lab05.pdf) |
 | [Guía 6](semestres/2026_II/guias/guia_laboratorio_6.pdf) | Control discreto y middleware (en curso) | [Informe 6](semestres/2026_II/laboratorios/lab06_control_discreto_y_middleware/informe_lab06.pdf) |

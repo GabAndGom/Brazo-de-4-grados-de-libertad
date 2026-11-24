@@ -7,7 +7,7 @@ la guía, con su estado y dónde está cada archivo.
 |---|---|---|---|---|
 | 1 | Auditoría Kaizen y levantamiento de requerimientos | 18/08/2026 | [informe_lab01.pdf](lab01_auditoria/informe_lab01.pdf) | [índice](lab01_auditoria/README.md) |
 | 2 | Planos v2.0 (ISA-5.1 / IEC 60617) e interfaces | 01/09/2026 | [informe_lab02.pdf](lab02_planos_e_interfaces/informe_lab02.pdf) | [índice](lab02_planos_e_interfaces/README.md) |
-| 3 | Git/GitHub y modelo relacional (cierre de la fase 1) | 15/09/2026 | [informe_lab03.pdf](lab03_git_y_modelo_er/informe_lab03.pdf) | [índice](lab03_git_y_modelo_er/README.md) |
+| 3 | Git/GitHub y modelo relacional (cierre de la fase 1) | 15/09/2026 | [informe_lab03.pdf](lab03_git_y_modelo_er/informe_lab03.pdf) y [cierre de la fase 1](lab03_git_y_modelo_er/informe_cierre_fase1.pdf) | [índice](lab03_git_y_modelo_er/README.md) |
 | 4 | Identificación, espacio de estados y DDL | 29/09/2026 | [informe_lab04.pdf](lab04_identificacion_y_ddl/informe_lab04.pdf) | [índice](lab04_identificacion_y_ddl/README.md) |
 | 5 | Gemelo digital, discretización y triggers (cierre de la fase 2) | 27/10/2026 | [informe_lab05.pdf](lab05_gemelo_y_triggers/informe_lab05.pdf) | [índice](lab05_gemelo_y_triggers/README.md) |
 | 6 | Control discreto en el PLC y middleware (en curso) | 24/11/2026 | [informe_lab06.pdf](lab06_control_discreto_y_middleware/informe_lab06.pdf) | [índice](lab06_control_discreto_y_middleware/README.md) |
