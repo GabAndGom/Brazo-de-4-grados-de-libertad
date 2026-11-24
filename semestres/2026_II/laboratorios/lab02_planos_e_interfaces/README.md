@@ -10,8 +10,8 @@ Guía: [`guia_laboratorio_2.pdf`](../../guias/guia_laboratorio_2.pdf) · entrega
 |---|---|---|
 | Informe técnico en PDF | [`informe_lab02.pdf`](informe_lab02.pdf) | cumplido |
 | Plano P&ID versión 2.0 (ANSI/ISA-S5.1, cajetín formal) — anexo .dwg | [`brazo_pid_v2.dwg`](../../documentacion/planos_isa/pid/brazo_pid_v2.dwg) | cumplido; también en PDF y DXF |
-| Plano eléctrico de potencia y mando (IEC) con bornes al PLC — anexo .dwg | [`brazo_electrico_v2.dwg`](../../documentacion/planos_isa/electrico/brazo_electrico_v2.dwg) | cumplido; quedan puntos SUPUESTO |
-| Prototipo de mockups (HMI y dashboard) con paleta y organigrama | [`lab2_mockups_y_organigrama.pdf`](../../database/mockups/lab2_mockups_y_organigrama.pdf) | cumplido; falta enlace al prototipo interactivo |
+| Plano eléctrico de potencia y mando (IEC) con bornes al PLC — anexo .dwg | [`brazo_electrico_v2.dwg`](../../documentacion/planos_isa/electrico/brazo_electrico_v2.dwg) | cumplido; también en PDF y DXF |
+| Prototipo de mockups (HMI y dashboard) con paleta y organigrama | [`lab2_mockups_y_organigrama.pdf`](../../database/mockups/lab2_mockups_y_organigrama.pdf) | cumplido; prototipo navegable en [`gemelo-digital/app/ui`](../../gemelo-digital/app/ui/) |
 | Cuadro descriptivo de campos de almacenamiento | [`informe_lab02.pdf`](informe_lab02.pdf) | cumplido (sección 5) |
 
 ## Programas y material de soporte

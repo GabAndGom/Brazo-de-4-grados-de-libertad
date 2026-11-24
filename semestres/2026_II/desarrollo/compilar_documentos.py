@@ -17,7 +17,7 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 FUENTES = os.path.join(AQUI, 'fuentes')
 SEMESTRE = os.path.dirname(AQUI)
 
-LABS = ['lab02_planos_e_interfaces', 'lab03_git_y_modelo_er', 'lab04_identificacion_y_ddl', 'lab05_gemelo_y_triggers',
+LABS = ['lab01_auditoria', 'lab02_planos_e_interfaces', 'lab03_git_y_modelo_er', 'lab04_identificacion_y_ddl', 'lab05_gemelo_y_triggers',
         'lab06_control_discreto_y_middleware', 'lab07_lqr_dashboard_y_rbac', 'lab08_modbus_api_y_cierre']
 # fuente (relativa a fuentes/) -> PDF público (relativo a semestres/2026_II/); None = queda junto a la fuente
 DOCUMENTOS = {f'laboratorios/{l}/informe_{l[:5]}.tex': f'laboratorios/{l}/informe_{l[:5]}.pdf' for l in LABS}
@@ -31,8 +31,11 @@ DOCUMENTOS.update({
     'gemelo-digital/manual/manual_windows.tex': 'gemelo-digital/manual/manual_windows.pdf',
     'database/documentacion/base_datos_brazo.tex': 'database/documentacion/base_datos_brazo.pdf',
     'modelo-3d/informe/informe_cinematica_modelo_3d.tex': 'modelo-3d/informe/informe_cinematica_modelo_3d.pdf',
+    'documentacion/planos_isa/guia/guia_lectura_planos.tex': 'documentacion/planos_isa/guia_lectura_planos.pdf',
     'modelo-3d/levantamiento/planilla_mediciones.tex': None,
 })
+# copias que pide la guía 3 en otra carpeta (destino -> copia)
+COPIAS = {'laboratorios/lab01_auditoria/informe_lab01.pdf': 'documentacion/manuales_inversa/informe_1_auditoria_y_requerimientos.pdf'}
 
 
 def compilar(fuente, destino):
@@ -53,6 +56,8 @@ def compilar(fuente, destino):
         final = os.path.join(SEMESTRE, destino)
         os.makedirs(os.path.dirname(final), exist_ok=True)
         shutil.move(os.path.join(carpeta, nombre + '.pdf'), final)
+        if destino in COPIAS:
+            shutil.copyfile(final, os.path.join(SEMESTRE, COPIAS[destino]))
     print(f'{fuente}  ->  {destino or "(junto a la fuente)"}')
 
 

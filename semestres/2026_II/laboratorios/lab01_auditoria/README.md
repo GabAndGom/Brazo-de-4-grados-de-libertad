@@ -10,8 +10,8 @@ Guía: [`guia_laboratorio_1.pdf`](../../guias/guia_laboratorio_1.pdf) · entrega
 |---|---|---|
 | Bitácora compilada en un único PDF | [`informe_lab01.pdf`](informe_lab01.pdf) | cumplido |
 | Ficha técnica unificada (marca, modelo, señal, rangos) | [`informe_lab01.pdf`](informe_lab01.pdf) | cumplido (sección de ficha técnica) |
-| Reporte de discrepancias Kaizen | [`informe_lab01.pdf`](informe_lab01.pdf) | cumplido (6 discrepancias) |
-| Diagrama de bloques fenomenológico | [`diagrama_bloques_fenomenologico.png`](../../documentacion/manuales_inversa/diagrama_bloques_fenomenologico.png) | cumplido |
+| Reporte de discrepancias Kaizen | [`informe_lab01.pdf`](informe_lab01.pdf) | cumplido (7 discrepancias) |
+| Diagrama de bloques fenomenológico | [`informe_lab01.pdf`](informe_lab01.pdf) | cumplido (sección de causalidad) |
 | Esquema de arquitectura de datos de 3 capas (ETN-1000) | [`informe_lab01.pdf`](informe_lab01.pdf) | cumplido |
 
 ## Programas y material de soporte

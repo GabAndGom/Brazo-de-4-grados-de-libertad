@@ -14,7 +14,7 @@
 \section{Propósito de la fase 1}
 El cronograma del laboratorio integrado define la fase 1 (semanas 1 a 6) como \emph{ingeniería inversa y auditoría Kaizen}: nivelar la programación y el control analizando el código y los esquemas heredados de gestiones anteriores, corregirlos y dejar la base documental y de datos sobre la que se construyen las fases 2 y 3. Su hito es la \textbf{versión 2.0 corregida de los diagramas P\&ID y de los esquemas eléctricos} de la planta.
 
-Este documento recopila los logros técnicos de los tres laboratorios de la fase sobre el brazo robótico XK-JS1-1 de 4 grados de libertad, verifica el cumplimiento del hito y de los entregables, y reúne las firmas del equipo con sus identificadores ORCID, como pide la guía 3.
+Este documento recopila los logros técnicos de los tres laboratorios de la fase sobre el brazo robótico XK-JS1-1 de 4 grados de libertad, verifica el cumplimiento del hito y de los entregables, y lleva la hoja de firmas del equipo que pide la guía 3.
 
 \begin{figure}[H]
 \centering
@@ -40,28 +40,29 @@ Fuente & conmutada 220~V AC a 24~V y 5~V DC & salida 24~V / 5~V DC\\
 Protección & disyuntor diferencial DZ47LE-63, 16~A, 30~mA & 220~V AC\\
 Drivers & 2M542 (carros X e Y, 1000 pulsos/vuelta) y 2M530 (base) & PUL/DIR optoacopladas\\
 Motores & NEMA 23 57J1854-828 de 2,8~A (X e Y) y NEMA 17 42J1848-604 de 1,2~A (base) & bipolares paso a paso\\
-Relés & Omron MY2N-J, bobina de 24~V DC (K1, K2 y K3) & digital 24~V\\
+Relés & Omron MY2N-J, bobina de 24~V DC (K1 y K2) & digital 24~V\\
 Finales de carrera & 4 microinterruptores, extremos de X e Y & digital 24~V (I0.1--I0.4)\\
 Sensor inductivo & LJ12A3-4-Z/BX, NPN, 12~mm, 4~mm de detección (origen de la base) & digital 24~V (I0.0)\\
-Garra & solenoide de 24~V accionado por K3 & todo o nada (Q0.7)\\
+Garra & solenoide de 24~V accionado directo por Q0.7 & todo o nada (Q0.7)\\
 Botonera & selector manual/automático, paro, inicio y 6 pulsadores de jog & digital 24~V (I0.5--I1.5)\\
 \bottomrule
 \end{tabularx}
 \end{center}
 
 \subsection{Reporte de discrepancias Kaizen}
-El plano histórico se contrastó elemento por elemento con la planta real. Se registraron seis discrepancias:
+El plano histórico se contrastó elemento por elemento con la planta real. Se registraron siete discrepancias:
 \begin{center}\small
 \begin{tabularx}{\linewidth}{c >{\raggedright}p{3.6cm} >{\raggedright}X >{\raggedright\arraybackslash}X}
 \toprule
 \textbf{Nº} & \textbf{Elemento} & \textbf{Plano histórico} & \textbf{Planta real}\\
 \midrule
 1 & PLC S7-200: pines de E/S & pines sin graficar & pines activos verificados por continuidad\\
-2 & Solenoide de la garra (K3) & conexión dibujada de forma incorrecta & el cableado real difiere del esquema\\
+2 & Garra & la bobina del solenoide figura como un relé ``K3'' & no hay tercer relé: Q0.7 acciona directo el solenoide\\
 3 & DIR+ del driver del eje X & sin conexión & conexión presente y funcional\\
 4 & DIR+ del driver del eje Y & sin conexión & conexión presente y funcional\\
 5 & Finales de carrera LS1--LS4 & direcciones de la tabla 2-1 del manual heredado & desfase de un bit: inductivo en I0.0 y finales en I0.1--I0.4\\
-6 & Realimentación de posición & no se documenta su ausencia & no hay encoders: lazo abierto con supervisión discreta\\
+6 & Pulsos de X e Y & no se indica cómo se reparten & Q0.1 llega a los dos drivers por los contactos de K1 y K2\\
+7 & Realimentación de posición & no se documenta su ausencia & no hay encoders: lazo abierto con supervisión discreta\\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -74,7 +75,7 @@ La cadena causal del brazo es $u(t) \to \text{driver} \to \text{motor} \to \text
 \textbf{Clase} & \textbf{Variables del brazo}\\
 \midrule
 PV (controladas) & ángulo de la base $\theta$, posición del carro X (alcance), posición del carro Y (altura), estado de la garra\\
-MV (manipuladas) & trenes de pulsos PTO0 (base) y PTO1 (compartido por X e Y), salidas de dirección y relés K1, K2, K3\\
+MV (manipuladas) & trenes de pulsos PTO0 (base) y PTO1 (compartido por X e Y), salidas de dirección, relés K1 y K2 y la salida de la garra (Q0.7)\\
 DV (perturbaciones) & fricción y holgura de los husillos, carga en la garra, pérdida de pasos, variación de la fuente\\
 \bottomrule
 \end{tabular}
@@ -125,15 +126,14 @@ Dos hojas, potencia y mando, con todos los bornes del PLC y de los drivers rotul
 \textbf{Nº} & \textbf{Corrección verificada con el PLC en marcha}\\
 \midrule
 1 & Inductivo de la base en I0.0 y finales de carrera en I0.1--I0.4 (corrige la discrepancia 5).\\
-2 & Tren de pulsos de X e Y desde una sola salida (Q0.1), repartido por K1 (Q0.5) y K2 (Q0.6).\\
+2 & Tren de pulsos de X e Y desde una sola salida (Q0.1), repartido por K1 (Q0.5) y K2 (Q0.6) (discrepancia 6).\\
 3 & Salidas de dirección Q0.3 (X) y Q0.4 (Y) conectadas a DIR+ (discrepancias 3 y 4).\\
-4 & Relé K3 redibujado: bobina por Q0.7 y contacto al solenoide (discrepancia 2).\\
+4 & Garra dibujada como está en el tablero: solenoide -Y1 directo en Q0.7 (discrepancia 2).\\
 5 & Pines de E/S completos en la tabla de E/S con tags ISA (discrepancia 1); Start en paralelo con S1 y Stop con S2.\\
-6 & Drivers y motores identificados (2M542 / 2M530, NEMA 23 / NEMA 17) y nota de lazo abierto sin encoders (discrepancia 6).\\
+6 & Drivers y motores identificados (2M542 / 2M530, NEMA 23 / NEMA 17) y nota de lazo abierto sin encoders (discrepancia 7).\\
 \bottomrule
 \end{tabularx}
 \end{center}
-Quedan marcados como SUPUESTO, para verificar con multímetro, el común de entradas 1M/2M, el nivel de PUL/DIR, la tabla DIP del 2M530 y la numeración del zócalo de los relés.
 
 \subsection{Mockups, navegación y cuadro de campos}
 El equipo de cómputo diseñó los dos entornos que pide la guía: la interfaz local de planta (aplicación en la PC, porque el brazo no tiene panel PanelView) y el dashboard del ERP web, con su organigrama de navegación (autenticación, interfaz local, dashboard). El cuadro de campos convierte diez elementos visuales en columnas de la base; por ejemplo, el selector de modo pasa a \codigo{estado\_io} de HS-100, el paro de emergencia a \codigo{orden} y \codigo{evento\_alarma}, y el tren de pulsos a \codigo{muestra} de SY-100.
@@ -166,7 +166,7 @@ ZS-101 & inductivo de la base & I0.0 & \codigo{punto\_io}\\
 ZSL-102 / ZSH-102 & finales del carro X & I0.1 / I0.2 & \codigo{punto\_io}\\
 ZY-100 & tren compartido X/Y & Q0.1 & \codigo{punto\_io}\\
 ZY-102K / ZY-103K & relés K1 / K2 & Q0.5 / Q0.6 & \codigo{punto\_io}\\
-XY-104 & relé de la garra K3 & Q0.7 & \codigo{punto\_io}\\
+XY-104 & salida al solenoide de la garra & Q0.7 & \codigo{punto\_io}\\
 ZI-101 / ZI-102 / ZI-103 & posición de base, X, Y & cuenta de pulsos & \codigo{variable} (PV)\\
 SY-100 / SY-101 & frecuencia de los trenes & PTO1 / PTO0 & \codigo{variable} (MV)\\
 \bottomrule
@@ -175,7 +175,7 @@ SY-100 / SY-101 & frecuencia de los trenes & PTO1 / PTO0 & \codigo{variable} (MV
 Los 22 tags de señales y los 5 de variables continuas son únicos en la base (restricción UNIQUE) y cada uno conserva su lazo en \codigo{eje.lazo\_isa}.
 
 \section{Hito y entregables de la fase 1}
-\paragraph{Hito (fin de la semana 6): versión 2.0 corregida del P\&ID y del esquema eléctrico.} \textbf{Cumplido}: ambos planos están en DWG (AutoCAD 2018), DXF y PDF, con cajetín, tabla de revisión y las seis discrepancias corregidas.
+\paragraph{Hito (fin de la semana 6): versión 2.0 corregida del P\&ID y del esquema eléctrico.} \textbf{Cumplido}: ambos planos están en DWG (AutoCAD 2018), DXF y PDF, con cajetín, tabla de revisión y las discrepancias del laboratorio 1 corregidas.
 \begin{center}\small
 \begin{longtable}{>{\raggedright}p{6.6cm} >{\raggedright}p{1.8cm} >{\raggedright\arraybackslash}p{6.2cm}}
 \toprule
@@ -200,26 +200,25 @@ Informe de cierre de fase & \cumple & este documento\\
 
 \section{Conclusiones y continuidad}
 \begin{enumerate}
-\item La auditoría convirtió una documentación heredada incompleta en una base verificada: ficha técnica, seis discrepancias corregidas y planos v2.0 normados que se pueden regenerar y versionar.
+\item La auditoría convirtió una documentación heredada incompleta en una base verificada: ficha técnica, siete discrepancias corregidas y planos v2.0 normados que se pueden regenerar y versionar.
 \item La limitación principal de la planta quedó establecida desde la fase 1: sin sensor continuo de posición el brazo opera en lazo abierto con supervisión discreta. Las fases 2 y 3 parten de esta condición.
 \item Control y cómputo comparten un solo lenguaje: los tags ISA del P\&ID son las claves de la base de datos, lo que permite que la telemetría de las fases siguientes sea trazable hasta el plano.
-\item Para la fase 2 quedan por verificar en el tablero los puntos SUPUESTO del esquema eléctrico.
 \end{enumerate}
 
 \newpage
-\section{Firmas del equipo e identificadores ORCID}
-Los integrantes de la escuadra declaran que este informe recopila el trabajo de la fase 1 y lo firman con su identificador ORCID (\url{https://orcid.org}).
+\section{Firmas del equipo}
+Los integrantes de la escuadra declaran que este informe recopila el trabajo de la fase 1.
 \begin{center}
-\renewcommand{\arraystretch}{2.4}
-\begin{tabular}{>{\raggedright}p{5.2cm} >{\raggedright}p{2.6cm} p{4cm} p{2.6cm}}
+\renewcommand{\arraystretch}{2.6}
+\begin{tabular}{>{\raggedright}p{6.2cm} >{\raggedright}p{3.4cm} p{5cm}}
 \toprule
-\textbf{Integrante} & \textbf{Mención} & \textbf{ORCID} & \textbf{Firma}\\
+\textbf{Integrante} & \textbf{Mención} & \textbf{Firma}\\
 \midrule
-Gabriel Andres Gomez Calla & control & \hrulefill & \hrulefill\\
-Jose Lenin Mamani Choque & control & \hrulefill & \hrulefill\\
-Miguel Alejandro Lima Huarachi & control y cómputo & \hrulefill & \hrulefill\\
-Román Abner Machicado Arequipa & control & \hrulefill & \hrulefill\\
-Marco Eduardo Chura Rondo & cómputo & \hrulefill & \hrulefill\\
+Gabriel Andres Gomez Calla & control & \\
+Jose Lenin Mamani Choque & control & \\
+Miguel Alejandro Lima Huarachi & control y cómputo & \\
+Román Abner Machicado Arequipa & control & \\
+Marco Eduardo Chura Rondo & cómputo & \\
 \bottomrule
 \end{tabular}
 \end{center}

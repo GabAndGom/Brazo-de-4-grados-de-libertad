@@ -237,7 +237,7 @@ INSERT INTO punto_io (sistema_id, eje_id, direccion, tag_isa, tipo_senal, descri
     (1, 3,    'Q0.4', 'ZY-103D',  'DO',  'dirección Y (0 = arriba)'),
     (1, 2,    'Q0.5', 'ZY-102K',  'DO',  'relé K1: Q0.1 al driver X'),
     (1, 3,    'Q0.6', 'ZY-103K',  'DO',  'relé K2: Q0.1 al driver Y'),
-    (1, 4,    'Q0.7', 'XY-104',   'DO',  'relé K3 del solenoide de la garra (1 = cerrada)');
+    (1, 4,    'Q0.7', 'XY-104',   'DO',  'solenoide de la garra, directo (1 = cerrada)');
 
 INSERT INTO variable (eje_id, tag_isa, clase, nombre, unidad, rango_min, rango_max) VALUES
     (1, 'ZI-101',  'PV', 'posición de la base', 'deg', -263, 263),

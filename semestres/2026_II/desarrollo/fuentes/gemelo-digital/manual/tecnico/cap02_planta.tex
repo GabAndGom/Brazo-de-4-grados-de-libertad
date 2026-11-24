@@ -18,7 +18,7 @@ El XK-JS1-1 es un brazo didáctico de \textbf{4 grados de libertad} que toma pie
 Base ($\theta$, motor Z) & giro alrededor del eje vertical & NEMA 17 + driver 2M530 + engranaje\\
 Carro X ($s_X$) & desplaza todo el brazo: cambia el alcance & NEMA 23 + driver 2M542 + husillo inferior\\
 Carro Y ($s_Y$) & mueve un bloque que, por una biela, levanta el brazo: cambia la altura & NEMA 23 + driver 2M542 + husillo superior\\
-Garra & abre o cierra las mordazas & solenoide de 24~V por el relé K3 (salida Q0.7)\\
+Garra & abre o cierra las mordazas & solenoide de 24~V accionado directo por la salida Q0.7\\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -38,7 +38,7 @@ Driver base & JMC 2M530 & 18--50~V DC, 0,5--3,0~A (informe 1); tabla DIP por con
 Motores X e Y & NEMA 23, 57J1854-828 & 1,8° por paso (200 pasos/vuelta), 2,8~A por fase\\
 Motor base & NEMA 17, 42J1848-604 & 1,8° por paso, 1,2~A por fase\\
 Husillos X e Y & de bolas, tipo SFU1605 (SUPUESTO) & paso 5~mm/vuelta (SUPUESTO)\\
-Relés K1, K2, K3 & Omron MY2N-J (24~V DC) & 2 contactos conmutados (DPDT), 5~A; K1 y K2 reparten el tren de pulsos, K3 acciona el solenoide\\
+Relés K1 y K2 & Omron MY2N-J (24~V DC) & 2 contactos conmutados (DPDT), 5~A; reparten el tren de pulsos de Q0.1 entre X e Y\\
 Finales de carrera X e Y & microinterruptores (informe 1: M102-011; hoja de datos: V-156-1C25) & 4 unidades, contacto NA/NC\\
 Sensor de la base & LJ12A3-4-Z/BX & inductivo NPN normalmente abierto, 6--36~V DC, alcance 4~mm, 100~Hz\\
 Garra & solenoide de 24~V DC & todo o nada; Q0.7 = 1 cerrada\\
@@ -74,7 +74,7 @@ Panel & botonera & pulsadores Start, Stop, Reset, S1--S7 y selector Manual/Autom
 \node[caja, text width=2.4cm, right=16mm of plc, yshift=-4mm] (k) {relés K1 / K2\\reparten Q0.1};
 \node[caja, text width=2.4cm, right=10mm of k, yshift=6mm] (dx) {driver X\\2M542};
 \node[caja, text width=2.4cm, right=10mm of k, yshift=-8mm] (dy) {driver Y\\2M542};
-\node[caja, text width=2.4cm, below=10mm of k] (garra) {relé K3 + solenoide\\de la garra};
+\node[caja, text width=2.4cm, below=10mm of k] (garra) {solenoide\\de la garra};
 \node[cajab, text width=1.6cm, right=6mm of dz] (mz) {NEMA 17\\base};
 \node[cajab, text width=1.6cm, right=6mm of dx] (mx) {NEMA 23\\X};
 \node[cajab, text width=1.6cm, right=6mm of dy] (my) {NEMA 23\\Y};
@@ -109,14 +109,14 @@ I0.3 & final Y abajo (origen) & Q0.3 & DIR X (0 = adelante)\\
 I0.4 & final Y arriba & Q0.4 & DIR Y (0 = arriba)\\
 I0.5 & selector: 0 manual, 1 automático/remoto & Q0.5 & relé K1: Q0.1 al driver X\\
 I0.6 & paro & Q0.6 & relé K2: Q0.1 al driver Y\\
-I0.7 & garra / inicio & Q0.7 & relé K3: solenoide (1 = cerrada)\\
+I0.7 & garra / inicio & Q0.7 & solenoide de la garra (1 = cerrada)\\
 I1.0 / I1.1 & jog base + / $-$ & & \\
 I1.2 / I1.3 & jog X adelante / atrás & & \\
 I1.4 / I1.5 & jog Y arriba / abajo & & \\
 \bottomrule
 \end{tabularx}
 \end{center}
-La correspondencia entre los rótulos de la botonera (S1--S7, Start, Stop) y las entradas I0.6--I1.5 no se registró pulsador por pulsador (SUPUESTO: Stop = I0.6, Start = I0.7).
+Rótulos de la botonera según el plano eléctrico v2.0: Reset en I0.6; Start en paralelo con S1 en I0.7; Stop en paralelo con S2 en I1.0; S3 a S7 en I1.1 a I1.5.
 
 \section{Variables del proceso (PV, MV, DV)}
 El brazo no tiene sensores de posición continua (encoders): la posición de cada eje se \emph{infiere} contando pulsos. Clasificación corregida respecto del informe 1:
@@ -131,7 +131,7 @@ MV & tren de pulsos de la base ($N_\theta$, $f_\theta$) & Q0.0 (PTO0), 0--20~kHz
 MV & tren de pulsos de X e Y ($N_{XY}$, $f_{XY}$) & Q0.1 (PTO1), uno solo para los dos carros\\
 MV & selección de carro & Q0.5 (K1, carro X), Q0.6 (K2, carro Y)\\
 MV & dirección de cada eje & Q0.2 (base), Q0.3 (X), Q0.4 (Y)\\
-MV & garra & Q0.7, 24~V al relé K3\\
+MV & garra & Q0.7, 24~V al solenoide\\
 PV & posición de la base $\theta$ & sin sensor continuo; $\theta = n_\theta / 190{,}3$ [°]\\
 PV & posición de los carros $s_X$, $s_Y$ & sin sensor continuo; $s = n / 200$ [mm], 0--170~mm\\
 PV & posición de la garra $(X, Y, Z)$ & calculada con la cinemática directa (capítulo \ref{cap:cinematica})\\
@@ -189,7 +189,7 @@ ZY-103K & Q0.6 & relé K2\\
 ZI-103 & VD1132 & posición Y\\
 \multicolumn{3}{@{}l}{\textbf{Lazo 104: garra}}\\
 HS-104 & I0.7 & garra / inicio\\
-XY-104 & Q0.7 & relé K3 del solenoide\\
+XY-104 & Q0.7 & salida al solenoide de la garra\\
 \bottomrule
 \end{longtable}
 \end{center}
@@ -212,7 +212,7 @@ El informe 1 registró discrepancias entre el plano histórico y la planta. La p
 6 & reducción de la base & 5:1 (SUPUESTO del modelo) & \textbf{190,3 pulsos/°} medidos: unos 68,5 vueltas del motor por vuelta de la base (con 1000 pulsos/vuelta, SUPUESTO)\\
 7 & driver de la base & mismo modelo que X/Y & 2M530 (otra tabla de corriente): revisar su configuración (capítulo \ref{cap:drivers})\\
 8 & pines DIR+ de X e Y & sin conexión en el plano & conectados (informe 1); el plano debe corregirse\\
-9 & garra & trazo incorrecto en el plano & salida Q0.7 $\rightarrow$ relé K3 $\rightarrow$ solenoide\\
+9 & garra & trazo incorrecto en el plano & salida Q0.7 $\rightarrow$ solenoide (sin relé: el ``K3'' del plano histórico era el propio solenoide)\\
 \bottomrule
 \end{longtable}
 \end{center}

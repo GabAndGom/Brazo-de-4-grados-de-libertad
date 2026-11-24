@@ -1,7 +1,12 @@
 % Informe del laboratorio 2: planos v2.0 (ISA-5.1 / IEC 60617) y mockups de interfaces
-% Compilar desde esta carpeta: pdflatex informe_lab02.tex (dos veces)
+% Compilar desde esta carpeta: pdflatex informe_lab02.tex (tres veces) o con desarrollo/compilar_documentos.py
 \documentclass[a4paper,11pt]{article}
 \input{../informe_comun}
+\newcommand{\muestra}[1]{\tikz[baseline=-0.6ex]\fill[#1] (0,-0.15) rectangle (0.5,0.2);}
+\definecolor{cnormal}{HTML}{00A896}
+\definecolor{cparo}{HTML}{C0392B}
+\definecolor{cadv}{HTML}{E67E22}
+\definecolor{cfondo}{HTML}{212830}
 
 \begin{document}
 \portada{2}{Planos de ingeniería versión 2.0 y diseño de interfaces}{martes 18 de agosto de 2026}{martes 1 de septiembre de 2026}{semanas 3 y 4}
@@ -9,74 +14,245 @@
 \tableofcontents
 \newpage
 
+\section{Introducción}
+El laboratorio 2 pasa de la auditoría física (laboratorio 1) a la digitalización formal de la planta. Las siete discrepancias del reporte Kaizen se usan como requerimientos para generar la \textbf{versión 2.0} de los planos: el P\&ID según ANSI/ISA-S5.1-2009 y el esquema eléctrico de potencia y mando según IEC 60617. En paralelo, el equipo de cómputo traslada las variables PV, MV y DV a las interfaces de operación (HMI de planta y dashboard web) y define qué elemento de cada pantalla se convierte en una columna de la base de datos. Planos, interfaces y modelo de datos usan los mismos tags ISA, para que control y cómputo ``hablen el mismo lenguaje normado''.
+
 \section{Objetivos}
 \subsection{Mención Control Automático (ETN-902 / ETN-1034)}
 \begin{itemize}
 \item \textbf{Normalización internacional}: aplicar ANSI/ISA-S5.1-2009 en el P\&ID e IEC 60617 en los esquemas eléctricos de potencia y mando.
-\item \textbf{Documentación de ingeniería}: planos con capas, símbolos normalizados y referencias cruzadas.
-\item \textbf{Estratificación de versiones (Kaizen)}: tomar los planos auditados en el laboratorio 1 y generar la versión 2.0, corrigiendo las discrepancias físicas.
+\item \textbf{Documentación de ingeniería}: planos de alta fidelidad en CAD, con capas, símbolos normalizados y referencias cruzadas.
+\item \textbf{Estratificación de versiones (Kaizen)}: generar la versión 2.0 de los planos corrigiendo las discrepancias del laboratorio 1.
 \end{itemize}
 \subsection{Mención Sistemas Computacionales (ETN-1000)}
 \begin{itemize}
-\item \textbf{Modelado de interfaces}: wireframes y mockups de la HMI de planta y del dashboard web.
-\item \textbf{Flujos de captura}: jerarquía de navegación y cuadro de los elementos visuales que se guardarán en el backend.
+\item \textbf{Modelado de interfaces (UI/UX)}: wireframes y mockups de la HMI de planta y del dashboard web del ERP.
+\item \textbf{Estructuración de flujos de captura}: jerarquía de navegación de las vistas y cuadro de los elementos visuales que se guardarán en el backend.
 \end{itemize}
 
-\section{Alcance y justificación SDLC}
-El trabajo se hizo en gabinete, sin modificar el hardware. Cada plano y cada pantalla es la etapa de \emph{diseño} del ciclo de vida: toma como requerimiento lo que se encontró en la auditoría del laboratorio 1 y alimenta el modelo de datos del laboratorio 3.
+\section{Alcance}
+\begin{itemize}
+\item El trabajo se hizo en el laboratorio de cómputo y en gabinete, sin alterar el hardware. Las únicas interacciones con la planta fueron verificaciones pasivas (continuidad e inspección visual) para comprobar la consistencia entre plano y máquina.
+\item Todas las señales del PLC son discretas: no hay módulo analógico EM 231, por eso los planos no tienen lazos de 4--20~mA.
+\item Cada plano y cada pantalla se justifica dentro del ciclo de vida del desarrollo (sección~\ref{sec:sdlc}).
+\end{itemize}
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[node distance=4mm and 7mm, every node/.style={font=\scriptsize}]
-\node[paso] (a) {\textbf{Lab 1}\\auditoría cable por cable\\reporte de discrepancias};
-\node[paso, right=of a] (b) {\textbf{Lab 2 (este)}\\P\&ID y eléctrico v2.0\\mockups y cuadro de campos};
-\node[paso, right=of b] (c) {\textbf{Lab 3}\\modelo E-R con los mismos tags ISA};
+\node[paso] (a) {\textbf{Lab 1: requerimientos}\\auditoría cable por cable\\reporte de discrepancias};
+\node[paso, right=of a] (b) {\textbf{Lab 2: diseño}\\P\&ID y eléctrico v2.0\\mockups y cuadro de campos};
+\node[paso, right=of b] (c) {\textbf{Lab 3: modelo}\\modelo E-R con los mismos tags ISA};
 \node[paso, right=of c] (d) {\textbf{Fases 2 y 3}\\base de datos, middleware, dashboard};
 \draw[flecha] (a) -- (b); \draw[flecha] (b) -- (c); \draw[flecha] (c) -- (d);
 \end{tikzpicture}
 \caption{Lugar del laboratorio 2 en el ciclo de vida del proyecto.}
 \end{figure}
 
+%======================================================================
+\section{Marco teórico}
+%======================================================================
+\subsection{ANSI/ISA-S5.1-2009 y diagramas P\&ID}
+La norma define la simbología y la identificación de instrumentos para que cualquier ingeniero, sin conocer la planta, entienda qué se mide, qué se controla, dónde está cada instrumento y cómo se comunican. Un P\&ID tiene cuatro tipos de elementos: el equipo de proceso (aquí, el mecanismo del brazo), los instrumentos y funciones de control, las líneas de proceso y las líneas de señal.
+
+\paragraph{Estructura del tag.} El tag combina la identificación funcional (letras) y la del lazo (número). La primera letra es la variable medida; las siguientes, la función y, si corresponde, un modificador. ZSH-102 se lee: Z (posición) + S (interruptor) + H (alto), en el lazo 102: el final de carrera de límite alto del carro X.
+\begin{center}\small
+\begin{tabularx}{\linewidth}{c >{\raggedright}X >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Letra} & \textbf{Como primera letra (variable)} & \textbf{Como letra sucesiva (función o modificador)}\\
+\midrule
+Z & posición, desplazamiento & --\\
+H & manual (\emph{hand}) & alto (\emph{high})\\
+X & sin clasificar (se define en la leyenda) & sin clasificar\\
+S & -- & interruptor (\emph{switch})\\
+I & -- & indicación\\
+C & -- & control\\
+Y & -- & relé, cálculo o conversión\\
+V & -- & válvula o elemento final (el solenoide)\\
+L & -- & bajo (\emph{low})\\
+\bottomrule
+\end{tabularx}\end{center}
+
+\paragraph{Ubicación del instrumento.} El mismo globo cambia según dónde está montado el instrumento; con esto se cumple el requisito de la guía de indicar si el controlador está en campo, en el panel del operador o es una función compartida del PLC.
+\begin{center}\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{4cm} >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Símbolo} & \textbf{Uso en el brazo}\\
+\midrule
+círculo simple (campo) & finales de carrera, sensor inductivo y drivers, montados en la máquina\\
+círculo con línea horizontal (panel principal) & pulsadores y selector de la botonera, accesibles al operador\\
+rombo dentro de un cuadrado (función de PLC) & lógica de los lazos (ZIC, XC), tren de pulsos ZY-100 y salida XY-104\\
+círculo dentro de un cuadrado (pantalla compartida) & gemelo digital ZI-100 en la PC\\
+\bottomrule
+\end{tabularx}\end{center}
+
+\paragraph{Tipos de línea.} Los espesores pertenecen a la serie normalizada de ISO 128; la relación 1:4 entre señal y proceso da un contraste claro en pantalla y en papel. Como el brazo no tiene tuberías, la línea de proceso de 1,0~mm representa el acople mecánico motor--eje, y así se declara en la leyenda.
+\begin{center}\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{3.6cm} c >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Línea} & \textbf{Calibre} & \textbf{Uso en la planta}\\
+\midrule
+señal eléctrica (discontinua) & 0,25~mm & sensores hacia el PLC; salidas del PLC hacia drivers, relés y solenoide\\
+enlace de datos (continua con círculos) & 0,25~mm & comunicación PPI entre el PLC y la PC\\
+proceso o acople mecánico (continua) & 1,0~mm & transmisión del motor al eje\\
+\bottomrule
+\end{tabularx}\end{center}
+
+\paragraph{Lazos de control.} Los instrumentos se agrupan en lazos numerados y todos los elementos de un lazo comparten el número. Como los motores no tienen encoder, los lazos de posición son de lazo abierto con referenciado: la posición se estima contando pulsos y se corrige al llegar a un final de carrera o al sensor de origen.
+
+\subsection{IEC 60617 para esquemas eléctricos}
+IEC 60617 define los símbolos gráficos (contactos, bobinas, motores, fuentes) e IEEE Std 315 es su equivalente americano. Un esquema industrial separa dos etapas:
+\begin{itemize}
+\item \textbf{Potencia}: transporta la energía de los actuadores. Aquí, la red de 220~V AC hacia la fuente y de ella, a 24~V DC, hacia los drivers y los motores.
+\item \textbf{Mando}: circuitos de baja potencia (24~V DC) del PLC, los relés de selección, los sensores, la botonera y el solenoide de la garra.
+\end{itemize}
+Así el plano funciona como manual de mantenimiento: un técnico puede aislar la etapa de potencia sin exponer los circuitos de mando.
+
+\begin{center}\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{4.4cm} >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Símbolo IEC 60617} & \textbf{Aplicación en la planta}\\
+\midrule
+bobina de relé (rectángulo) & bobinas de K1 y K2 (Omron MY2N-J)\\
+contacto normalmente abierto & contactos 9-5 de K1 y K2 en el tren de pulsos de Q0.1\\
+interruptor diferencial magnetotérmico & -Q1, DZ47LE-63 (16~A, 30~mA)\\
+convertidor AC/DC (rectángulo con diagonal) & -G1, fuente de 24~V y 5~V\\
+fusible & -F1 y -F2 en las salidas de la fuente\\
+motor (círculo con M) & -M1 a -M3, paso a paso\\
+actuador electromecánico (cuadrado con diagonal) & -Y1, solenoide de la garra\\
+pulsador y final de carrera & botonera (S1--S7, Start, Stop, Reset) y -S11 a -S14\\
+sensor de proximidad & -B1, inductivo de la base\\
+\bottomrule
+\end{tabularx}\end{center}
+
+\paragraph{Designación de referencia (IEC 81346).} Cada componente lleva una letra según su función, de modo que conserva el mismo nombre en todas las hojas; se combina con el tag ISA del lazo mediante la tabla de E/S.
+\begin{center}\small
+\begin{tabularx}{\linewidth}{c >{\raggedright}p{5.2cm} >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Letra} & \textbf{Clase} & \textbf{En la planta}\\
+\midrule
+Q & protección y maniobra de potencia & -Q1 disyuntor\\
+G & fuente de alimentación & -G1\\
+F & protección por fusible & -F1, -F2\\
+A & conjunto funcional & -A1 a -A3 drivers, -A4 PLC\\
+M & motor & -M1 (Y), -M2 (X), -M3 (base)\\
+K & relé & -K1, -K2\\
+B & sensor & -B1 inductivo\\
+S & mando manual y finales de carrera & S1--S7, Start, Stop, Reset, -QA, -S11 a -S14\\
+Y & actuador electromecánico & -Y1 solenoide\\
+W / E & número de hilo & W0.x salidas, E0.x y E1.x entradas\\
+\bottomrule
+\end{tabularx}\end{center}
+
+\paragraph{Rotulación y referencias cruzadas.} Cada cable lleva un número derivado de su borne de origen, lo que permite localizar una falla sin desconectar el cableado. Las referencias cruzadas unen la bobina de un relé con sus contactos con la notación \emph{hoja.columna}: la bobina de -K1 indica ``9-5 /2.1'' porque su contacto está en la hoja 2, columna 1.
+
+\paragraph{Buenas prácticas de IEC 60204-1.} La norma de equipamiento eléctrico de máquinas recomienda colores de conductor por función (azul para mando en continua, verde/amarillo para la tierra de protección) y una parada de emergencia cableada (pulsador tipo hongo, ISO 13850). Sirven para evaluar la planta y orientar mejoras (sección~\ref{sec:hallazgos}).
+
+\subsection{Ciclo de vida y control de versiones de los planos}
+El SDLC (ISO/IEC/IEEE 12207) organiza el trabajo en requisitos, diseño, implementación, verificación y mantenimiento: el laboratorio 1 fue la fase de requisitos y este laboratorio es la de diseño. El control de versiones de los planos se apoya en el cajetín (campos de ISO 7200: título, número, revisión, fecha, autor y revisor) y en la tabla de revisión de cada hoja, que liga cada cambio con la discrepancia que lo originó.
+
+\subsection{Diseño UI/UX y HMI industrial}
+Una HMI industrial prioriza la legibilidad a distancia, la respuesta inmediata ante alarmas y la tolerancia a la iluminación variable (ISA-101). Se usan dos artefactos: el \textbf{wireframe}, de baja fidelidad, que fija la disposición de los elementos; y el \textbf{mockup}, de alta fidelidad, con la paleta, la tipografía y el estilo definitivos. Los colores se reservan con significado fijo (verde para normal, rojo para paro o falla, ámbar para advertencia) y la tipografía es sans-serif de alto contraste.
+
+%======================================================================
 \section{ETN-902: diagrama P\&ID versión 2.0}
-\subsection{Levantamiento según ISA-5.1}
-El P\&ID (plano P\&ID-B4G-01) representa el brazo como proceso mecánico: cuatro grados de libertad (base, carro X, carro Y y garra) movidos por motores paso a paso, con supervisión discreta mediante finales de carrera y un sensor inductivo.
+%======================================================================
+El P\&ID (plano P\&ID-B4G-01) representa el brazo como proceso mecánico: cuatro grados de libertad (base, carro X, carro Y y garra) movidos por motores paso a paso, con supervisión discreta mediante finales de carrera y un sensor inductivo. Todos los controladores son funciones compartidas del PLC: no hay controladores de campo independientes.
 
 \plano{brazo_pid_v2.pdf}{P\&ID versión 2.0 (\codigo{documentacion/planos\_isa/pid/brazo\_pid\_v2.dwg}, también en DXF y PDF).}
 
-\paragraph{Calibre de líneas.} Las señales eléctricas van en trazo discontinuo de 0,25~mm (capa \codigo{SENAL}) y los enlaces mecánicos o de proceso en trazo continuo de 1,0~mm (capa \codigo{PROCESO}), como pide la guía. El enlace PPI con la PC se dibuja como enlace de datos (línea con círculos).
-
-\paragraph{Ubicación de cada instrumento.} Se usan los cuatro símbolos de la norma: círculo simple (instrumento en campo: finales de carrera, drivers), círculo con línea (instrumento en el panel accesible al operador: botonera y selector), rombo en cuadrado (función lógica compartida del PLC) y círculo en cuadrado (pantalla compartida: el gemelo digital en la PC).
-
 \subsection{Identificación de lazos}
 \begin{center}\small
-\begin{tabularx}{\linewidth}{c >{\raggedright}p{2.6cm} >{\ttfamily\raggedright\arraybackslash}X}
+\begin{tabularx}{\linewidth}{c >{\raggedright}p{2.2cm} >{\raggedright\arraybackslash}X}
 \toprule
-\textbf{Lazo} & \textbf{Grado de libertad} & \textrm{\textbf{Instrumentos (tags ISA-5.1)}}\\
+\textbf{Lazo} & \textbf{Grado de libertad} & \textbf{Instrumentos (tags ISA-5.1)}\\
 \midrule
-100 & general & HS-100 (selector man/auto, I0.5), HS-100P (paro, I0.6), ZY-100 (tren compartido, Q0.1), ZI-100 (gemelo digital)\\
-101 & base $\theta$ & ZS-101 (inductivo, I0.0), HS-101A/B (jog, I1.0/I1.1), ZIC-101, ZY-101 (driver 2M530, Q0.0/Q0.2), M-101\\
-102 & carro X & ZSL/ZSH-102 (finales, I0.1/I0.2), HS-102A/B (I1.2/I1.3), ZIC-102, ZY-102 (driver 2M542, Q0.3), K1 (Q0.5), M-102\\
-103 & carro Y & ZSL/ZSH-103 (finales, I0.3/I0.4), HS-103A/B (I1.4/I1.5), ZIC-103, ZY-103 (driver 2M542, Q0.4), K2 (Q0.6), M-103\\
-104 & garra & HS-104 (start/S1, I0.7), XC-104, XY-104 (relé K3, Q0.7), XV-104 (solenoide 24 V)\\
+100 & general & HS-100 (selector manual/automático, I0.5), HS-100P (paro, I0.6), ZY-100 (tren compartido, Q0.1), ZI-100 (gemelo digital)\\
+101 & base & ZS-101 (inductivo, I0.0), HS-101A/B (jog, I1.0/I1.1), ZIC-101, ZY-101 (driver 2M530, Q0.0/Q0.2), M-101\\
+102 & carro X & ZSL/ZSH-102 (finales, I0.1/I0.2), HS-102A/B (I1.2/I1.3), ZIC-102, K1 (Q0.5), ZY-102 (driver 2M542, DIR Q0.3), M-102\\
+103 & carro Y & ZSL/ZSH-103 (finales, I0.3/I0.4), HS-103A/B (I1.4/I1.5), ZIC-103, K2 (Q0.6), ZY-103 (driver 2M542, DIR Q0.4), M-103\\
+104 & garra & HS-104 (Start/S1, I0.7), XC-104 (lógica), XY-104 (salida Q0.7), XV-104 (solenoide 24~V)\\
 \bottomrule
 \end{tabularx}
 \end{center}
-La letra \textbf{Z} (posición) es la variable medida de los lazos 101 a 103: el brazo controla posiciones. La garra es un actuador todo o nada, por eso usa la letra \textbf{X} (sin clasificar). El P\&ID deja explícito que no hay realimentación continua: la posición se estima contando pulsos y solo los finales y el inductivo dan información real de posición (lazo abierto con supervisión discreta).
 
+\paragraph{Criterio de etiquetado.} La letra \textbf{Z} (posición) es la variable de los lazos 101 a 103. Como la posición no la mide un transmisor sino que la estima el PLC contando pulsos, el controlador se etiqueta ZIC (controlador indicador) y no hay ningún ZT (transmisor). La garra es un actuador todo o nada sin sensor de estado: usa la letra \textbf{X} (sin clasificar), con XY-104 para la salida del PLC y XV-104 para el solenoide.
+
+\subsection{Ejemplo de lectura: lazo 102 (carro X)}
+\begin{enumerate}
+\item El operador pulsa HS-102A (jog adelante, I1.2).
+\item La función ZIC-102 del PLC decide el movimiento, fija la dirección (Q0.3 = 0) y cierra K1 (Q0.5).
+\item El tren de pulsos ZY-100 (Q0.1) pasa por K1 hacia el driver ZY-102, que mueve el motor M-102 (enlace mecánico de 1,0~mm hacia el carro X).
+\item El final de carrera ZSH-102 (I0.2) avisa al PLC cuando el carro llega al extremo y el PLC corta los pulsos.
+\end{enumerate}
+
+%======================================================================
 \section{ETN-1034: esquema eléctrico industrial versión 2.0}
+%======================================================================
 El esquema eléctrico (plano E-B4G-01) separa la potencia del mando en dos hojas, como exige la guía.
 
-\plano[1]{brazo_electrico_v2.pdf}{Hoja 1, potencia: alimentación de 220~V, disyuntor -Q1, fuente -G1, fusibles, barras de 24~V y 5~V, drivers -A1 a -A3 y motores -M1 a -M3.}
+\plano[1]{brazo_electrico_v2.pdf}{Hoja 1, potencia: alimentación de 220~V, disyuntor -Q1, fuente -G1, fusibles -F1 y -F2, barras de 24~V y 5~V, drivers -A1 a -A3 y motores -M1 a -M3.}
 
-\plano[2]{brazo_electrico_v2.pdf}{Hoja 2, mando: PLC -A4 con todos sus bornes de entrada y salida, relés -K1 a -K3, solenoide -Y1, sensores y botonera, y tabla de E/S con tags ISA.}
+\plano[2]{brazo_electrico_v2.pdf}{Hoja 2, mando: PLC -A4 con todos sus bornes de entrada y salida, relés -K1 y -K2, solenoide -Y1, sensor -B1, finales de carrera, botonera y tabla de E/S con tags ISA.}
 
-\subsection{Referencias cruzadas y rotulación}
+\subsection{Bornes de conexión al PLC}
+\begin{center}\small
+\begin{longtable}{l l l >{\raggedright\arraybackslash}p{7.2cm}}
+\toprule
+\textbf{Borne} & \textbf{Tag ISA} & \textbf{IEC} & \textbf{Señal y destino u origen}\\
+\midrule\endhead
+\multicolumn{4}{l}{\emph{Entradas (común 1M a +24~V para I0.0--I0.7; 2M a +24~V para I1.0--I1.5)}}\\
+I0.0 & ZS-101 & -B1 & sensor inductivo de la base (NPN; 0 en el origen)\\
+I0.1 & ZSL-102 & -S11 & final de carrera X atrás (origen)\\
+I0.2 & ZSH-102 & -S12 & final de carrera X adelante\\
+I0.3 & ZSL-103 & -S13 & final de carrera Y abajo (origen)\\
+I0.4 & ZSH-103 & -S14 & final de carrera Y arriba\\
+I0.5 & HS-100 & -QA & selector manual/automático\\
+I0.6 & HS-100P & Reset & paro\\
+I0.7 & HS-104 & Start $\parallel$ S1 & garra en manual, inicio en automático\\
+I1.0 & HS-101A & Stop $\parallel$ S2 & jog base +, paro en automático\\
+I1.1 & HS-101B & S3 & jog base $-$\\
+I1.2 & HS-102A & S4 & jog X adelante\\
+I1.3 & HS-102B & S5 & jog X atrás\\
+I1.4 & HS-103A & S6 & jog Y arriba\\
+I1.5 & HS-103B & S7 & jog Y abajo\\
+\multicolumn{4}{l}{\emph{Salidas a transistor (1L+/1M y 2L+/2M a 24~V)}}\\
+Q0.0 & ZY-101 & -A3 & PUL+ del driver de la base (PTO0)\\
+Q0.1 & ZY-100 & -K1, -K2 & PUL+ de X o Y a través de los contactos 9-5 de K1 o K2 (PTO1)\\
+Q0.2 & ZY-101D & -A3 & DIR+ de la base\\
+Q0.3 & ZY-102D & -A2 & DIR+ de X (0 = adelante)\\
+Q0.4 & ZY-103D & -A1 & DIR+ de Y (0 = arriba)\\
+Q0.5 & ZY-102K & -K1 & bobina de K1: tren al driver X\\
+Q0.6 & ZY-103K & -K2 & bobina de K2: tren al driver Y\\
+Q0.7 & XY-104 & -Y1 & solenoide de la garra, accionado directo (1 = cerrada)\\
+Q1.0, Q1.1 & -- & -- & libres\\
+\bottomrule
+\end{longtable}\end{center}
+
+\subsection{Referencias cruzadas, rotulación y capas}
 \begin{itemize}
-\item \textbf{Referencias cruzadas} con la convención \emph{hoja.columna}: por ejemplo, la bobina de -K1 (hoja 2, columna 4) indica que su contacto está en /2.1, y el PUL+ del driver -A2 indica que viene de Q0.1 a través de K1 (/2.1).
-\item \textbf{Números de cable}: W0.0 a W0.4 para las salidas del PLC y E0.0 a E1.5 para las entradas.
-\item \textbf{Bornes}: cada borne del PLC (1M, 1L+, Q0.0\dots Q1.1, 2M, I0.0\dots I1.5) y de los drivers (V+, GND, A$\pm$, B$\pm$, PUL$\pm$, DIR$\pm$, ENA$\pm$) está dibujado y rotulado.
-\item \textbf{Capas}: 19 capas con color propio (potencia, 24~V, 0~V, 5~V, mando, bornes, números de cable, referencias, revisión, cajetín\dots).
+\item \textbf{Referencias cruzadas} con la convención \emph{hoja.columna}: la bobina de -K1 (hoja 2, columna 4) indica que su contacto está en /2.1; el PUL+ del driver -A2 indica que viene de Q0.1 a través de K1 (/2.1); la salida Q0.7 indica que el solenoide está en /2.5.
+\item \textbf{Números de cable}: W0.0 a W0.7 para las salidas del PLC y E0.0 a E1.5 para las entradas.
+\item \textbf{Bornes}: cada borne del PLC (1M, 1L+, Q0.0\dots Q1.1, 2M, 2L+, I0.0\dots I1.5) y de los drivers (V+, GND, A$\pm$, B$\pm$, PUL$\pm$, DIR$\pm$, ENA$\pm$) está dibujado y rotulado.
+\item \textbf{Capas}: cada familia de elementos tiene su capa, color y tipo de línea, de modo que se puede cambiar su presentación sin redibujar.
 \end{itemize}
+\begin{center}\small
+\begin{tabularx}{\linewidth}{>{\ttfamily}l >{\raggedright\arraybackslash}X}
+\toprule
+\textrm{\textbf{Capa}} & \textbf{Contenido}\\
+\midrule
+PROCESO & P\&ID: acople mecánico, 1,0~mm\\
+SENAL & P\&ID: señales eléctricas, 0,25~mm discontinua\\
+DATOS & P\&ID: enlace de datos PPI\\
+INSTRUMENTOS, TAGS & globos y tags ISA\\
+POTENCIA & 220~V AC y fases de los motores\\
+CC24, CC0V, CC5 & barras de +24~V, 0~V y +5~V\\
+MANDO & señales de mando del PLC\\
+SIMBOLOS, BORNES & símbolos IEC y bornes\\
+NUMEROS\_CABLE, REFERENCIAS & rotulación de hilos y referencias cruzadas\\
+MARCO, CAJETIN, TEXTO, NOTAS, REVISION & marco, cajetín, textos, notas y tabla de revisión\\
+\bottomrule
+\end{tabularx}\end{center}
 
 \subsection{Correcciones Kaizen respecto del plano histórico}
 \begin{center}\small
@@ -84,83 +260,190 @@ El esquema eléctrico (plano E-B4G-01) separa la potencia del mando en dos hojas
 \toprule
 \textbf{Nº} & \textbf{Corrección (verificada con el PLC en marcha)}\\
 \midrule
-1 & Finales de carrera en I0.1--I0.4 (X atrás/adelante, Y abajo/arriba); el inductivo de la base en I0.0.\\
-2 & El tren de pulsos de X e Y sale de una sola salida (Q0.1) y lo reparten los relés K1 (Q0.5) y K2 (Q0.6).\\
-3 & Las salidas de dirección Q0.3 (X) y Q0.4 (Y) están conectadas a DIR+; en el plano histórico figuraban sin conexión.\\
-4 & El relé K3 se redibujó: bobina por Q0.7 y contacto hacia el solenoide de la garra.\\
-5 & Start en paralelo con S1 (I0.7) y Stop en paralelo con S2 (I1.0).\\
-6 & Drivers identificados: X e Y con 2M542 (DIP para 1000 pulsos/vuelta), base con 2M530; motores NEMA 23 (2,8~A) en X e Y y NEMA 17 (1,2~A) en la base.\\
-7 & Lazos numerados 100 a 104 con tags ISA-5.1 y enlace PPI al gemelo digital.\\
+1 & Todos los bornes del PLC dibujados y rotulados.\\
+2 & Garra: el ``K3'' del histórico era la bobina del solenoide dibujada como relé; la versión 2.0 dibuja el solenoide -Y1 accionado directamente por Q0.7.\\
+3 & Las salidas de dirección Q0.3 (X) y Q0.4 (Y) conectadas a DIR+; en el histórico figuraban sin conexión.\\
+4 & Finales de carrera en I0.1--I0.4 (X atrás/adelante, Y abajo/arriba) y el inductivo de la base en I0.0.\\
+5 & El tren de pulsos de X e Y sale de una sola salida (Q0.1) y lo reparten los relés K1 (Q0.5) y K2 (Q0.6).\\
+6 & Start en paralelo con S1 (I0.7) y Stop en paralelo con S2 (I1.0).\\
+7 & Drivers y motores identificados (2M542 en X e Y con DIP para 1000 pulsos/vuelta; 2M530 en la base; NEMA 23 de 2,8~A y NEMA 17 de 1,2~A), lazos ISA 100 a 104 y enlace PPI al gemelo digital.\\
 \bottomrule
 \end{tabularx}
 \end{center}
 
-\aviso{Quedan puntos marcados como SUPUESTO en el plano porque no se pudieron ver sin desarmar el tablero: el común de entradas 1M/2M (se dibujó a +24~V por ser NPN el sensor inductivo), el nivel de PUL/DIR (entradas optoacopladas de 5~V alimentadas con 24~V), la tabla DIP del 2M530 y la numeración del zócalo de los relés. Se deben verificar con multímetro antes de dar el plano por definitivo.}
+\paragraph{Herramienta.} Los planos se generan con un script (\codigo{generar\_planos\_v2.py}) que escribe DXF con capas, tipos de línea y textos, y se convierten a DWG de AutoCAD 2018 con ODA File Converter. El DWG se abre y edita en AutoCAD Electrical, y como la fuente es texto, cada cambio del plano queda versionado en Git (laboratorio 3).
 
-\paragraph{Herramienta.} Los planos se generan con un script (\codigo{generar\_planos\_v2.py}) que escribe DXF con capas, tipos de línea y textos, y se convierten a DWG de AutoCAD 2018 con ODA File Converter. Así el plano se puede regenerar y versionar como código. Los símbolos se dibujaron según IEC 60617 e ISA-5.1, pero no son los bloques de la librería de AutoCAD Electrical que provee el auxiliar: si el docente lo exige, el DWG se puede abrir en AutoCAD Electrical y reemplazar los símbolos por los bloques de la librería.
-
+%======================================================================
 \section{ETN-1000: mockups, organigrama y cuadro de campos}
+%======================================================================
 \subsection{Adaptación del enunciado}
-La planta no tiene una HMI física (PanelView). El equipo de cómputo adaptó la «pantalla HMI de planta» a una aplicación de escritorio en la PC conectada al PLC, manteniendo los dos entornos que pide la guía: la interfaz local de operación y el dashboard web analítico.
+La guía pide una pantalla HMI de planta en un PanelView de 5,7'' y un dashboard web. La planta no tiene panel HMI físico: el PLC se comunica con un programa en Python en la PC conectada por PPI. Por eso la ``pantalla local de planta'' se implementa como interfaz de escritorio en esa PC. Se mantienen los dos entornos que pide la guía; solo cambia el medio físico del primero.
+
+\subsection{Entorno 1: interfaz local de planta}
+Se pensó en lo que el operador necesita ver y tocar frente a la máquina, en tres bloques:
+\begin{itemize}
+\item \textbf{Control general} (izquierda): selector de modo manual/automático y botón grande de parada de emergencia, por ser los de acceso más urgente.
+\item \textbf{Manejo} (centro): reiniciar, iniciar, detener y las seis flechas de movimiento, que el operador usa continuamente.
+\item \textbf{Sensores} (derecha): estado de los cuatro finales de carrera, del inductivo y de la pinza con indicadores de color.
+\end{itemize}
+Se completa con la posición actual de cada eje (PV, estimada por conteo de pulsos), la posición objetivo (SP) y los estados de marcha/parada de motores y garra.
+
+\subsection{Entorno 2: dashboard del ERP web}
+Para autoridades y científicos que revisan datos desde otro lugar: primero el resumen y después el detalle.
+\begin{itemize}
+\item arriba, tarjetas de tiempo encendido, estado del tren de pulsos con barra de avance y ciclos completados;
+\item en el medio, los bits de estado (dirección y habilitación) y un gráfico histórico de series de tiempo;
+\item abajo, la tabla de lecturas de sensores, la tabla de alarmas con severidad y reconocimiento, el historial de sesiones y el registro de auditoría de usuarios.
+\end{itemize}
 
 \begin{figure}[H]
 \centering
 \includegraphics[page=3, width=0.49\linewidth]{lab2_mockups_y_organigrama.pdf}\hfill
 \includegraphics[page=4, width=0.49\linewidth]{lab2_mockups_y_organigrama.pdf}
-\caption{Mockups del equipo de cómputo: interfaz local de planta (izquierda) y dashboard del ERP web (derecha).}
+\caption{Mockups: interfaz local de planta (izquierda) y dashboard del ERP web (derecha).}
 \end{figure}
 
+\subsection{Paleta de colores y tipografía}
+\begin{center}\small
+\begin{tabularx}{\linewidth}{c l >{\ttfamily}l >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Color} & \textbf{Rol} & \textrm{\textbf{Código}} & \textbf{Uso}\\
+\midrule
+\muestra{cnormal} & normal / marcha & \#00A896 & sensor activo, estado normal, sesión completada\\
+\muestra{cparo} & paro / falla & \#C0392B & parada de emergencia, detener, alarmas críticas\\
+\muestra{cadv} & advertencia & \#E67E22 & transiciones y alarmas menores\\
+\muestra{cfondo} & fondo del dashboard & \#212830 & fondo oscuro de alto contraste con texto claro sans-serif\\
+\bottomrule
+\end{tabularx}\end{center}
+
+\subsection{Organigrama de vistas}
+El usuario entra por un único punto (inicio de sesión) y desde ahí el sistema se separa en dos caminos, uno por perfil: el operador en planta y las autoridades desde la web. Cada camino se abre en sus pantallas en el mismo orden que los bloques descritos (primero control, después detalle).
 \begin{figure}[H]
 \centering
 \includegraphics[page=5, width=0.62\linewidth]{lab2_mockups_y_organigrama.pdf}
 \caption{Organigrama de vistas y navegación: autenticación, interfaz local y dashboard.}
 \end{figure}
 
-\subsection{Cuadro descriptivo de campos de almacenamiento}
+\subsection{Cuadro descriptivo de campos de almacenamiento}\label{sec:campos}
+Se revisó cada pantalla elemento por elemento (botones, indicadores, números y tablas) y se anotó qué dato representa, su tipo y la columna de la base de datos (laboratorio 3) que lo guarda.
 \begin{center}\small
-\begin{tabularx}{\linewidth}{>{\raggedright}p{3.6cm} >{\raggedright}p{2.2cm} >{\raggedright\arraybackslash}X}
+\begin{longtable}{>{\raggedright}p{3.2cm} l >{\raggedright}p{2.2cm} >{\raggedright\arraybackslash}p{6.4cm}}
 \toprule
-\textbf{Elemento visual} & \textbf{Tipo de dato} & \textbf{Columna en la base (laboratorio 3)}\\
-\midrule
-Selector manual / auto & bit & \codigo{estado\_io.valor} de HS-100 (I0.5)\\
-Parada de emergencia & bit + evento & \codigo{orden.tipo = 'emergencia'} y \codigo{evento\_alarma} (paro)\\
-Pinza (accionar) & bit & \codigo{orden.tipo = 'garra'}; estado en XY-104 (Q0.7)\\
-Seis botones de movimiento & bits + destino & \codigo{orden} (\codigo{mover}) y \codigo{orden\_parametro} (destino por eje)\\
-Sensores 1--4 e inductivo & bit & \codigo{estado\_io} de ZSL/ZSH-102/103 y ZS-101\\
-Estado del sistema & texto / bit & \codigo{evento\_alarma} y \codigo{sistema.en\_operacion}\\
-Bit de dirección & bit & \codigo{estado\_io} de ZY-101D/102D/103D (Q0.2--Q0.4)\\
-Tiempo encendido & intervalo & vista \codigo{v\_ciclo} (\codigo{fin - inicio})\\
-Tren de pulsos & numérico (Hz) & \codigo{muestra} de SY-100 y SY-101\\
-Historial de sesiones & fecha, texto, bit & \codigo{sesion} (usuario, IP, instante, éxito, fin)\\
+\textbf{Elemento visual} & \textbf{Vista} & \textbf{Tipo de dato} & \textbf{Columna en la base}\\
+\midrule\endhead
+Selector manual / auto & planta & bit & \codigo{estado\_io.valor} de HS-100 (I0.5)\\
+Parada de emergencia & planta & bit + evento & \codigo{orden.tipo = 'emergencia'} y \codigo{evento\_alarma}\\
+Pinza (accionar) & planta & bit & \codigo{orden.tipo = 'garra'}; estado de XY-104 (Q0.7)\\
+Seis botones de movimiento & planta & bits + destino & \codigo{orden} (\codigo{mover}) y \codigo{orden\_parametro} (destino por eje)\\
+Posición actual (PV) & planta & numérico & \codigo{muestra} de ZI-101 a ZI-103\\
+Posición objetivo (SP) & planta & numérico & \codigo{orden\_parametro.valor}\\
+Sensores 1--4 e inductivo & ambas & bit & \codigo{estado\_io} de ZSL/ZSH-102/103 y ZS-101\\
+Estado del sistema & planta & texto / bit & \codigo{evento\_alarma} y \codigo{sistema.en\_operacion}\\
+Bit de dirección & web & bit & \codigo{estado\_io} de ZY-101D/102D/103D (Q0.2--Q0.4)\\
+Bit habilitador & web & bit & \codigo{estado\_io} de ZY-102K/103K (Q0.5, Q0.6): relé que habilita el tren hacia cada driver\\
+Tiempo encendido & web & intervalo & vista \codigo{v\_ciclo} (\codigo{fin - inicio})\\
+Tren de pulsos & web & numérico (Hz) & \codigo{muestra} de SY-100 y SY-101\\
+Ciclos completados & web & entero & conteo de filas de \codigo{ciclo\_operacion}\\
+Gráfico histórico & web & serie de tiempo & \codigo{muestra} (\codigo{variable\_id}, \codigo{instante}, \codigo{valor})\\
+Tabla de alarmas & web & texto, nivel, instante & \codigo{evento\_alarma} y catálogo \codigo{alarma}\\
+Historial de sesiones & web & fecha, texto, bit & \codigo{sesion} (usuario, IP, instante, éxito, fin)\\
+Inicio de sesión & ambas & texto & \codigo{usuario} (nombre, hash de la clave) y \codigo{rol}\\
 \bottomrule
-\end{tabularx}
-\end{center}
-\nota{El mockup incluye un «bit habilitador», pero en el esquema eléctrico v2.0 la entrada ENA de los drivers está libre (siempre habilitados). Lo más cercano son los relés K1 y K2 (ZY-102K, ZY-103K), que eligen qué driver recibe el tren de pulsos.}
+\end{longtable}\end{center}
 
-\subsection{Interfaz implementada}
-Además de los mockups, la interfaz se implementó en la aplicación del gemelo digital (laboratorios 6 y 7). Su paleta sigue reglas de diseño industrial: un solo color de acento, contraste WCAG 2.2 AA y objetivos táctiles de 44~px.
+\subsection{Prototipo navegable}
+Además de los mockups, la interfaz se implementó en la aplicación del gemelo digital (\codigo{gemelo-digital/app/ui/}), que sirve de prototipo navegable. Su paleta sigue reglas de diseño industrial: un solo color de acento, contraste WCAG 2.2 AA y objetivos táctiles de 44~px.
 \begin{figure}[H]
 \centering
 \includegraphics[height=6cm, width=0.62\linewidth, keepaspectratio]{local_articular.jpg}\hfill
 \includegraphics[height=6cm, width=0.34\linewidth, keepaspectratio]{remoto_operador.jpg}
-\caption{Interfaz local (izquierda) y vista remota del operador (derecha) de la aplicación.}
+\caption{Interfaz local (izquierda) y vista remota del operador (derecha).}
 \end{figure}
+
+%======================================================================
+\section{Trazabilidad y justificación SDLC}\label{sec:sdlc}
+%======================================================================
+\subsection{De la discrepancia a la corrección}
+\begin{center}\small
+\begin{tabularx}{\linewidth}{c >{\raggedright}X >{\raggedright}X c}
+\toprule
+\textbf{ID} & \textbf{Discrepancia (plano histórico)} & \textbf{Corrección en la versión 2.0} & \textbf{Estado}\\
+\midrule
+D-01 & bornes de E/S del PLC sin dibujar & todos los bornes dibujados y tabulados & cerrada\\
+D-02 & garra dibujada como un relé ``K3'' & solenoide -Y1 directo en Q0.7 & cerrada\\
+D-03 & DIR+ de X e Y sin conexión & Q0.3 y Q0.4 a DIR+ de cada driver & cerrada\\
+D-04 & finales de carrera en I0.0--I0.3 & finales en I0.1--I0.4, inductivo en I0.0 & cerrada\\
+D-05 & reparto de los pulsos de X e Y sin documentar & Q0.1 por los contactos de K1 y K2 & cerrada\\
+D-06 & sin lazos ni tags normalizados & lazos 100 a 104 con tags ISA-5.1 & cerrada\\
+\bottomrule
+\end{tabularx}\end{center}
+
+\subsection{Hallazgos para la siguiente iteración}\label{sec:hallazgos}
+Durante la revisión se registraron observaciones que no cambian el plano 2.0 pero quedan como requisitos de mejora:
+\begin{center}\small
+\begin{tabularx}{\linewidth}{c >{\raggedright}X >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{ID} & \textbf{Hallazgo} & \textbf{Acción recomendada}\\
+\midrule
+O-01 & el paro de la botonera es una entrada del PLC & parada de emergencia cableada que corte la potencia de los drivers sin apagar el PLC (IEC 60204-1, ISO 13850)\\
+O-02 & Start y la garra comparten I0.7; Stop y S2 comparten I1.0 & asignar entradas individuales usando las libres de una futura ampliación\\
+O-03 & colores de conductor distintos de los recomendados por IEC 60204-1 & declarar el código en la leyenda y unificarlo en el próximo mantenimiento\\
+O-04 & solo el programa impide cerrar K1 y K2 a la vez por error & enclavamiento eléctrico con contactos NC cruzados, dejando el homing conjunto por programa\\
+\bottomrule
+\end{tabularx}\end{center}
+
+\subsection{Justificación de cada entregable}
+\begin{center}\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{3cm} >{\raggedright}p{2cm} >{\raggedright}X >{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Entregable} & \textbf{Fase SDLC} & \textbf{Requisito de origen (lab 1)} & \textbf{Uso posterior}\\
+\midrule
+P\&ID v2.0 & diseño & ficha técnica, clasificación PV/MV/DV y lazo abierto & auditoría del docente; tags del modelo de datos\\
+Eléctrico v2.0 & diseño & discrepancias D-01 a D-05 & manual de mantenimiento; programación del PLC\\
+HMI de planta & diseño (UI) & MV de la botonera y estados de sensores & aplicación del gemelo digital\\
+Dashboard web & diseño (UI) & PV y alarmas a supervisar & dashboard del ERP (fase 3)\\
+Cuadro de campos & diseño $\rightarrow$ implementación & elementos visuales de las dos interfaces & modelo E-R del laboratorio 3\\
+\bottomrule
+\end{tabularx}\end{center}
 
 \section{Entregables (Definition of Done)}
 \begin{dod}
 Plano P\&ID v2.0 (ISA-5.1, cajetín formal) & \cumple & \codigo{documentacion/planos\_isa/pid/brazo\_pid\_v2.dwg} / \codigo{.pdf}\\
-Plano eléctrico de potencia y mando (IEC) con bornes al PLC & \cumple & \codigo{documentacion/planos\_isa/electrico/brazo\_electrico\_v2.dwg} / \codigo{.pdf}; quedan puntos SUPUESTO por verificar\\
-Prototipo de mockups con paleta y organigrama & \cumple & \codigo{database/mockups/lab2\_mockups\_y\_organigrama.pdf}; falta el enlace al prototipo interactivo\\
-Cuadro descriptivo de campos & \cumple & sección 5.2 y documento de base de datos\\
+Plano eléctrico de potencia y mando (IEC) con bornes al PLC & \cumple & \codigo{documentacion/planos\_isa/electrico/brazo\_electrico\_v2.dwg} / \codigo{.pdf} y tabla de bornes de este informe\\
+Prototipo de mockups con paleta y organigrama & \cumple & \codigo{database/mockups/lab2\_mockups\_y\_organigrama.pdf}; prototipo navegable en \codigo{gemelo-digital/app/ui/}\\
+Cuadro descriptivo de campos & \cumple & sección~\ref{sec:campos} y documento de base de datos\\
 Archivos nativos como anexo & \cumple & DWG, DXF y script generador en \codigo{documentacion/planos\_isa/}\\
 \end{dod}
 
 \section{Conclusiones}
+\subsection{Equipo de control (ETN-902 / ETN-1034)}
 \begin{enumerate}
-\item El plano histórico tenía seis discrepancias con la planta real (laboratorio 1); las más graves eran las salidas de dirección dibujadas sin conexión y el desfase de las entradas de los finales de carrera. La versión 2.0 las corrige, junto con el tren de pulsos compartido y la numeración de lazos ISA (siete correcciones en total), y las documenta en su tabla de revisión.
-\item El P\&ID deja claro que el brazo es un sistema en lazo abierto con supervisión discreta: no hay transmisores continuos de posición. Esa es la limitación principal para los laboratorios de control de la fase 3.
-\item Los tags ISA definidos aquí (lazos 100 a 104) son los mismos que usa la base de datos, lo que cumple el requisito de lenguaje común entre control y cómputo.
-\item Antes de declarar definitivo el plano eléctrico, hay que verificar los cuatro puntos SUPUESTO en el tablero.
+\item ISA-5.1 obligó a declarar qué se mide y qué se infiere: la posición estimada por conteo de pulsos no es un transmisor, y la garra no tiene sensor de estado.
+\item El P\&ID deja explícito que los lazos 101 a 103 son de lazo abierto con referenciado; esa es la limitación principal para los laboratorios de control de la fase 3 y justifica incorporar encoders.
+\item La separación potencia/mando, la designación IEC 81346, la rotulación de cables y las referencias cruzadas convierten el esquema eléctrico en una herramienta de mantenimiento; la tabla de E/S une los nombres ISA, IEC y del PLC.
+\item Las discrepancias del laboratorio 1 quedaron corregidas y trazadas en la tabla de revisión de cada hoja; la garra, en particular, quedó dibujada como está en el tablero: solenoide directo en Q0.7.
+\end{enumerate}
+\subsection{Equipo de cómputo (ETN-1000)}
+\begin{enumerate}
+\item Los colores con significado fijo, el alto contraste y la jerarquía de la parada de emergencia reducen el tiempo de reacción del operador.
+\item Separar la interfaz local (control inmediato) del dashboard (análisis histórico) responde a dos perfiles de usuario con un único punto de entrada.
+\item El cuadro de campos liga cada elemento visual con una columna y un tipo de dato, y evita rediseñar el modelo del laboratorio 3 por variables no contempladas.
+\end{enumerate}
+
+\section*{Bibliografía}
+\addcontentsline{toc}{section}{Bibliografía}
+\begin{enumerate}[label={[\arabic*]}, leftmargin=*]
+\item Nava Amador, J. A. \emph{Guía de Laboratorio Nº 2: normalización internacional y diseño UI/UX}. UMSA, gestión II/2026.
+\item ISA. \emph{ANSI/ISA-S5.1-2009: Instrumentation Symbols and Identification}, 2009.
+\item IEC. \emph{IEC 60617: Graphical Symbols for Diagrams}.
+\item IEEE. \emph{IEEE Std 315: Graphic Symbols for Electrical and Electronics Diagrams}.
+\item IEC. \emph{IEC 81346: Structuring principles and reference designations}.
+\item IEC. \emph{IEC 60204-1: Safety of machinery -- Electrical equipment of machines}.
+\item ISO. \emph{ISO 13850: Safety of machinery -- Emergency stop function}.
+\item ISO. \emph{ISO 7200: Data fields in title blocks and document headers}.
+\item ISO/IEC/IEEE. \emph{12207: Software life cycle processes}.
+\item ISA. \emph{ANSI/ISA-101.01-2015: Human Machine Interfaces for Process Automation Systems}.
+\item Imai, M. \emph{Kaizen: The Key to Japan's Competitive Success}. McGraw-Hill, 1986.
 \end{enumerate}
 
 \end{document}

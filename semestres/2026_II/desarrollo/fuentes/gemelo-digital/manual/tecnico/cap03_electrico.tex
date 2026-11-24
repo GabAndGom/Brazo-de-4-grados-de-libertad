@@ -17,7 +17,7 @@
 \node[cajan, text width=2.4cm, right=of dz] (f) {fuente conmutada\\24~V / 5~V DC};
 \node[caja, text width=2.4cm, right=12mm of f, yshift=14mm] (plc) {PLC CPU 224\\(L+/M 24~V)};
 \node[caja, text width=2.4cm, right=12mm of f] (drv) {drivers 2M542 (X, Y)\\y 2M530 (base)\\VDC 24~V};
-\node[caja, text width=2.4cm, right=12mm of f, yshift=-14mm] (mando) {sensores, relés\\K1--K3, solenoide};
+\node[caja, text width=2.4cm, right=12mm of f, yshift=-14mm] (mando) {sensores, relés\\K1 y K2, solenoide};
 \draw[flecha] (red) -- (dz); \draw[flecha] (dz) -- (f);
 \draw[flecha] (f.east) -- ++(4mm,0) |- (plc.west);
 \draw[flecha] (f) -- (drv);
@@ -41,8 +41,7 @@
 % relés
 \node[draw, fill=gris, minimum width=1.2cm, minimum height=0.8cm, font=\scriptsize] (k1) at (5.2,-4.6) {K1};
 \node[draw, fill=gris, minimum width=1.2cm, minimum height=0.8cm, font=\scriptsize] (k2) at (5.2,-5.4) {K2};
-\node[draw, fill=gris, minimum width=1.2cm, minimum height=0.8cm, font=\scriptsize] (k3) at (5.2,-6.2) {K3};
-\draw[flecha] (2.4,-4.6) -- node[above, etiq]{bobina} (k1); \draw[flecha] (2.4,-5.4) -- (k2); \draw[flecha] (2.4,-6.2) -- (k3);
+\draw[flecha] (2.4,-4.6) -- node[above, etiq]{bobina} (k1); \draw[flecha] (2.4,-5.4) -- (k2);
 % drivers
 \node[draw, fill=white, minimum width=2.6cm, minimum height=1.5cm, align=center, font=\scriptsize] (dz) at (10.2,-0.9) {\textbf{driver base 2M530}\\PUL \ DIR \ ENA};
 \node[draw, fill=white, minimum width=2.6cm, minimum height=1.5cm, align=center, font=\scriptsize] (dx) at (10.2,-2.9) {\textbf{driver X 2M542}\\PUL \ DIR \ ENA};
@@ -60,7 +59,7 @@
 \draw[thick] (2.4,-3.8) -- (6.1,-3.8) -- (6.1,-5.2) -- (8.9,-5.2) node[pos=0.8, below, etiq]{DIR Y};
 % garra
 \node[draw, fill=white, minimum width=2.6cm, minimum height=1cm, align=center, font=\scriptsize] (sol) at (10.2,-6.6) {solenoide de la garra\\24~V DC};
-\draw[thick] (k3.east) -- node[above, etiq]{contacto K3, +24~V} (sol.west);
+\draw[thick] (2.4,-6.6) -- node[above, etiq, pos=0.4]{Q0.7, 24~V directo} (sol.west);
 % motores
 \node[draw, circle, minimum size=0.9cm, font=\scriptsize, right=6mm of dz] (mz) {M};
 \node[draw, circle, minimum size=0.9cm, font=\scriptsize, right=6mm of dx] (mx) {M};

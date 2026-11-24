@@ -187,7 +187,7 @@ def pid():
         'Finales de carrera ZSL/ZSH-102 y -103 en I0.1-I0.4; ZS-101 (inductivo) en I0.0.',
         'Tren de pulsos ZY-100 (Q0.1) compartido por K1/K2 hacia los drivers de X e Y.',
         'Lazos numerados 100 a 104 con tags ISA-5.1 (posición: letra Z).',
-        'Garra: XY-104 (Q0.7) por el relé K3 al solenoide XV-104.',
+        'Garra: salida XY-104 (Q0.7) directa al solenoide XV-104, sin relé intermedio.',
         'Enlace de datos PPI (RS-485) del PLC al gemelo digital ZI-100 en la PC.',
         'Sin realimentación continua: lazo abierto con supervisión discreta (sin encoders).',
     ]
@@ -263,7 +263,7 @@ def pid():
         d.poli([(x, 88), (x, 50)], 'PROCESO', 1.0)
     # ---- garra
     x = col[104]
-    globo(d, x, 150, 'XY', '104', 'campo'); d.texto(x - 8, 151, 'Relé K3', 1.7, 'TEXTO', 'der'); d.texto(x - 8, 148, 'Q0.7', 1.5, 'TEXTO', 'der')
+    globo(d, x, 150, 'XY', '104', 'plc'); d.texto(x - 8, 151, 'Salida Q0.7', 1.7, 'TEXTO', 'der'); d.texto(x - 8, 148, '24 V DC al solenoide', 1.5, 'TEXTO', 'der')
     senal(d, [(x, 184), (x, 156)]); senal(d, [(x, 144), (x, 100)])
     d.rect(x - 6, 88, x + 6, 100, 'SIMBOLOS'); d.linea(x - 6, 88, x + 6, 100, 'SIMBOLOS')
     d.texto(x - 8, 95, 'XV-104', 2.0, 'TAGS', 'der'); d.texto(x - 8, 92, 'solenoide 24 V', 1.5, 'TEXTO', 'der')
@@ -429,18 +429,18 @@ def electrico():
     d.texto(30, 82, 'SW1-SW3 OFF OFF ON = 2,37 A pico (1,69 A RMS)', 1.7, 'NOTAS')
     d.texto(30, 78.5, 'SW4 OFF = media corriente en reposo', 1.7, 'NOTAS')
     d.texto(30, 75, 'SW5-SW8 ON ON ON OFF = 1000 pulsos/vuelta', 1.7, 'NOTAS')
-    d.texto(30, 71.5, 'VERIFICAR: tabla de corriente del 2M530 (motor de 1,2 A)', 1.7, 'NOTAS')
-    d.texto(30, 68, 'VERIFICAR: PUL/DIR son optoacopladas de 5 V; con 24 V del PLC', 1.7, 'NOTAS')
-    d.texto(30, 64.5, 'van con resistencia en serie o desde el riel de 5 V (SUPUESTO).', 1.7, 'NOTAS')
+    d.texto(30, 71.5, '-A3 (2M530): DIP en la misma posición que -A1 y -A2', 1.7, 'NOTAS')
+    d.texto(30, 68, 'PUL+ y DIR+ desde las salidas a transistor de 24 V del PLC;', 1.7, 'NOTAS')
+    d.texto(30, 64.5, 'PUL- y DIR- al común 0 V (M).', 1.7, 'NOTAS')
 
     # ---------------------------------------------------------------- hoja 2: mando (PLC)
     d.dx = ANCHO + 30
     rev2 = [
         'Entradas: B1 inductivo I0.0; S11-S14 finales I0.1-I0.4 (X atrás/adelante, Y abajo/arriba).',
         'Start en paralelo con S1 (I0.7); Stop en paralelo con S2 (I1.0).',
-        '-K3 dibujado de nuevo: bobina por Q0.7, contacto 9-5 al solenoide -Y1.',
+        'Garra: Q0.7 acciona directo el solenoide -Y1 (el K3 del histórico era el solenoide).',
         'Salidas Q0.3 y Q0.4 conectadas (en el histórico figuraban sin conexión).',
-        'Referencias cruzadas de K1, K2 y K3 y tabla de E/S con tags ISA-5.1.',
+        'Referencias cruzadas de K1 y K2 y tabla de E/S con tags ISA-5.1.',
     ]
     marco(d, 'ESQUEMA ELÉCTRICO · MANDO (PLC)', 'E-B4G-01', '2 de 2', rev2, 'IEC 60617 · 60204-1')
     # barras
@@ -460,7 +460,8 @@ def electrico():
     for t, y, capa in (('1L+', 262, 'CC24'), ('2L+', 262, 'CC24'), ('1M', 256, 'CC0V'), ('2M', 256, 'CC0V')):
         d.linea(xs[t], py1 + 0.8, xs[t], y, capa); d.punto(xs[t], y)
     # salidas de pulsos y dirección hacia la hoja 1
-    dest = {'Q0.0': 'PUL+ -A3 (/1.7)', 'Q0.2': 'DIR+ -A3 (/1.7)', 'Q0.3': 'DIR+ -A2 (/1.5)', 'Q0.4': 'DIR+ -A1 (/1.3)'}
+    dest = {'Q0.0': 'PUL+ -A3 (/1.7)', 'Q0.2': 'DIR+ -A3 (/1.7)', 'Q0.3': 'DIR+ -A2 (/1.5)', 'Q0.4': 'DIR+ -A1 (/1.3)',
+            'Q0.7': '-Y1 garra (/2.5)'}
     for t, txt in dest.items():
         d.linea(xs[t], py1 + 0.8, xs[t], 240, 'MANDO')
         d.texto(xs[t] + 0.8, 241, txt, 1.4, 'REFERENCIAS', 'izq', 90)
@@ -473,24 +474,22 @@ def electrico():
         d.texto(xk + 1.3, 229, k, 1.6, 'TAGS'); d.texto(xk + 1.3, 226, '9-5', 1.1, 'BORNES')
         d.texto(xk + 0.8, 241, dst, 1.4, 'REFERENCIAS', 'izq', 90)
     num_cable(d, x1 + 0.8, 210, 'W0.1', 90)
-    # bobinas K1, K2, K3
+    # bobinas K1 y K2
     for t, k, desc, ref in (('Q0.5', '-K1', 'driver X', '9-5 /2.1'),
-                            ('Q0.6', '-K2', 'driver Y', '9-5 /2.1'),
-                            ('Q0.7', '-K3', 'garra', '9-5 /2.5')):
+                            ('Q0.6', '-K2', 'driver Y', '9-5 /2.1')):
         x = xs[t]
         d.linea(x, py1 + 0.8, x, 228, 'MANDO')
         bobina(d, x, 228, k, '')
         d.linea(x, 236, x, 256, 'CC0V'); d.punto(x, 256)
         d.texto(x, 224.5, desc, 1.3, 'TEXTO', 'centro'); d.texto(x, 222, ref, 1.3, 'REFERENCIAS', 'centro')
-    d.texto(xs['Q0.6'], 216.5, 'Relés Omron MY2N-J 24 V DC', 1.5, 'TEXTO', 'centro')
-    d.texto(xs['Q0.6'], 213.5, 'bobina 13-14 · contacto COM 9 / NA 5', 1.3, 'TEXTO', 'centro')
-    # garra: contacto de K3 y solenoide (circuito aparte, a la derecha)
+    xr = (xs['Q0.5'] + xs['Q0.6']) / 2
+    d.texto(xr, 216.5, 'Relés Omron MY2N-J 24 V DC', 1.5, 'TEXTO', 'centro')
+    d.texto(xr, 213.5, 'bobina 13-14 · contacto COM 9 / NA 5', 1.3, 'TEXTO', 'centro')
+    # garra: solenoide accionado directo por Q0.7 (circuito aparte, a la derecha)
     gx = 250
-    d.texto(gx, 181, '+24 V (L+) /2.1', 1.5, 'REFERENCIAS', 'centro')
-    borne(d, gx, 178); d.linea(gx, 177.2, gx, 170, 'CC24')
-    contacto_na(d, gx, 160); d.texto(gx + 1.5, 164, '-K3', 1.8, 'TAGS'); d.texto(gx + 1.5, 161, '9-5', 1.1, 'BORNES')
-    d.texto(gx + 8, 164, 'contacto de K3 (bobina /2.4)', 1.3, 'REFERENCIAS')
-    d.linea(gx, 160, gx, 150, 'MANDO')
+    d.texto(gx, 181, 'Q0.7 de -A4 (/2.4)', 1.5, 'REFERENCIAS', 'centro')
+    borne(d, gx, 178); d.linea(gx, 177.2, gx, 150, 'MANDO')
+    num_cable(d, gx + 0.8, 163, 'W0.7', 90)
     d.rect(gx - 4, 142, gx + 4, 150); d.linea(gx - 4, 142, gx + 4, 150)
     d.texto(gx + 6, 146.5, '-Y1  solenoide de la garra 24 V', 1.6, 'TAGS'); d.texto(gx + 6, 143.5, 'Q0.7 = 1: garra cerrada', 1.3, 'TEXTO')
     d.linea(gx, 142, gx, 131.2, 'CC0V'); borne(d, gx, 130); d.texto(gx, 126, '0 V (M) /2.1', 1.5, 'REFERENCIAS', 'centro')
@@ -534,9 +533,8 @@ def electrico():
         (final_carrera if tipo == 'final' else pulsador)(d, x, 90, '', '')
         d.texto(x, 86.5, nombre, 1.6, 'TAGS', 'centro'); d.texto(x, 84, desc, 1.2, 'TEXTO', 'centro')
         d.linea(x, 90, x, 74, 'CC0V'); d.punto(x, 74)
-    d.texto(30, 66, 'Comunes 1M y 2M a +24 V: el sensor NPN de I0.0 cierra a 0 V, igual que los contactos (SUPUESTO).', 1.6, 'NOTAS')
-    d.texto(30, 62.5, 'VERIFICAR en el tablero: comunes 1M/2M, cableado de -B1 y numeración del zócalo de K1-K3.', 1.6, 'NOTAS')
-    d.texto(30, 59, 'Correspondencia LS1-LS4 del plano histórico con S11-S14: SUPUESTO por orden.', 1.6, 'NOTAS')
+    d.texto(30, 66, 'Comunes 1M y 2M a +24 V: el sensor NPN de I0.0 y los contactos cierran la entrada a 0 V.', 1.6, 'NOTAS')
+    d.texto(30, 62.5, 'Finales de carrera: LS1-LS4 del plano histórico = -S11 a -S14 de esta hoja.', 1.6, 'NOTAS')
     # tabla de E/S con tags
     tx, ty = 262, ALTO - 18
     d.texto(tx, ty, 'TABLA DE E/S (tags ISA-5.1)', 2.6, 'TEXTO')
@@ -547,7 +545,7 @@ def electrico():
              ('I1.4', 'HS-103A', 'S6 jog Y arriba'), ('I1.5', 'HS-103B', 'S7 jog Y abajo'),
              ('Q0.0', 'ZY-101', 'PUL base (PTO0)'), ('Q0.1', 'ZY-100', 'PUL X/Y compartido (PTO1)'), ('Q0.2', 'ZY-101D', 'DIR base'),
              ('Q0.3', 'ZY-102D', 'DIR X (0 = adelante)'), ('Q0.4', 'ZY-103D', 'DIR Y (0 = arriba)'), ('Q0.5', 'ZY-102K', 'K1: tren al driver X'),
-             ('Q0.6', 'ZY-103K', 'K2: tren al driver Y'), ('Q0.7', 'XY-104', 'K3: solenoide de la garra')]
+             ('Q0.6', 'ZY-103K', 'K2: tren al driver Y'), ('Q0.7', 'XY-104', 'Solenoide de la garra (directo)')]
     d.rect(tx, ty - 6 - 4 * len(filas), ANCHO - 12, ty - 3, 'TEXTO')
     d.texto(tx + 1.5, ty - 5.2, 'Dir.', 1.7, 'TEXTO'); d.texto(tx + 13, ty - 5.2, 'Tag', 1.7, 'TEXTO'); d.texto(tx + 33, ty - 5.2, 'Función', 1.7, 'TEXTO')
     for i, (a, tg, f) in enumerate(filas):

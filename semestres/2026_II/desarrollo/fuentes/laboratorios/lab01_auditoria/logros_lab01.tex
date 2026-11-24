@@ -13,7 +13,7 @@
 \begin{center}\small\begin{tabularx}{\linewidth}{c >{\raggedright}p{2.4cm} >{\raggedright}X c c}
 \toprule \textbf{Nº} & \textbf{Mención} & \textbf{Objetivo} & \textbf{Estado} & \textbf{\%}\\ \midrule
 1 & ETN-902 / ETN-1034 & Abstracción y fenomenología & \cumple & 100\%\\
-2 & ETN-902 / ETN-1034 & Ingeniería inversa & \parcial & 90\%\\
+2 & ETN-902 / ETN-1034 & Ingeniería inversa & \cumple & 100\%\\
 3 & ETN-902 / ETN-1034 & Análisis de causalidad & \cumple & 100\%\\
 4 & ETN-1000 & Análisis de arquitectura & \cumple & 100\%\\
 5 & ETN-1000 & Evaluación de infraestructura local & \parcial & 70\%\\
@@ -27,7 +27,7 @@ El porcentaje mide cuánto del objetivo está hecho y comprobado en la planta o 
 \begin{itemize}
 \item Se clasificaron las variables del brazo en PV, MV y DV en el informe 1 (secciones 4.6 y 5.7.1).
 \item \textbf{PV} (lo que se quiere controlar): ángulo de la base $\theta$, posición del carro X (alcance), posición del carro Y (altura) y estado de la garra.
-\item \textbf{MV} (lo que manda el PLC): los trenes de pulsos PTO0 (base) y PTO1 (compartido por X e Y), las salidas de dirección y los relés K1, K2 y K3.
+\item \textbf{MV} (lo que manda el PLC): los trenes de pulsos PTO0 (base) y PTO1 (compartido por X e Y), las salidas de dirección, los relés K1 y K2 y la salida Q0.7 del solenoide de la garra.
 \item \textbf{DV} (perturbaciones): fricción y holgura de los husillos, carga en la garra, pérdida de pasos del motor y variación de la fuente.
 \end{itemize}
 \paragraph{Qué es y por qué importa.} Es el primer paso de cualquier diseño de control: antes de modelar hay que saber qué magnitud física se mide, cuál se manipula y qué la perturba. En el brazo, la PV es la posición de cada eje y la MV es la frecuencia del tren de pulsos que recibe el driver del motor paso a paso.
@@ -51,15 +51,15 @@ El porcentaje mide cuánto del objetivo está hecho y comprobado en la planta o 
 \item \codigo{documentacion/manuales\_inversa/informe\_1\_auditoria\_y\_requerimientos.pdf}
 \item \codigo{programas-plc/}
 \end{itemize}
-\paragraph{Lo que falta.} Verificar con multímetro los puntos que quedaron como SUPUESTO (común 1M/2M de entradas, tabla DIP del 2M530).
-\paragraph{Estado:} \parcial~(90\%).
+\paragraph{Lo que falta.} nada para este objetivo.
+\paragraph{Estado:} \cumple~(100\%).
 \subsubsection{Análisis de causalidad}
 \paragraph{Qué pide la guía.} Diagramar el proceso en bloques con la relación causa-efecto MV $\to$ PV y los límites del lazo abierto original.
 \paragraph{Qué se logró.}
 \begin{itemize}
 \item Diagrama de bloques fenomenológico con la referencia r(t), el error e(t), la acción u(t) del PLC y la salida y(t).
 \item Fundamentación de la \textbf{ruptura de causalidad}: el brazo no tiene encoder ni sensor continuo, así que la posición que «conoce» el PLC es la suma de los pulsos que envió, no una medición. Opera en lazo abierto ciego; solo los finales de carrera y el inductivo dan información real.
-\item Reporte de discrepancias Kaizen con 7 diferencias entre el plano histórico y la planta (finales en I0.1–I0.4, tren único Q0.1 repartido por K1/K2, direcciones Q0.3/Q0.4, relé K3 de la garra, etc.).
+\item Reporte de discrepancias Kaizen con 7 diferencias entre el plano histórico y la planta (finales en I0.1–I0.4, tren único Q0.1 repartido por K1/K2, direcciones Q0.3/Q0.4, garra con solenoide directo en Q0.7 (no hay relé K3), etc.).
 \end{itemize}
 \paragraph{Qué es y por qué importa.} El diagrama de bloques muestra qué señal causa qué. Si no existe la flecha de realimentación (sensor $\to$ controlador), el error e(t) no se puede calcular y el sistema no puede corregirse solo: eso es la ruptura de causalidad que pide documentar la guía.
 \paragraph{Evidencia.}
@@ -154,10 +154,9 @@ La guía asigna al docente el papel de auditor: en cada hito revisa el trabajo d
 \end{itemize}
 \paragraph{Estado:} \cumple~(100\%).
 \section{Conclusión}
-Cumplidos: Abstracción y fenomenología, Análisis de causalidad, Análisis de arquitectura. Con avance parcial: Ingeniería inversa, Evaluación de infraestructura local.
+Cumplidos: Abstracción y fenomenología, Ingeniería inversa, Análisis de causalidad, Análisis de arquitectura. Con avance parcial: Evaluación de infraestructura local.
 \par\smallskip Pendientes principales:
 \begin{enumerate}
-\item Verificar con multímetro los puntos que quedaron como SUPUESTO (común 1M/2M de entradas, tabla DIP del 2M530).
 \item Repetir la prueba en la PC del laboratorio (instalar PostgreSQL ahí) y dejar la comparación escrita.
 \end{enumerate}
 \par\smallskip\noindent Repositorio: \url{https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad}
