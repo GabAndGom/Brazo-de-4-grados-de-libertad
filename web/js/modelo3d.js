@@ -218,7 +218,7 @@ function salidas() {
 const NOMBRES_IO = {
   'I0.0': 'Inductivo θ = 0', 'I0.1': 'Final X atrás', 'I0.2': 'Final X adelante', 'I0.3': 'Final Y abajo', 'I0.4': 'Final Y arriba',
   'Q0.0': 'PTO base (Z)', 'Q0.1': 'PTO X/Y', 'Q0.2': 'DIR base', 'Q0.3': 'DIR X', 'Q0.4': 'DIR Y',
-  'Q0.5': 'Relé K1 → X', 'Q0.6': 'Relé K2 → Y', 'Q0.7': 'Garra (K3)',
+  'Q0.5': 'Relé K1 → X', 'Q0.6': 'Relé K2 → Y', 'Q0.7': 'Garra (solenoide)',
   'I0.5': 'Selector automático', 'I0.6': 'Paro / reset', 'I0.7': 'Garra / inicio',
   'I1.0': 'Base Q0.2 = 0', 'I1.1': 'Base Q0.2 = 1', 'I1.2': 'X adelante', 'I1.3': 'X atrás',
   'I1.4': 'Y arriba', 'I1.5': 'Y abajo'
