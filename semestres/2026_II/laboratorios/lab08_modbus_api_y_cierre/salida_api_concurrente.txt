@@ -1,0 +1,9 @@
+10 clientes simultáneos x 50 peticiones = 500 en 2.2 s (228 peticiones/s)
+Respuestas JSON válidas: 500/500 = 100.00 %
+ruta                                   n   éxito  mediana ms   p95 ms
+/api/v1/alertas/activas               84  100.0%        25.3     52.7
+/api/v1/ciclos                        84  100.0%        25.6     56.0
+/api/v1/kpi                           83  100.0%       109.6    161.2
+/api/v1/ordenes                       84  100.0%        24.4     46.9
+/api/v1/plantas                       82  100.0%        25.4     52.9
+/api/v1/telemetria/planta/1           83  100.0%        29.5     52.6

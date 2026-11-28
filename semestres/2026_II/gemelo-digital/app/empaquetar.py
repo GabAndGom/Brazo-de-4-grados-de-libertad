@@ -6,7 +6,7 @@ exporta la app autónoma a otra carpeta y a un .zip.
     python3 empaquetar.py --destino ~/gemelo_brazo_app     # además copia la app allí (+ .zip)
 
 Copia: web/js/cinematica.js, web/js/conexion-plc.js, web/js/modelo3d.js, web/css/estilos.css,
-global/modelo-3d/brazo_xk-js1-1.glb y parametros.json. La sección "Modelo 3D" de index.html
+global/modelo-3d/brazo_xk-js1-1.glb, parametros.json y el script de la base (base_datos/). La sección "Modelo 3D" de index.html
 se inserta en plantilla.html: así la ventana de la app y la página usan los mismos controles.
 """
 import argparse
@@ -26,10 +26,13 @@ COPIAS = {
     'global/modelo-3d/brazo_xk-js1-1.glb': 'ui/modelo/brazo_xk-js1-1.glb',
     'web/img/favicon.svg': 'ui/icono.svg',
     'semestres/2026_II/modelo-3d/cinematica/parametros.json': 'parametros.json',
+    'semestres/2026_II/database/scripts/brazo_4gdl.sql': 'base_datos/brazo_4gdl.sql',
 }
 # Se conservan al volver a exportar (y nunca se copian desde el repositorio)
-DATOS_PLANTA = ['calibracion.json', 'registro_gemelo.log', 'usuarios.json', 'tls_certificado.pem', 'tls_clave.pem']
-EXCLUIR = {'__pycache__', '_prueba_calibracion.json', 'perfil_ventana'} | set(DATOS_PLANTA)
+DATOS_PLANTA = ['calibracion.json', 'registro_gemelo.log', 'usuarios.json', 'tls_certificado.pem', 'tls_clave.pem',
+                'base_datos.json']
+CARPETAS_PLANTA = ['telemetria']           # CSV de telemetría de esta PC: se conservan al volver a exportar
+EXCLUIR = {'__pycache__', '_prueba_calibracion.json', 'perfil_ventana'} | set(DATOS_PLANTA) | set(CARPETAS_PLANTA)
 # Documentos que acompañan a la app exportada (carpeta documentos/)
 DOCUMENTOS = ['manual_linux.pdf', 'manual_windows.pdf', 'guia_completa_brazo.pdf', 'arquitectura_gemelo_digital.pdf']
 
@@ -65,12 +68,19 @@ def exportar(destino):
         if os.path.exists(p):
             with open(p, 'rb') as f:
                 guardados[n] = f.read()
+    carpetas = os.path.join(os.path.dirname(destino), '.' + os.path.basename(destino) + '_datos')
+    for n in CARPETAS_PLANTA:
+        if os.path.isdir(os.path.join(destino, n)):
+            shutil.copytree(os.path.join(destino, n), os.path.join(carpetas, n), dirs_exist_ok=True)
     if os.path.exists(destino):
         shutil.rmtree(destino)
     shutil.copytree(APP, destino, ignore=lambda d, nombres: [n for n in nombres if n in EXCLUIR])
     for n, contenido in guardados.items():
         with open(os.path.join(destino, n), 'wb') as f:
             f.write(contenido)
+    if os.path.isdir(carpetas):
+        shutil.copytree(carpetas, destino, dirs_exist_ok=True)
+        shutil.rmtree(carpetas)
     docs = os.path.join(destino, 'documentos')
     os.makedirs(docs, exist_ok=True)
     for n in DOCUMENTOS:

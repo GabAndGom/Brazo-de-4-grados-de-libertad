@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · Brazo XK-JS1-1</title>
+  <meta name="theme-color" content="#111318">
+  <link rel="icon" href="icono.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/sistema.css">
+  <style>
+    .tablero { max-width: 1280px; margin: 0 auto; padding: var(--e-5); display: grid; gap: var(--e-5); }
+    .filtros { display: flex; flex-wrap: wrap; align-items: end; gap: var(--e-3); }
+    .filtros .sd-campo { width: auto; min-width: 180px; }
+    .filtros .estado { margin-left: auto; font-size: var(--t-xs); color: var(--c-texto-2); }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--e-3); }
+    .kpi { padding: var(--e-4); }
+    .kpi .valor { font-size: var(--t-xxl); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .kpi .nombre { font-size: var(--t-xs); color: var(--c-texto-2); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+    .kpi .nota { font-size: var(--t-xs); color: var(--c-texto-2); margin-top: var(--e-1); }
+    .graficos { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: var(--e-3); }
+    .grafico { padding: var(--e-4); position: relative; }
+    .grafico h3 { display: flex; justify-content: space-between; gap: var(--e-2); }
+    .grafico h3 span { font-weight: 400; color: var(--c-texto-2); font-size: var(--t-xs); }
+    .grafico canvas { width: 100%; height: 180px; display: block; touch-action: none; }
+    .tip { position: absolute; pointer-events: none; background: var(--c-barra); color: var(--c-barra-texto);
+           font: 600 var(--t-xs)/1.4 var(--f-texto); padding: 6px 8px; border-radius: 6px; white-space: nowrap; display: none; }
+    .tablas { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: var(--e-3); }
+    .tablas > div { overflow-x: auto; min-width: 0; }
+    table { width: 100%; border-collapse: collapse; font-size: var(--t-s); }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--c-borde); vertical-align: top; }
+    th { font-size: var(--t-xs); color: var(--c-texto-2); font-weight: 650; }
+    td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .vacio { color: var(--c-texto-2); font-size: var(--t-s); padding: var(--e-3) 0; }
+    .formula { font-size: var(--t-xs); color: var(--c-texto-2); }
+    @media (max-width: 560px) { .tablero { padding: var(--e-4) 16px; } .graficos, .tablas { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="sd">
+  <header class="sd-barra">
+    <a class="sd-marca" href="./"><img src="icono.svg" alt=""><span><strong>Dashboard · Brazo XK-JS1-1</strong><small>Telemetría desde PostgreSQL · ERP del laboratorio</small></span></a>
+    <span class="sd-derecha">
+      <span class="sd-pastilla" id="planta">Planta…</span>
+      <span class="sd-pastilla" id="quien">…</span>
+      <a class="sd-boton chico fantasma" href="./" style="color:inherit">Gemelo 3D</a>
+      <a class="sd-boton chico fantasma" href="salir" style="color:inherit">Salir</a>
+    </span>
+  </header>
+  <main class="tablero">
+    <div class="filtros">
+      <label class="sd-campo">Periodo
+        <select id="periodo">
+          <option value="600|0">Últimos 10 minutos</option>
+          <option value="3600|0" selected>Última hora</option>
+          <option value="86400|60">Últimas 24 horas (promedio por minuto)</option>
+          <option value="604800|600">Últimos 7 días (promedio cada 10 min)</option>
+          <option value="2592000|3600">Últimos 30 días (promedio por hora)</option>
+        </select>
+      </label>
+      <a class="sd-boton" id="csv" href="#">Descargar CSV</a>
+      <button class="sd-boton" id="rearmar" hidden title="Vuelve a poner la planta en operación en la base de datos">Rearmar planta</button>
+      <span class="estado" id="estado" role="status">Cargando…</span>
+    </div>
+
+    <section aria-labelledby="t-kpi">
+      <h2 class="sd-titulo-seccion" id="t-kpi">Indicadores (últimos 7 días)</h2>
+      <div class="kpis" id="kpis"></div>
+      <p class="formula" id="formula"></p>
+    </section>
+
+    <section aria-labelledby="t-series">
+      <h2 class="sd-titulo-seccion" id="t-series">Series de tiempo</h2>
+      <div class="graficos" id="graficos"></div>
+    </section>
+
+    <section class="tablas">
+      <div class="sd-tarjeta"><h3>Alarmas activas</h3><div id="t-activas"></div></div>
+      <div class="sd-tarjeta"><h3>Historial de alarmas</h3><div id="t-alarmas"></div></div>
+      <div class="sd-tarjeta"><h3>Órdenes recientes</h3><div id="t-ordenes"></div></div>
+      <div class="sd-tarjeta" id="caja-sesiones" hidden><h3>Registro de ingresos (solo operador)</h3><div id="t-sesiones"></div></div>
+    </section>
+  </main>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

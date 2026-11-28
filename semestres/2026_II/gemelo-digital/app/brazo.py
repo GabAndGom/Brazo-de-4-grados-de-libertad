@@ -403,6 +403,9 @@ class PerfilGemelo(Perfil):
                 'referenciado': bool(flags & 0x01), 'en_movimiento': bool(estado) or ocupado0 or ocupado1,
                 'estimado': False, 'pulsos': {'Z': nz, 'X': nx, 'Y': ny}, 'entradas': ent, 'salidas': sal,
                 'modo_auto': bool(flags & 0x02),
+                # frecuencia de cada tren mientras está activo (variables MV SY-101 y SY-100)
+                'f_hz': {'base': round(1e6 / cz) if ocupado0 and cz else 0,
+                         'xy': round(1e6 / cxy) if ocupado1 and cxy else 0},
                 'plc': {'programa': 'gemelo digital', 'estado': ['reposo', 'homing', 'moviendo'][estado] if estado < 3 else estado,
                         'paso': paso, 'error': self.ERRORES.get(err, f'error {err}'), 'incierta': bool(flags & 0x10),
                         'watchdog': bool(flags & 0x20), 'firma': v[21] == 0x47}}

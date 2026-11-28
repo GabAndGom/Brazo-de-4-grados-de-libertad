@@ -1,0 +1,132 @@
+% Logros del laboratorio 8 frente a sus objetivos y trabajo del docente.
+% Generado por desarrollo/seguimiento/generar_logros.py desde logros_datos.py: editar los datos y regenerar.
+\documentclass[a4paper,11pt]{article}
+\input{../informe_comun}
+\renewcommand{\tipodoc}{Logros del Laboratorio Integrado}
+\renewcommand{\tipocab}{Logros del laboratorio}
+\begin{document}
+\portada{8}{Interoperabilidad industrial, API REST del ERP y cierre del proyecto}{martes 8 de diciembre de 2026}{martes 22 de diciembre de 2026}{semanas 18 a 20}
+\tableofcontents
+\newpage
+\nota{\textbf{Estado al 18/11/2026 (actualizado por la noche).} Laboratorio por empezar; ya están la API REST, los respaldos y la pasarela Modbus TCP. Fase 3: implementación, redes industriales y ERP (cierre). Este documento explica, objetivo por objetivo, qué pide la guía, qué logró la escuadra, qué es cada cosa y dónde está la evidencia; después explica el trabajo del docente: qué debía revisar en cada hito y qué tiene preparado la escuadra para esa revisión.}
+\section{Resumen}
+\begin{center}\small\begin{tabularx}{\linewidth}{c >{\raggedright}p{2.4cm} >{\raggedright}X c c}
+\toprule \textbf{Nº} & \textbf{Mención} & \textbf{Objetivo} & \textbf{Estado} & \textbf{\%}\\ \midrule
+1 & ETN-902 / ETN-1034 & Interoperabilidad industrial total (Modbus) & \parcial & 35\%\\
+2 & ETN-902 / ETN-1034 & Transferencia industrial y cierre del proyecto & \parcial & 50\%\\
+3 & ETN-1000 & Despliegue de la API REST del ERP & \parcial & 90\%\\
+4 & ETN-1000 & Consolidación de métricas en línea & \parcial & 60\%\\
+\bottomrule\end{tabularx}\end{center}
+El porcentaje mide cuánto del objetivo está hecho y comprobado en la planta o en el repositorio; no cuenta lo que solo está planificado.
+\section{Logros respecto de los objetivos}
+\subsection{Mención Control Automático (ETN-902 / ETN-1034)}
+\subsubsection{Interoperabilidad industrial total (Modbus)}
+\paragraph{Qué pide la guía.} Unificar los PLC de las 4 plantas en una red Modbus TCP y RTU/RS-485.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Comunicación PC $\leftrightarrow$ PLC funcionando por PPI (protocolo nativo del S7-200), documentada byte a byte con su suma de verificación.
+\item Pasarela Modbus TCP en la app (\codigo{modbus.py}, opción --modbus): registros 40001–40015, solo lectura; 1000 lecturas sin errores.
+\item Cliente TCP/RTU con CRC-16 y estadísticas de tramas, y esclavo RTU para el PLC (\codigo{modbus\_esclavo\_rtu.awl}, MBUS\_INIT/MBUS\_SLAVE, no probado).
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Modbus es un protocolo abierto que hablan casi todos los PLC; con él las cuatro plantas, de distintas marcas, comparten datos en una sola red. RTU va por RS-485 (serie) y TCP por Ethernet.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{laboratorios/lab08\_modbus\_api\_y\_cierre/informe\_lab08.pdf}
+\item \codigo{gemelo-digital/manual/manual\_tecnico.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} Red física con las otras plantas (STP, IP del MicroLogix) y estadísticas de CRC en el bus real.
+\paragraph{Estado:} \parcial~(35\%).
+\subsubsection{Transferencia industrial y cierre del proyecto}
+\paragraph{Qué pide la guía.} Validar el sistema bajo operación continua y documentar los manuales finales del SDLC y Kaizen.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Manual técnico de 87 páginas, manuales de uso en Linux y Windows, guía completa del brazo, documento de arquitectura y 8 informes de laboratorio.
+\item Planos v2.0, programa del PLC, scripts SQL, gemelo y modelo 3D versionados en el repositorio.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Es dejar la planta lista para que otro grupo la use y la mantenga: todo documentado, versionado y probado en operación prolongada.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{gemelo-digital/manual/manual\_tecnico.pdf}
+\item \codigo{gemelo-digital/manual/}
+\end{itemize}
+\paragraph{Lo que falta.} Pruebas de estrés en operación continua con cambios de setpoint, y memorias firmadas con ORCID.
+\paragraph{Estado:} \parcial~(50\%).
+\subsection{Mención Sistemas Computacionales (ETN-1000)}
+\subsubsection{Despliegue de la API REST del ERP}
+\paragraph{Qué pide la guía.} Servicios web seguros para descargar históricos (GET /api/v1/telemetria/…, /alertas/activas).
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item API de operación funcionando en la app, con JSON y sesión por token: \codigo{GET /api/estado}, \codigo{GET /api/info}, \codigo{POST /api/orden/\{nombre\}}, \codigo{POST /api/mando}.
+\item API de históricos implementada (\codigo{api\_erp.py}): POST /api/v1/token y GET /api/v1/telemetria/planta/\{id\} (JSON o CSV), /alertas/activas, /alertas, /ciclos, /ordenes, /kpi y /sesiones (operador).
+\item Auditoría: 10 clientes simultáneos, 500 de 500 respuestas válidas, 228 peticiones/s. Respaldos \codigo{respaldo.sh}/\codigo{.bat} con 30 copias, probados con restauración.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Una API REST es un conjunto de direcciones web que devuelven datos en JSON; permite que otro programa (o investigador) descargue los históricos sin entrar a la base. El token impide el acceso anónimo.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{gemelo-digital/app/}
+\item \codigo{laboratorios/lab08\_modbus\_api\_y\_cierre/informe\_lab08.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} Ponerla en la PC del laboratorio con datos reales y programar el respaldo diario allí.
+\paragraph{Estado:} \parcial~(90\%).
+\subsubsection{Consolidación de métricas en línea}
+\paragraph{Qué pide la guía.} Poner en producción el dashboard con resultados y bitácoras ante la comunidad universitaria.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Página pública brazo-4gdl.pages.dev con el modelo 3D del brazo, la documentación y la operación remota por roles; se publica sola con cada cambio del repositorio.
+\item Dashboard con métricas en vivo leídas de PostgreSQL, accesible por la red del laboratorio con usuario y contraseña.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Es la vitrina de ciencia abierta: cualquiera puede ver en línea cómo trabaja la planta y sus resultados.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \url{https://brazo-4gdl.pages.dev}
+\end{itemize}
+\paragraph{Lo que falta.} Publicarlo en el servidor de la UMSA con la telemetría de la planta real.
+\paragraph{Estado:} \parcial~(60\%).
+\section{Trabajo del docente}
+La guía asigna al docente el papel de auditor: en cada hito revisa el trabajo de la escuadra y decide si cumple antes de pasar a la etapa siguiente. Para cada tarea se explica qué debía revisar, cuándo, y qué tiene la escuadra para presentarle. El porcentaje es el del Excel \codigo{evaluacion\_tareas\_docente.xlsx}.
+\subsection{Evaluación de entrega de proyectos}
+\paragraph{Lo que dice la guía.} Presidir el tribunal final y verificar la correspondencia entre los manuales firmados en GitHub y la operación física. \textit{Cuándo:} martes 22 de diciembre de 2026 (semana 20).
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Tomar el manual y comprobar en la planta que cada señal, secuencia y límite descrito se cumple.
+\item[$\square$] Lazo cerrado funcionando, red con las otras plantas y telemetría en la base (40 \% de la nota final).
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item Manual técnico (87 pp.), manuales de uso, planos v2.0, documento de base de datos y 8 informes, verificados con la planta.
+\end{itemize}
+\paragraph{Lo que falta para que el docente lo apruebe.} Lazo cerrado y red con las otras plantas.
+\paragraph{Estado:} \parcial~(70\%).
+\subsection{Acreditación del ecosistema ERP}
+\paragraph{Lo que dice la guía.} Evaluar el dashboard final como vitrina de ciencia abierta y el cumplimiento del ciclo de vida. \textit{Cuándo:} martes 22 de diciembre de 2026.
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] API REST, triggers y dashboard operando como una sola plataforma sin fallas lógicas (30 \%).
+\item[$\square$] Trazabilidad del repositorio desde el laboratorio 1 hasta el cierre (30 \%).
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item Página pública con modelo 3D; dashboard, API REST de históricos con token, respaldos y pasarela Modbus TCP en la app.
+\end{itemize}
+\paragraph{Lo que falta para que el docente lo apruebe.} API REST de históricos, respaldos y dashboard.
+\paragraph{Estado:} \parcial~(20\%).
+\subsection{Visitas de egresados (tarea de la fase 3)}
+\paragraph{Lo que dice la guía.} Coordinar que egresados del IIDEPROQ/INIAM visiten el laboratorio. \textit{Cuándo:} fase 3, los martes.
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Actividad propia del docente; no se evalúa a la escuadra.
+\end{itemize}
+\paragraph{Estado:} \textit{no aplica}~(—).
+\subsection{Hito de la fase}
+\textbf{Hito final (semana 20):} las 4 plantas en lazo cerrado, interconectadas en red industrial, guardando telemetría en tiempo real y mostrándola en un dashboard auditable. Para el brazo ya funcionan, probados con el PLC simulado, la telemetría en PostgreSQL, el dashboard, la API REST y la pasarela Modbus TCP. Falta lo que depende del hardware: la realimentación de posición (sensor), la red física con las otras plantas y una corrida completa con la planta real.
+\section{Conclusión}
+Con avance parcial: Interoperabilidad industrial total (Modbus), Transferencia industrial y cierre del proyecto, Despliegue de la API REST del ERP, Consolidación de métricas en línea.
+\par\smallskip Pendientes principales:
+\begin{enumerate}
+\item Red física con las otras plantas (STP, IP del MicroLogix) y estadísticas de CRC en el bus real.
+\item Pruebas de estrés en operación continua con cambios de setpoint, y memorias firmadas con ORCID.
+\item Ponerla en la PC del laboratorio con datos reales y programar el respaldo diario allí.
+\item Publicarlo en el servidor de la UMSA con la telemetría de la planta real.
+\end{enumerate}
+\par\smallskip\noindent Repositorio: \url{https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad}
+\end{document}

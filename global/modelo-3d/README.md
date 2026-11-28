@@ -14,7 +14,7 @@ al marco de su nodo. Solo el disco fijo de abajo, que no está en el ensamble, s
 dibujar el modelo en una pose (figuras de los informes): `python3 global/modelo-3d/dibujar_modelo.py`.
 
 Si cambia el modelo de Inventor: exportar de nuevo `ensambleGeneral.iam` a STL ("un archivo por instancia",
-en mm) a `inventor/stl/`, ejecutar `python3 semestres/2026_II/modelo-3d/levantamiento/medidas_inventor.py`,
+en mm) a `inventor/stl/`, ejecutar `python3 semestres/2026_II/desarrollo/fuentes/modelo-3d/levantamiento/medidas_inventor.py`,
 pasar las cotas que cambien a `web/js/cinematica.js` y seguir los pasos de abajo. Para corregir una medida:
 
 1. Se cambia en `PARAMETROS`, dentro de `web/js/cinematica.js`.

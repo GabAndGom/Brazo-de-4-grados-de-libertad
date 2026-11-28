@@ -1,0 +1,163 @@
+% Logros del laboratorio 1 frente a sus objetivos y trabajo del docente.
+% Generado por desarrollo/seguimiento/generar_logros.py desde logros_datos.py: editar los datos y regenerar.
+\documentclass[a4paper,11pt]{article}
+\input{../informe_comun}
+\renewcommand{\tipodoc}{Logros del Laboratorio Integrado}
+\renewcommand{\tipocab}{Logros del laboratorio}
+\begin{document}
+\portada{1}{Auditoría Kaizen y levantamiento de requerimientos}{martes 4 de agosto de 2026}{martes 18 de agosto de 2026}{semanas 1 y 2}
+\tableofcontents
+\newpage
+\nota{\textbf{Estado al 18/11/2026 (actualizado por la noche).} Laboratorio entregado. Fase 1: ingeniería inversa y auditoría Kaizen. Este documento explica, objetivo por objetivo, qué pide la guía, qué logró la escuadra, qué es cada cosa y dónde está la evidencia; después explica el trabajo del docente: qué debía revisar en cada hito y qué tiene preparado la escuadra para esa revisión.}
+\section{Resumen}
+\begin{center}\small\begin{tabularx}{\linewidth}{c >{\raggedright}p{2.4cm} >{\raggedright}X c c}
+\toprule \textbf{Nº} & \textbf{Mención} & \textbf{Objetivo} & \textbf{Estado} & \textbf{\%}\\ \midrule
+1 & ETN-902 / ETN-1034 & Abstracción y fenomenología & \cumple & 100\%\\
+2 & ETN-902 / ETN-1034 & Ingeniería inversa & \cumple & 100\%\\
+3 & ETN-902 / ETN-1034 & Análisis de causalidad & \cumple & 100\%\\
+4 & ETN-1000 & Análisis de arquitectura & \cumple & 100\%\\
+5 & ETN-1000 & Evaluación de infraestructura local & \parcial & 70\%\\
+\bottomrule\end{tabularx}\end{center}
+El porcentaje mide cuánto del objetivo está hecho y comprobado en la planta o en el repositorio; no cuenta lo que solo está planificado.
+\section{Logros respecto de los objetivos}
+\subsection{Mención Control Automático (ETN-902 / ETN-1034)}
+\subsubsection{Abstracción y fenomenología}
+\paragraph{Qué pide la guía.} Identificar y clasificar las variables fundamentales de la planta.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Se clasificaron las variables del brazo en PV, MV y DV en el informe 1 (secciones 4.6 y 5.7.1).
+\item \textbf{PV} (lo que se quiere controlar): ángulo de la base $\theta$, posición del carro X (alcance), posición del carro Y (altura) y estado de la garra.
+\item \textbf{MV} (lo que manda el PLC): los trenes de pulsos PTO0 (base) y PTO1 (compartido por X e Y), las salidas de dirección, los relés K1 y K2 y la salida Q0.7 del solenoide de la garra.
+\item \textbf{DV} (perturbaciones): fricción y holgura de los husillos, carga en la garra, pérdida de pasos del motor y variación de la fuente.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Es el primer paso de cualquier diseño de control: antes de modelar hay que saber qué magnitud física se mide, cuál se manipula y qué la perturba. En el brazo, la PV es la posición de cada eje y la MV es la frecuencia del tren de pulsos que recibe el driver del motor paso a paso.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{documentacion/manuales\_inversa/informe\_1\_auditoria\_y\_requerimientos.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} nada para este objetivo.
+\paragraph{Estado:} \cumple~(100\%).
+\subsubsection{Ingeniería inversa}
+\paragraph{Qué pide la guía.} Localizar y caracterizar el hardware sin depender de manuales de fábrica.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Ficha técnica unificada del tablero: PLC Siemens S7-200 CPU 224 (24 V DC, 14 entradas y 10 salidas, 2 salidas de pulsos de 20 kHz), fuente conmutada 220 V AC a 24 V y 5 V DC, drivers 2M542 (X e Y) y 2M530 (base), motores NEMA 23 de 2,8 A y NEMA 17 de 1,2 A, relés DPDT de 24 V, finales de carrera, sensor inductivo NPN, botonera y solenoide de la garra.
+\item Mediciones pasivas con multímetro y continuidad, cable por cable, sin energizar actuadores.
+\item Lectura del programa original del PLC (\codigo{.mwp} / \codigo{.awl}) para saber qué hace cada entrada y salida.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Ingeniería inversa es reconstruir cómo está hecha la planta a partir de la planta misma, porque los planos heredados eran incompletos y no hay manual del fabricante. El resultado es la ficha técnica: la lista formal de cada componente con marca, modelo, tipo de señal y rango eléctrico.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{documentacion/manuales\_inversa/informe\_1\_auditoria\_y\_requerimientos.pdf}
+\item \codigo{programas-plc/}
+\end{itemize}
+\paragraph{Lo que falta.} nada para este objetivo.
+\paragraph{Estado:} \cumple~(100\%).
+\subsubsection{Análisis de causalidad}
+\paragraph{Qué pide la guía.} Diagramar el proceso en bloques con la relación causa-efecto MV $\to$ PV y los límites del lazo abierto original.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Diagrama de bloques fenomenológico con la referencia r(t), el error e(t), la acción u(t) del PLC y la salida y(t).
+\item Fundamentación de la \textbf{ruptura de causalidad}: el brazo no tiene encoder ni sensor continuo, así que la posición que «conoce» el PLC es la suma de los pulsos que envió, no una medición. Opera en lazo abierto ciego; solo los finales de carrera y el inductivo dan información real.
+\item Reporte de discrepancias Kaizen con 7 diferencias entre el plano histórico y la planta (finales en I0.1–I0.4, tren único Q0.1 repartido por K1/K2, direcciones Q0.3/Q0.4, garra con solenoide directo en Q0.7 (no hay relé K3), etc.).
+\end{itemize}
+\paragraph{Qué es y por qué importa.} El diagrama de bloques muestra qué señal causa qué. Si no existe la flecha de realimentación (sensor $\to$ controlador), el error e(t) no se puede calcular y el sistema no puede corregirse solo: eso es la ruptura de causalidad que pide documentar la guía.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{documentacion/manuales\_inversa/diagrama\_bloques\_fenomenologico.png}
+\item \codigo{documentacion/manuales\_inversa/informe\_1\_auditoria\_y\_requerimientos.pdf}
+\end{itemize}
+\paragraph{Lo que falta.} nada para este objetivo.
+\paragraph{Estado:} \cumple~(100\%).
+\subsection{Mención Sistemas Computacionales (ETN-1000)}
+\subsubsection{Análisis de arquitectura}
+\paragraph{Qué pide la guía.} Analizar la comunicación PLC $\to$ cliente-servidor bajo el modelo de 3 capas.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Diagrama de arquitectura de 3 capas: \textbf{campo} (PLC, sensores, drivers), \textbf{middleware} (programa en la PC que lee al PLC por PPI, RS-485 a 9600 bit/s) y \textbf{servidor/cliente} (base de datos y navegador).
+\item Recorrido de un dato: sensor $\to$ registro binario del PLC $\to$ lectura del middleware $\to$ tabla del motor relacional.
+\item Borrador del modelo entidad-relación con PV, MV, alertas y tiempos de operación.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} La arquitectura de 3 capas separa quién mide (campo), quién traduce y transporta (middleware) y quién guarda y muestra (servidor). Así se puede cambiar una capa sin rehacer las otras, por ejemplo pasar de PPI a Modbus sin tocar la base de datos.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{documentacion/manuales\_inversa/informe\_1\_auditoria\_y\_requerimientos.pdf}
+\item \codigo{database/modelo/modelo\_er\_preliminar.png}
+\end{itemize}
+\paragraph{Lo que falta.} nada para este objetivo.
+\paragraph{Estado:} \cumple~(100\%).
+\subsubsection{Evaluación de infraestructura local}
+\paragraph{Qué pide la guía.} Contrastar la capacidad y latencia del hardware local frente a desplegar un backend en una PC industrial.
+\paragraph{Qué se logró.}
+\begin{itemize}
+\item Latencia medida con la planta: una lectura completa por PPI tarda unos 155 ms ($\approx$ 6 lecturas por segundo); el límite lo pone el protocolo a 9600 bit/s, no la PC.
+\item PostgreSQL 16 instalado y probado en la PC de desarrollo (base \codigo{brazo4gdl} con 18 000 muestras sintéticas): la carga de una muestra por segundo por variable es mínima para cualquier PC.
+\end{itemize}
+\paragraph{Qué es y por qué importa.} Antes de poner un servidor de base de datos junto a la planta hay que saber si la PC y el enlace aguantan el flujo de datos. Con 5 variables a 1 muestra/s son unas 18 000 filas por hora, lo que una PC de laboratorio maneja sin problema; el cuello de botella es el enlace PPI.
+\paragraph{Evidencia.}
+\begin{itemize}\small
+\item \codigo{laboratorios/lab06\_control\_discreto\_y\_middleware/informe\_lab06.pdf}
+\item \codigo{database/scripts/registro\_ejecucion.txt}
+\end{itemize}
+\paragraph{Lo que falta.} Repetir la prueba en la PC del laboratorio (instalar PostgreSQL ahí) y dejar la comparación escrita.
+\paragraph{Estado:} \parcial~(70\%).
+\section{Trabajo del docente}
+La guía asigna al docente el papel de auditor: en cada hito revisa el trabajo de la escuadra y decide si cumple antes de pasar a la etapa siguiente. Para cada tarea se explica qué debía revisar, cuándo, y qué tiene la escuadra para presentarle. El porcentaje es el del Excel \codigo{evaluacion\_tareas\_docente.xlsx}.
+\subsection{Apertura metodológica}
+\paragraph{Lo que dice la guía.} Explicar el hilo conductor del Ciclo de Vida del Desarrollo de Sistemas (SDLC) en la clase del lunes previo. \textit{Cuándo:} lunes 3 de agosto de 2026 (clase magistral).
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Que cada escuadra entienda las etapas del SDLC (requerimientos, diseño, implementación, pruebas, despliegue, mantenimiento) y en qué laboratorio cae cada una.
+\item[$\square$] Que el trabajo de las tres asignaturas sea un solo proyecto y no tres trabajos sueltos.
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item Cada informe de laboratorio indica su lugar en el SDLC (laboratorio 1 = requerimientos, 2 y 3 = diseño, 4 y 5 = construcción y pruebas en simulación, 6 a 8 = implementación y despliegue).
+\item Diagrama del flujo SDLC del proyecto en el documento de base de datos.
+\end{itemize}
+\paragraph{Estado:} \cumple~(100\%).
+\subsection{Monitoreo en campo}
+\paragraph{Lo que dice la guía.} Evaluar las dinámicas de grupo del martes y que control y computación usen un lenguaje ingenieril estandarizado. \textit{Cuándo:} martes 4 y 11 de agosto de 2026.
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Que los alumnos de control y de computación nombren igual cada señal (tags ISA-5.1) y no con nombres informales.
+\item[$\square$] Que el equipo de cómputo pregunte al de control qué variables guardar (levantamiento de requerimientos).
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item 5 lazos (100 a 104) y 27 tags ISA-5.1 usados con el mismo nombre en el P\&ID, el plano eléctrico, la base de datos y el manual técnico.
+\end{itemize}
+\paragraph{Estado:} \cumple~(100\%).
+\subsection{Auditoría de bitácoras}
+\paragraph{Lo que dice la guía.} Evaluar los informes por la rigurosidad de los defectos y discrepancias encontrados en la documentación histórica. \textit{Cuándo:} martes 18 de agosto de 2026 (defensa de 10 minutos).
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Que la ficha técnica tenga marca, modelo, tipo de señal y rango eléctrico de cada componente (40 \% de la nota va al reporte de discrepancias).
+\item[$\square$] Que cada discrepancia diga qué decía el plano histórico, qué hay en la planta y cómo se verificó.
+\item[$\square$] Que el diagrama de bloques sea coherente con la planta real (30 \%) y que la arquitectura de 3 capas sea clara (30 \%).
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item Informe 1 de 31 páginas con ficha técnica, 6 discrepancias Kaizen, ruptura de causalidad, diagrama de bloques y arquitectura de 3 capas.
+\item Las 6 discrepancias se verificaron después con el PLC en marcha y se corrigieron en los planos v2.0 (laboratorio 2).
+\end{itemize}
+\paragraph{Estado:} \cumple~(100\%).
+\subsection{Entregar los «Activos Históricos» (tarea de la fase 1)}
+\paragraph{Lo que dice la guía.} Entregar a los grupos el compilado de laboratorios previos de las plantas. \textit{Cuándo:} inicio de la fase 1 (semana 1).
+\paragraph{Qué debía revisar el docente (hitos de la revisión).}
+\begin{itemize}
+\item[$\square$] Que la escuadra reciba y conserve sin cambios los planos y programas de gestiones anteriores, para poder compararlos.
+\end{itemize}
+\paragraph{Qué tiene la escuadra para esa revisión.}
+\begin{itemize}
+\item Planos históricos (eléctrico y P\&ID en DWG), programa original del PLC y la gestión 2026\_I completa, conservados sin modificar en el repositorio.
+\end{itemize}
+\paragraph{Estado:} \cumple~(100\%).
+\section{Conclusión}
+Cumplidos: Abstracción y fenomenología, Ingeniería inversa, Análisis de causalidad, Análisis de arquitectura. Con avance parcial: Evaluación de infraestructura local.
+\par\smallskip Pendientes principales:
+\begin{enumerate}
+\item Repetir la prueba en la PC del laboratorio (instalar PostgreSQL ahí) y dejar la comparación escrita.
+\end{enumerate}
+\par\smallskip\noindent Repositorio: \url{https://github.com/GabAndGom/Brazo-de-4-grados-de-libertad}
+\end{document}

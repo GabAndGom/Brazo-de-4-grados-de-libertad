@@ -6,16 +6,17 @@ Guía para el equipo: dónde poner cada archivo y cómo hacer que aparezca bien 
 
 | Qué es | Dónde va |
 |---|---|
-| Informe de laboratorio | `semestres/2026_II/laboratorios/labNN_.../` |
+| Informe de laboratorio (PDF entregable) | `semestres/2026_II/laboratorios/labNN_.../` |
+| Fuente LaTeX de un informe o manual | `semestres/2026_II/desarrollo/fuentes/` (misma estructura; se compila con `desarrollo/compilar_documentos.py`) |
+| Material de trabajo no entregable (seguimiento, notas, levantamiento) | `semestres/2026_II/desarrollo/` |
 | Guía de laboratorio | `semestres/2026_II/guias/` |
 | Plano eléctrico (`.dwg`, `.pdf`) | `semestres/2026_II/documentacion/planos_isa/electrico/` |
 | P&ID (`.dwg`, `.pdf`) | `semestres/2026_II/documentacion/planos_isa/pid/` |
-| Programa del PLC (`.mwp`, `.awl`) | `semestres/2026_II/programas-plc/` |
-| HMI, SCADA, comunicación | `semestres/2026_II/hmi/` |
+| Programa del PLC (`.mwp`, `.awl`) | `semestres/2026_II/gemelo-digital/plc/` (el original, en `programas-plc/`) |
+| App del gemelo, middleware, API, dashboard | `semestres/2026_II/gemelo-digital/app/` |
 | Base de datos (modelo, `.sql`, mockups) | `semestres/2026_II/database/` |
-| Datos de ensayos | `semestres/2026_II/pruebas/` |
-| Fotos del laboratorio | `semestres/2026_II/evidencias/` |
-| Medidas, cinemática e informe del modelo 3D | `semestres/2026_II/modelo-3d/` |
+| Datos de ensayos de un laboratorio | `semestres/2026_II/laboratorios/labNN_.../` |
+| Cinemática e informe del modelo 3D | `semestres/2026_II/modelo-3d/` |
 | Modelo 3D (`.glb`) y su generador | `global/modelo-3d/` |
 | Foto de un componente de la planta | `global/fotos-planta/` (`.jpg`, máximo ~1600 px) |
 | Datasheet de un componente | `global/datasheets/` |

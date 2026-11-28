@@ -93,6 +93,8 @@ const VISTAS = {
 };
 
 const IGNORAR = new Set(['.git', 'node_modules', '.DS_Store', 'Thumbs.db', 'desktop.ini', '.gitignore', '.gitkeep']);
+// Carpetas de trabajo de cada semestre (fuentes, seguimiento interno): están en el repositorio pero no en la página
+const NO_PUBLICAR = new Set(['desarrollo']);
 
 const normalizar = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -113,6 +115,7 @@ function recorrer(dirRel, lista) {
   if (!fs.existsSync(dirAbs)) return;
   for (const e of fs.readdirSync(dirAbs, { withFileTypes: true })) {
     if (IGNORAR.has(e.name) || e.name.startsWith('~$')) continue;
+    if (e.isDirectory() && NO_PUBLICAR.has(e.name)) continue;
     const rel = `${dirRel}/${e.name}`;
     if (e.isDirectory()) recorrer(rel, lista);
     else if (e.isFile()) lista.push({ rel, tam: fs.statSync(path.join(ROOT, rel)).size });
@@ -155,6 +158,7 @@ function clasificar(partes, ext) {
   const esCad = EXT.plano.includes(ext);
   if (esCad || ['pdf', 'docx', 'doc', 'md'].includes(ext)) {
     if (/mockup/.test(ruta)) return 'mockup';
+    if (/presentacion/.test(nombre)) return 'presentacion';
     if (/electric/.test(nombre) || /\/electrico\//.test(ruta)) return 'electrico';
     if (/guia/.test(nombre)) return 'guia';
     if (/informe/.test(nombre)) return 'informe';

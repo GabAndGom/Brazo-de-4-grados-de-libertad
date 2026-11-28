@@ -34,7 +34,7 @@
 
   // ------------------------------------------------------------------ parámetros
   // Origen de cada dato: leida (boceto), estimada (foto), fabricante (manual) o SUPUESTO.
-  // Ver semestres/2026_II/modelo-3d/levantamiento/levantamiento_medidas.md
+  // Ver semestres/2026_II/desarrollo/fuentes/modelo-3d/levantamiento/levantamiento_medidas.md
   const PARAMETROS = {
     // Base giratoria
     hDiscoInf: 15,        // leida: disco 11, Ø165 × 15
@@ -101,7 +101,7 @@
 
   // Supuestos y estimaciones de foto: deben medirse en la planta
   // Las cotas del mecanismo se tomaron del modelo de Inventor del equipo (17/11/2026):
-  // semestres/2026_II/modelo-3d/levantamiento/medidas_inventor.json
+  // semestres/2026_II/desarrollo/fuentes/modelo-3d/levantamiento/medidas_inventor.json
   const SUPUESTOS = ['hEntreDiscos', 'holgura', 'recorridoX', 'recorridoY', 'thetaMin', 'thetaMax',
     'pasoHusillo', 'micropasosZ', 'reduccionBase'];
 

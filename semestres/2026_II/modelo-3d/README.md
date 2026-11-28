@@ -1,13 +1,13 @@
 # Modelo 3D y cinemática (II-2026)
 
-Gemelo digital geométrico del brazo: levantamiento de medidas, cinemática y su informe. Resumen con
-ecuaciones en [`cinematica_y_modelo_3d.md`](cinematica_y_modelo_3d.md).
+Gemelo digital geométrico del brazo: cinemática directa e inversa y su informe.
 
 | Carpeta | Contenido |
 |---|---|
-| `levantamiento/` | Tabla de piezas y medidas, esquema cinemático y las 20 fotos y bocetos (`fotos/`) |
 | `cinematica/` | Pruebas (Node), gráficas (Python), script MATLAB, `parametros.json` y tabla de validación |
-| `informe/` | Informe en LaTeX y PDF, con sus figuras |
+| `informe/` | [Informe de cinemática y modelo 3D](informe/informe_cinematica_modelo_3d.pdf) (PDF) |
 
-El módulo de cinemática que usa la página está en `web/js/cinematica.js` y el modelo 3D en
-`global/modelo-3d/`. Las cotas marcadas **SUPUESTO** deben medirse en la planta.
+El módulo de cinemática que usa la página está en `web/js/cinematica.js` y el modelo 3D en `global/modelo-3d/`.
+El levantamiento de medidas (fotos, planilla, medidas del modelo de Inventor) y las fuentes del informe están
+en [`../desarrollo/fuentes/modelo-3d/`](../desarrollo/fuentes/modelo-3d/). Las cotas marcadas **SUPUESTO**
+deben medirse en la planta.

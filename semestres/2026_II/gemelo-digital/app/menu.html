@@ -92,9 +92,10 @@ dialog form { display: grid; gap: var(--e-3); }
         <span class="modo-icono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="13" height="10" rx="1.5"/><path d="M6 18h5M8.5 14v4"/><rect x="17" y="7" width="5" height="12" rx="1.2"/><path d="M19 16.5h1"/></svg></span>
         <div>
           <h3>Operación por red local <span class="etiqueta-actual">· activo</span></h3>
-          <p>Como la operación local, y además celulares y otras PC de la misma red entran con usuario y contraseña.</p>
-          <div class="req"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0114 0"/></svg>Cable · al menos un usuario · misma red Wi-Fi</div>
+          <p>Como la operación local, y además celulares y otras PC de la misma red entran con usuario y contraseña (o sin contraseña, como observadores libres).</p>
+          <div class="req"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0114 0"/></svg>Cable · un usuario u observadores libres · misma red Wi-Fi</div>
           <label class="opcion"><input type="checkbox" id="red-simulado"> Sin brazo: usar el PLC simulado (para probar la red)</label>
+          <label class="opcion"><input type="checkbox" id="red-libres"> Observadores libres: entrar sin contraseña, solo para ver</label>
         </div>
         <div class="acciones"><button class="sd-boton primario" data-elegir="red">Abrir</button></div>
       </article>
@@ -183,10 +184,12 @@ async function pintarQR() {
   $('#qr-red').disabled = !red;
   $('#qr-red').setAttribute('aria-selected', String(qrActual === 'red'));
   $('#qr-pagina').setAttribute('aria-selected', String(qrActual === 'pagina'));
-  const url = qrActual === 'red' ? red : estado.url_pagina;
+  const url = qrActual === 'red' ? red + (estado.observadores_libres ? 'libre' : '') : estado.url_pagina;
   $('#qr-url').textContent = url;
   $('#qr-texto').textContent = qrActual === 'red'
-    ? 'Escanéelo con la cámara del celular conectado al mismo Wi-Fi. La primera vez acepte el aviso del certificado e ingrese con su usuario.'
+    ? (estado.observadores_libres
+      ? 'Escanéelo con la cámara del celular conectado al mismo Wi-Fi. La primera vez acepte el aviso del certificado: entra directo como observador, sin contraseña.'
+      : 'Escanéelo con la cámara del celular conectado al mismo Wi-Fi. La primera vez acepte el aviso del certificado e ingrese con su usuario.')
     : 'Abre la página pública del proyecto: documentación, planos y simulación del brazo.';
   if (qrMostrado !== url) {
     qrMostrado = url;
@@ -194,6 +197,14 @@ async function pintarQR() {
     $('#qr-imagen').innerHTML = r.ok ? await r.text() : '';
   }
 }
+$('#red-libres').addEventListener('change', async ev => {
+  const m = $('#msg-modo');
+  try {
+    pintar(await api('api/app/libres', { habilitado: ev.target.checked }));
+    mensaje(m, ev.target.checked ? 'Observadores libres habilitados: el QR de la red entra sin contraseña (solo ver).'
+                                 : 'Observadores libres deshabilitados: sus sesiones se cerraron.', 'ok');
+  } catch (e) { ev.target.checked = !ev.target.checked; mensaje(m, e.message, 'mal'); }
+});
 $('#qr-red').addEventListener('click', () => { qrActual = 'red'; pintarQR(); });
 $('#qr-pagina').addEventListener('click', () => { qrActual = 'pagina'; pintarQR(); });
 
@@ -208,6 +219,7 @@ function pintar(e) {
     t.querySelector('[data-elegir]').textContent = actual ? 'Volver al gemelo' : 'Abrir';
   });
   if (!pintar.hecho) { $('#red-simulado').checked = e.modo === 'red' && e.red_simulado; pintar.hecho = true; }
+  $('#red-libres').checked = !!e.observadores_libres;
   $('#e-modo').textContent = e.nombre_modo || 'ninguno (elija uno)';
   const p = e.plc;
   if (!p) { for (const id of ['#e-plc', '#e-perfil', '#e-mando']) $(id).textContent = '—'; }

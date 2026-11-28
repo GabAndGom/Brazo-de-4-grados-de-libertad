@@ -4,6 +4,8 @@
 - Las contraseñas se guardan con PBKDF2-SHA256 y sal aleatoria en usuarios.json; nunca en claro.
 - Sesión por cookie (HttpOnly, SameSite=Strict) que vence a las 8 h sin uso.
 - Tras 5 intentos fallidos desde una misma dirección, esa dirección espera 60 s.
+- Observadores libres (opcional, apagado por defecto): con la opción activa, cualquiera de la red entra
+  como observador sin contraseña ("visita-N"). Nunca da mando; al apagarla se cierran esas sesiones.
 """
 import hashlib
 import hmac
@@ -56,6 +58,28 @@ class Acceso:
         self.sesiones = {}            # token -> {usuario, rol, vence, ip}
         self.fallos = {}              # ip -> (cantidad, bloqueado_hasta)
         self.lock = threading.Lock()
+        self.libres = False           # observadores sin contraseña
+        self._visitas = 0
+
+    def poner_libres(self, activo):
+        """Activa o apaga los observadores libres; al apagarlos se cierran sus sesiones."""
+        with self.lock:
+            self.libres = bool(activo)
+            if not self.libres:
+                for t in [t for t, s in self.sesiones.items() if s.get('libre')]:
+                    del self.sesiones[t]
+
+    def entrar_libre(self, ip):
+        """Sesión de observador sin contraseña; ValueError si la opción está apagada."""
+        with self.lock:
+            if not self.libres:
+                raise ValueError('el ingreso libre de observadores no está habilitado')
+            self._visitas += 1
+            usuario = f'visita-{self._visitas}'
+            token = secrets.token_urlsafe(32)
+            self.sesiones[token] = {'usuario': usuario, 'rol': 'observador', 'vence': time.time() + DURACION,
+                                    'ip': ip, 'libre': True}
+            return token, usuario
 
     def hay_usuarios(self):
         return bool(cargar(self.archivo))
@@ -90,6 +114,12 @@ class Acceso:
             if time.time() > s['vence']:
                 del self.sesiones[token]
                 return None
+            if s.get('libre'):
+                if not self.libres:           # la opción se apagó: la sesión ya no vale
+                    del self.sesiones[token]
+                    return None
+                s['vence'] = time.time() + DURACION
+                return dict(s)
             # El rol se vuelve a leer: si se cambia o se borra el usuario, vale en la siguiente petición
             u = cargar(self.archivo).get(s['usuario'])
             if not u:

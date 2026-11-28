@@ -43,13 +43,18 @@ for _s in (sys.stdout, sys.stderr):            # la consola de Windows no siempr
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from brazo import APP, UI, Brazo  # noqa: E402
 import acceso  # noqa: E402
+import api_erp  # noqa: E402
 import certificado_tls  # noqa: E402
 import qr  # noqa: E402
 import serie  # noqa: E402
+import telemetria  # noqa: E402
 import ventana  # noqa: E402
 
 BRAZO = None                        # conexión con el PLC (real o simulado) del modo elegido
 ACCESO = acceso.Acceso()
+REGISTRADOR = None                  # telemetría a CSV y PostgreSQL (se crea en main)
+ERP = api_erp.ERP()                 # API REST de históricos y datos del dashboard
+MODBUS = None                       # servidor Modbus TCP (opcional, --modbus)
 CLAVE_LOCAL = False                 # --clave-local: pedir contraseña también en esta PC
 COOKIE = 'gemelo_sesion'
 SOLO_OPERADOR = ('/api/mando', '/api/calibrar_base')
@@ -88,8 +93,23 @@ body{display:grid;place-items:center;padding:var(--e-4)}
 <label class="sd-campo">Contraseña<input name="clave" type="password" autocomplete="current-password" required></label>
 <p class="error" role="alert">{error}</p>
 <button class="sd-boton primario">Ingresar</button>
+{libre}
 <p class="ayuda">Observador: ve el brazo en vivo. Operador: además lo manda, siempre con alguien junto a la seta de emergencia.</p>
 </form></body></html>"""
+
+
+BOTON_LIBRE = ('<a class="sd-boton ancho" href="libre">Entrar como observador (sin contraseña)</a>'
+               '<p class="ayuda">El ingreso libre solo permite ver el brazo; para mandarlo ingrese con un usuario operador.</p>')
+
+
+def pagina_login(error=''):
+    return (PAGINA_LOGIN.replace('{error}', error)
+            .replace('{libre}', BOTON_LIBRE if ACCESO.libres and APLICACION['red'] else ''))
+
+
+def poner_observadores_libres(activo):
+    ACCESO.poner_libres(activo)
+    registrar('observadores libres (sin contraseña) ' + ('HABILITADOS' if ACCESO.libres else 'deshabilitados'))
 
 
 def registrar(texto):
@@ -169,8 +189,9 @@ def aplicar_modo(modo, red_simulado=False):
     global BRAZO
     if modo not in MODOS:
         raise ValueError('modo desconocido')
-    if modo == 'red' and not ACCESO.hay_usuarios():
-        raise ValueError('para la operación por red cree antes al menos un usuario (sección Usuarios)')
+    if modo == 'red' and not ACCESO.hay_usuarios() and not ACCESO.libres:
+        raise ValueError('para la operación por red cree antes al menos un usuario (sección Usuarios) '
+                         'o habilite los observadores libres')
     simulado = modo == 'simulacion' or (modo == 'red' and red_simulado)
     with CAMBIO:
         if BRAZO is None or BRAZO.simulado != simulado:
@@ -186,6 +207,8 @@ def aplicar_modo(modo, red_simulado=False):
         APLICACION['modo'], APLICACION['red_simulado'] = modo, (modo == 'red' and red_simulado)
         if modo == 'simulacion' and not BRAZO.mando:
             threading.Thread(target=_mando_simulacion, args=(BRAZO,), daemon=True).start()
+    if REGISTRADOR:
+        REGISTRADOR.nuevo_modo(modo)
     registrar(f'modo: {MODOS[modo]}' + (' (PLC simulado)' if modo == 'red' and red_simulado else ''))
 
 
@@ -200,9 +223,11 @@ def estado_aplicacion():
     usuarios = acceso.cargar()
     return {'modo': APLICACION['modo'], 'nombre_modo': MODOS.get(APLICACION['modo']),
             'red_simulado': APLICACION['red_simulado'], 'url_red': APLICACION['url_red'], 'ip': ip_local(),
-            'url_pagina': URL_PAGINA,
+            'url_pagina': URL_PAGINA, 'observadores_libres': ACCESO.libres,
             'puerto_red': Config.puerto_red, 'plc': plc, 'puertos': serie.puertos(), 'sistema': sys.platform,
             'usuarios': [{'nombre': n, 'rol': d['rol']} for n, d in sorted(usuarios.items())],
+            'telemetria': REGISTRADOR.info() if REGISTRADOR else None,
+            'modbus': MODBUS.info() if MODBUS else None,
             'conectados': sorted({u for u, _ in ACCESO.activas()})}
 
 
@@ -275,7 +300,14 @@ class Manejador(SimpleHTTPRequestHandler):
     def local(self):
         return self.en_esta_pc and not CLAVE_LOCAL
 
+    def _bearer(self):
+        """Token de la API REST: «Authorization: Bearer <token>» (agentes externos, sin cookie)."""
+        k, _, v = (self.headers.get('Authorization') or '').partition(' ')
+        return v.strip() if k.lower() == 'bearer' and v.strip() else None
+
     def _token(self):
+        if self._bearer():
+            return self._bearer()
         for parte in (self.headers.get('Cookie') or '').split(';'):
             k, _, v = parte.strip().partition('=')
             if k == COOKIE:
@@ -295,6 +327,8 @@ class Manejador(SimpleHTTPRequestHandler):
 
     def _mismo_origen(self):
         """Protección contra páginas ajenas: las órdenes deben venir de esta misma app."""
+        if self._bearer():
+            return True                               # un token Bearer no lo envía el navegador por su cuenta
         origen = self.headers.get('Origin')
         if origen is None:
             return self.local                         # curl en esta PC
@@ -356,6 +390,24 @@ class Manejador(SimpleHTTPRequestHandler):
                                 f'window.GEMELO_USUARIO = {datos};')
         self._html(200, pagina)
 
+    def _api_v1(self, ruta, s):
+        if ruta == '/api/v1/yo':
+            return self._json(200, {'ok': True, 'datos': {'usuario': s['usuario'], 'rol': s['rol']}})
+        q = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
+        try:
+            codigo, cuerpo, tipo = ERP.atender(ruta, q, s['rol'])
+        except api_erp.ErrorAPI as ex:
+            return self._json(ex.codigo, {'ok': False, 'error': str(ex)})
+        if tipo == 'json':
+            return self._json(codigo, cuerpo)
+        datos = cuerpo.encode('utf-8')
+        self.send_response(codigo)
+        self.send_header('Content-Type', tipo)
+        self.send_header('Content-Disposition', 'attachment; filename="telemetria_brazo.csv"')
+        self.send_header('Content-Length', str(len(datos)))
+        self.end_headers()
+        self.wfile.write(datos)
+
     # -------------------------------------------------------------- GET / POST
     def do_OPTIONS(self):
         self.send_response(204)
@@ -365,7 +417,18 @@ class Manejador(SimpleHTTPRequestHandler):
     def do_GET(self):
         ruta = self.path.split('?')[0]
         if ruta == '/login':
-            return self._html(200, PAGINA_LOGIN.replace('{error}', ''))
+            return self._html(200, pagina_login())
+        if ruta == '/libre':
+            if getattr(self.server, 'es_red', False):
+                try:
+                    token, usuario = ACCESO.entrar_libre(self.client_address[0])
+                except ValueError as ex:
+                    return self._html(403, pagina_login(html.escape(str(ex))))
+                registrar(f'ingreso libre de {usuario} (observador) desde {self.client_address[0]}')
+                if REGISTRADOR:
+                    REGISTRADOR.sesion(usuario, self.client_address[0], True)
+                return self._ir('./', [self._cookie(token, acceso.DURACION)])
+            return self._ir('./')
         if ruta == '/salir':
             s = ACCESO.salir(self._token())
             if s and BRAZO:
@@ -383,6 +446,8 @@ class Manejador(SimpleHTTPRequestHandler):
                 return self._json(403, {'ok': False, 'error': 'solo desde la PC del laboratorio'})
             cual = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query).get('d', ['pagina'])[0]
             texto = APLICACION['url_red'] if cual == 'red' else URL_PAGINA
+            if cual == 'red' and texto and ACCESO.libres:
+                texto += 'libre'                      # el celular entra directo como observador
             if not texto:
                 return self._json(404, {'ok': False, 'error': 'el acceso por red no está activo'})
             cuerpo = qr.svg(texto).encode('utf-8')
@@ -395,6 +460,12 @@ class Manejador(SimpleHTTPRequestHandler):
             if not self._puede_menu():
                 return self._json(403, {'ok': False, 'error': 'solo desde la PC del laboratorio'})
             return self._json(200, estado_aplicacion())
+        if ruta.startswith('/api/v1/'):
+            if not s:
+                return self._json(401, {'ok': False, 'error': 'falta un token válido: POST /api/v1/token'})
+            return self._api_v1(ruta, s)
+        if ruta == '/dashboard':
+            return self._ir('dashboard.html' if s else 'login')
         if ruta.startswith('/api/'):
             if not s:
                 return self._json(401, {'ok': False, 'error': 'sesión vencida: vuelva a ingresar'})
@@ -407,6 +478,8 @@ class Manejador(SimpleHTTPRequestHandler):
             if ruta == '/api/sesion':
                 return self._json(200, {'usuario': s['usuario'], 'rol': s['rol'], 'local': self.local,
                                         'conectados': ACCESO.activas()})
+            if ruta == '/api/telemetria':
+                return self._json(200, REGISTRADOR.info() if REGISTRADOR else {})
             return self._json(404, {'ok': False, 'error': 'ruta desconocida'})
         if ruta in ('/', '/index.html'):
             if not s:
@@ -429,9 +502,29 @@ class Manejador(SimpleHTTPRequestHandler):
                 token, rol = ACCESO.entrar(usuario, (campos.get('clave') or [''])[0], self.client_address[0])
             except ValueError as ex:
                 registrar(f'ingreso fallido de "{usuario}" desde {self.client_address[0]}')
-                return self._html(401, PAGINA_LOGIN.replace('{error}', html.escape(str(ex))))
+                if REGISTRADOR:
+                    REGISTRADOR.sesion(usuario, self.client_address[0], False)
+                return self._html(401, pagina_login(html.escape(str(ex))))
             registrar(f'ingreso de {usuario} ({rol}) desde {self.client_address[0]}')
+            if REGISTRADOR:
+                REGISTRADOR.sesion(usuario, self.client_address[0], True)
             return self._ir('./', [self._cookie(token, acceso.DURACION)])
+        if ruta == '/api/v1/token':
+            # API REST: usuario y contraseña (JSON) -> token para «Authorization: Bearer»
+            usuario = '?'
+            try:
+                d = json.loads(cuerpo or b'{}')
+                usuario = str(d.get('usuario') or '').strip()
+                token, rol = ACCESO.entrar(usuario, str(d.get('clave') or ''), self.client_address[0])
+            except (ValueError, AttributeError) as ex:
+                if REGISTRADOR:
+                    REGISTRADOR.sesion(usuario, self.client_address[0], False)
+                return self._json(401, {'ok': False, 'error': str(ex) if isinstance(ex, ValueError) else 'JSON no válido'})
+            registrar(f'token de la API para {usuario} ({rol}) desde {self.client_address[0]}')
+            if REGISTRADOR:
+                REGISTRADOR.sesion(usuario, self.client_address[0], True)
+            return self._json(200, {'ok': True, 'token': token, 'rol': rol, 'tipo': 'Bearer',
+                                    'vence_en_s': acceso.DURACION})
         s = self.sesion()
         if not s:
             return self._json(401, {'ok': False, 'error': 'sesión vencida: vuelva a ingresar'})
@@ -445,6 +538,8 @@ class Manejador(SimpleHTTPRequestHandler):
                 datos = json.loads(cuerpo or b'{}')
                 if ruta == '/api/app/modo':
                     aplicar_modo(datos.get('modo'), bool(datos.get('red_simulado')))
+                elif ruta == '/api/app/libres':
+                    poner_observadores_libres(bool(datos.get('habilitado')))
                 elif ruta == '/api/app/usuarios':
                     administrar_usuarios(datos)
                 else:
@@ -454,6 +549,15 @@ class Manejador(SimpleHTTPRequestHandler):
                 return self._json(400, {'ok': False, 'error': str(ex)})
             except OSError as ex:                     # p. ej. el puerto de red ya está en uso
                 return self._json(500, {'ok': False, 'error': f'no se pudo abrir el acceso por red: {ex}'})
+        if ruta == '/api/v1/planta/rearmar':
+            if s['rol'] != 'operador':
+                return self._json(403, {'ok': False, 'error': 'solo un operador puede rearmar la planta'})
+            try:
+                r = ERP.rearmar(1)
+            except api_erp.ErrorAPI as ex:
+                return self._json(ex.codigo, {'ok': False, 'error': str(ex)})
+            registrar(f'planta rearmada en la base de datos por {s["usuario"]}')
+            return self._json(200, r)
         if BRAZO is None:
             return self._json(503, {'ok': False, 'error': 'elija un modo en el menú de la app'})
         if s['rol'] != 'operador' and (ruta in SOLO_OPERADOR or ruta.startswith('/api/orden/')):
@@ -469,10 +573,15 @@ class Manejador(SimpleHTTPRequestHandler):
                 return self._json(200, BRAZO.calibrar_base(datos.get('angulo')))
             if ruta.startswith('/api/orden/'):
                 r = BRAZO.orden(ruta.rsplit('/', 1)[1], datos, quien)
+                if REGISTRADOR:
+                    REGISTRADOR.orden(ruta.rsplit('/', 1)[1], datos, quien, True)
                 return self._json(200, r or {'ok': True})
             self._json(404, {'ok': False, 'error': 'ruta desconocida'})
         except (ValueError, KeyError) as ex:
             registrar(f'RECHAZADO {ruta} de {s["usuario"]}: {ex}')
+            if REGISTRADOR and ruta.startswith('/api/orden/'):
+                REGISTRADOR.orden(ruta.rsplit('/', 1)[1], datos if isinstance(locals().get('datos'), dict) else {},
+                                  s['usuario'], False, str(ex))
             self._json(400, {'ok': False, 'error': str(ex)})
         except Exception as ex:                       # error de comunicación u otro
             self._json(500, {'ok': False, 'error': str(ex)})
@@ -491,7 +600,7 @@ def vigilar_mando():
 
 
 def main():
-    global CLAVE_LOCAL
+    global CLAVE_LOCAL, REGISTRADOR, MODBUS
     ap = argparse.ArgumentParser(description='Gemelo digital del brazo XK-JS1-1 (PLC S7-200 por PPI)')
     ap.add_argument('--modo', choices=['menu', 'simulacion', 'local', 'red'], default='menu',
                     help='modo al abrir (por defecto el menú)')
@@ -507,7 +616,14 @@ def main():
     ap.add_argument('--clave-local', action='store_true', help='pedir contraseña también en esta PC')
     ap.add_argument('--navegador', action='store_true', help='abrir en el navegador en vez de la ventana')
     ap.add_argument('--sin-ventana', action='store_true', help='solo el servidor (sin ventana ni navegador)')
+    ap.add_argument('--observadores-libres', action='store_true',
+                    help='modo red: permitir observadores sin contraseña (solo ven el brazo)')
+    ap.add_argument('--sin-telemetria', action='store_true', help='no guardar telemetría (CSV ni PostgreSQL)')
+    ap.add_argument('--modbus', type=int, nargs='?', const=5020, default=None, metavar='PUERTO',
+                    help='publicar el estado como esclavo Modbus TCP (por defecto en el puerto 5020)')
     a = ap.parse_args()
+    if a.observadores_libres:
+        poner_observadores_libres(True)
     CLAVE_LOCAL = a.clave_local
     Config.puerto, Config.direccion, Config.puerto_red, Config.cifrado = \
         a.puerto, a.direccion, a.puerto_red, not a.sin_cifrado
@@ -519,6 +635,11 @@ def main():
     if a.clave_local and not ACCESO.hay_usuarios():
         raise SystemExit('Con --clave-local hace falta al menos un usuario operador (usuarios.py agregar ...).')
 
+    if not a.sin_telemetria:
+        REGISTRADOR = telemetria.Registrador(lambda: BRAZO, registrar)
+    if a.modbus:
+        import modbus
+        MODBUS = modbus.ServidorModbus(lambda: BRAZO, a.modbus, registrar)
     principal = Servidor(('127.0.0.1', a.http), Manejador)
     inicio = 'menu'
     if modo != 'menu':
@@ -544,6 +665,10 @@ def main():
     finally:
         if BRAZO:
             BRAZO.cerrar()                     # para el brazo si se movía por orden de la PC
+        if REGISTRADOR:
+            REGISTRADOR.cerrar()               # cierra el ciclo de operación en la base
+        if MODBUS:
+            MODBUS.cerrar()
         _desactivar_red()
         principal.server_close()
         print('\nApp cerrada.')
