@@ -630,41 +630,5 @@
       5,
       6
     ]
-  },
-  "semestres/2026_II/presentaciones/presentacion_control_gemelo_brazo.pdf": {
-    "titulo": "Presentación de control y gemelo digital (PDF)",
-    "descripcion": "Presentación del 28/11/2026 con enfoque de control: planta e instrumentación, lazo abierto con trenes de pulsos, modelo identificado, controlabilidad, PI discreto y LQR, gemelo digital, observadores libres y demostración.",
-    "subsistemas": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
-  },
-  "semestres/2026_II/presentaciones/presentacion_control_gemelo_brazo.pptx": {
-    "titulo": "Presentación de control y gemelo digital (PowerPoint)",
-    "descripcion": "Presentación del 28/11/2026 con enfoque de control: planta e instrumentación, lazo abierto con trenes de pulsos, modelo identificado, controlabilidad, PI discreto y LQR, gemelo digital, observadores libres y demostración. Editable, con el guion en las notas.",
-    "subsistemas": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
-  },
-  "semestres/2026_II/presentaciones/documento_presentacion_control_gemelo.pdf": {
-    "titulo": "Documento de la presentación de control y gemelo digital",
-    "descripcion": "Cada lámina con su explicación y su guion, cronograma de 15 minutos, el gemelo digital en detalle y la guía de la demostración con observadores libres.",
-    "subsistemas": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
-    ]
   }
 }
