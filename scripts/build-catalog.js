@@ -158,6 +158,7 @@ function clasificar(partes, ext) {
   const esCad = EXT.plano.includes(ext);
   if (esCad || ['pdf', 'docx', 'doc', 'md'].includes(ext)) {
     if (/mockup/.test(ruta)) return 'mockup';
+    if (/presentacion/.test(nombre)) return 'presentacion';
     if (/electric/.test(nombre) || /\/electrico\//.test(ruta)) return 'electrico';
     if (/guia/.test(nombre)) return 'guia';
     if (/informe/.test(nombre)) return 'informe';

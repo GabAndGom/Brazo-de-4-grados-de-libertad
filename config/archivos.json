@@ -606,5 +606,29 @@
       3,
       4
     ]
+  },
+  "semestres/2026_II/presentaciones/presentacion_fase1_brazo_xk-js1-1.pdf": {
+    "titulo": "Presentación de la fase I (PDF)",
+    "descripcion": "Presentación de cierre de la fase I (laboratorios 1, 2 y 3): auditoría, discrepancias Kaizen, causalidad, planos v2.0 por zonas, interfaces, Git y modelo relacional.",
+    "subsistemas": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  "semestres/2026_II/presentaciones/presentacion_fase1_brazo_xk-js1-1.pptx": {
+    "titulo": "Presentación de la fase I (PowerPoint)",
+    "descripcion": "Presentación de cierre de la fase I (laboratorios 1, 2 y 3): auditoría, discrepancias Kaizen, causalidad, planos v2.0 por zonas, interfaces, Git y modelo relacional. Editable.",
+    "subsistemas": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
   }
 }
