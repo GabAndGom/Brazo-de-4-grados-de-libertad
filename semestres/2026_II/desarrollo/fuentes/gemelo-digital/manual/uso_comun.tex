@@ -182,11 +182,14 @@ La operación por red exige usuarios. Se administran en el menú de inicio, en e
 \textbf{Rol} & \textbf{Qué puede hacer}\\
 \midrule
 observador & Ver el brazo en vivo: modelo 3D, posición, entradas y salidas. No puede mover, tomar el mando ni dar paro.\\
+observador libre & Sin usuario ni contraseña, solo si en el menú se marcó \emph{Observadores libres} (tarjeta \emph{Operación por red local}). Entra con el QR o con el botón \emph{Entrar como observador} y aparece como \codigo{visita-N}. Igual que el observador: solo ve. Al desmarcar la casilla sus sesiones se cierran.\\
 operador & Todo lo anterior, más tomar el mando y mover el brazo. Un solo operador tiene el mando a la vez; los demás ven quién lo tiene y pueden dar paro. El mando se suelta al desmarcar la casilla, al pulsar \emph{Salir} o tras 8~h sin uso.\\
 \bottomrule
 \end{tabularx}
 \end{center}
 Las contraseñas se guardan cifradas (PBKDF2) en \codigo{usuarios.json}, junto a la app. El nombre distingue mayúsculas. Tras 5 contraseñas erradas desde un equipo, ese equipo espera 60~s. Los usuarios también se pueden administrar desde una terminal con \codigo{usuarios.py} (\codigo{agregar}, \codigo{clave}, \codigo{rol}, \codigo{quitar}, \codigo{listar}).
+
+\paragraph{Observadores libres.} Para una clase o una demostración con público, marque en el menú la casilla \emph{Observadores libres: entrar sin contraseña, solo para ver} (o abra la app con \codigo{-{}-observadores-libres}). El QR del menú pasa a apuntar a \codigo{https://IP:8443/libre} y quien lo escanea entra directo al gemelo como \codigo{visita-1}, \codigo{visita-2}, etc. El servidor rechaza cualquier orden o pedido de mando de una visita. La casilla viene apagada cada vez que se abre la app; con ella marcada, la operación por red se puede abrir aunque no haya usuarios.
 
 % =====================================================================
 \section{Operación por red local}\label{sec:red}

@@ -93,8 +93,23 @@ body{display:grid;place-items:center;padding:var(--e-4)}
 <label class="sd-campo">Contraseña<input name="clave" type="password" autocomplete="current-password" required></label>
 <p class="error" role="alert">{error}</p>
 <button class="sd-boton primario">Ingresar</button>
+{libre}
 <p class="ayuda">Observador: ve el brazo en vivo. Operador: además lo manda, siempre con alguien junto a la seta de emergencia.</p>
 </form></body></html>"""
+
+
+BOTON_LIBRE = ('<a class="sd-boton ancho" href="libre">Entrar como observador (sin contraseña)</a>'
+               '<p class="ayuda">El ingreso libre solo permite ver el brazo; para mandarlo ingrese con un usuario operador.</p>')
+
+
+def pagina_login(error=''):
+    return (PAGINA_LOGIN.replace('{error}', error)
+            .replace('{libre}', BOTON_LIBRE if ACCESO.libres and APLICACION['red'] else ''))
+
+
+def poner_observadores_libres(activo):
+    ACCESO.poner_libres(activo)
+    registrar('observadores libres (sin contraseña) ' + ('HABILITADOS' if ACCESO.libres else 'deshabilitados'))
 
 
 def registrar(texto):
@@ -174,8 +189,9 @@ def aplicar_modo(modo, red_simulado=False):
     global BRAZO
     if modo not in MODOS:
         raise ValueError('modo desconocido')
-    if modo == 'red' and not ACCESO.hay_usuarios():
-        raise ValueError('para la operación por red cree antes al menos un usuario (sección Usuarios)')
+    if modo == 'red' and not ACCESO.hay_usuarios() and not ACCESO.libres:
+        raise ValueError('para la operación por red cree antes al menos un usuario (sección Usuarios) '
+                         'o habilite los observadores libres')
     simulado = modo == 'simulacion' or (modo == 'red' and red_simulado)
     with CAMBIO:
         if BRAZO is None or BRAZO.simulado != simulado:
@@ -207,7 +223,7 @@ def estado_aplicacion():
     usuarios = acceso.cargar()
     return {'modo': APLICACION['modo'], 'nombre_modo': MODOS.get(APLICACION['modo']),
             'red_simulado': APLICACION['red_simulado'], 'url_red': APLICACION['url_red'], 'ip': ip_local(),
-            'url_pagina': URL_PAGINA,
+            'url_pagina': URL_PAGINA, 'observadores_libres': ACCESO.libres,
             'puerto_red': Config.puerto_red, 'plc': plc, 'puertos': serie.puertos(), 'sistema': sys.platform,
             'usuarios': [{'nombre': n, 'rol': d['rol']} for n, d in sorted(usuarios.items())],
             'telemetria': REGISTRADOR.info() if REGISTRADOR else None,
@@ -401,7 +417,18 @@ class Manejador(SimpleHTTPRequestHandler):
     def do_GET(self):
         ruta = self.path.split('?')[0]
         if ruta == '/login':
-            return self._html(200, PAGINA_LOGIN.replace('{error}', ''))
+            return self._html(200, pagina_login())
+        if ruta == '/libre':
+            if getattr(self.server, 'es_red', False):
+                try:
+                    token, usuario = ACCESO.entrar_libre(self.client_address[0])
+                except ValueError as ex:
+                    return self._html(403, pagina_login(html.escape(str(ex))))
+                registrar(f'ingreso libre de {usuario} (observador) desde {self.client_address[0]}')
+                if REGISTRADOR:
+                    REGISTRADOR.sesion(usuario, self.client_address[0], True)
+                return self._ir('./', [self._cookie(token, acceso.DURACION)])
+            return self._ir('./')
         if ruta == '/salir':
             s = ACCESO.salir(self._token())
             if s and BRAZO:
@@ -419,6 +446,8 @@ class Manejador(SimpleHTTPRequestHandler):
                 return self._json(403, {'ok': False, 'error': 'solo desde la PC del laboratorio'})
             cual = urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query).get('d', ['pagina'])[0]
             texto = APLICACION['url_red'] if cual == 'red' else URL_PAGINA
+            if cual == 'red' and texto and ACCESO.libres:
+                texto += 'libre'                      # el celular entra directo como observador
             if not texto:
                 return self._json(404, {'ok': False, 'error': 'el acceso por red no está activo'})
             cuerpo = qr.svg(texto).encode('utf-8')
@@ -475,7 +504,7 @@ class Manejador(SimpleHTTPRequestHandler):
                 registrar(f'ingreso fallido de "{usuario}" desde {self.client_address[0]}')
                 if REGISTRADOR:
                     REGISTRADOR.sesion(usuario, self.client_address[0], False)
-                return self._html(401, PAGINA_LOGIN.replace('{error}', html.escape(str(ex))))
+                return self._html(401, pagina_login(html.escape(str(ex))))
             registrar(f'ingreso de {usuario} ({rol}) desde {self.client_address[0]}')
             if REGISTRADOR:
                 REGISTRADOR.sesion(usuario, self.client_address[0], True)
@@ -509,6 +538,8 @@ class Manejador(SimpleHTTPRequestHandler):
                 datos = json.loads(cuerpo or b'{}')
                 if ruta == '/api/app/modo':
                     aplicar_modo(datos.get('modo'), bool(datos.get('red_simulado')))
+                elif ruta == '/api/app/libres':
+                    poner_observadores_libres(bool(datos.get('habilitado')))
                 elif ruta == '/api/app/usuarios':
                     administrar_usuarios(datos)
                 else:
@@ -585,10 +616,14 @@ def main():
     ap.add_argument('--clave-local', action='store_true', help='pedir contraseña también en esta PC')
     ap.add_argument('--navegador', action='store_true', help='abrir en el navegador en vez de la ventana')
     ap.add_argument('--sin-ventana', action='store_true', help='solo el servidor (sin ventana ni navegador)')
+    ap.add_argument('--observadores-libres', action='store_true',
+                    help='modo red: permitir observadores sin contraseña (solo ven el brazo)')
     ap.add_argument('--sin-telemetria', action='store_true', help='no guardar telemetría (CSV ni PostgreSQL)')
     ap.add_argument('--modbus', type=int, nargs='?', const=5020, default=None, metavar='PUERTO',
                     help='publicar el estado como esclavo Modbus TCP (por defecto en el puerto 5020)')
     a = ap.parse_args()
+    if a.observadores_libres:
+        poner_observadores_libres(True)
     CLAVE_LOCAL = a.clave_local
     Config.puerto, Config.direccion, Config.puerto_red, Config.cifrado = \
         a.puerto, a.direccion, a.puerto_red, not a.sin_cifrado

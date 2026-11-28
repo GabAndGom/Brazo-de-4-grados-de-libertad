@@ -344,10 +344,14 @@ visita               observador
 \textbf{Rol} & \textbf{Qué puede hacer}\\
 \midrule
 observador & Ver el brazo en vivo: modelo 3D, posición, entradas y salidas. No puede mover, tomar el mando ni dar paro.\\
+observador libre & Sin usuario ni contraseña, solo si en el menú se marcó \emph{Observadores libres} (tarjeta \emph{Operación por red local}). Entra con el QR o con el botón \emph{Entrar como observador} y aparece como \codigo{visita-N}. Igual que el observador: solo ve. Al desmarcar la casilla sus sesiones se cierran.\\
 operador & Todo lo anterior, más tomar el mando y mover el brazo. Un solo operador tiene el mando a la vez; los demás ven quién lo tiene y \textbf{pueden dar paro}. El mando se suelta al desmarcar la casilla, al pulsar \emph{Salir} o cuando vence la sesión (8 h sin uso).\\
 \bottomrule
 \end{tabularx}
 \end{center}
+
+\paragraph{Observadores libres.} Para una clase o una demostración con público, marque en el menú la casilla \emph{Observadores libres: entrar sin contraseña, solo para ver} (o abra la app con \codigo{-{}-observadores-libres}). El QR del menú pasa a apuntar a \codigo{https://IP:8443/libre} y quien lo escanea entra directo al gemelo como \codigo{visita-1}, \codigo{visita-2}, etc. El servidor rechaza cualquier orden o pedido de mando de una visita. La casilla viene apagada cada vez que se abre la app; con ella marcada, la operación por red se puede abrir aunque no haya usuarios.
+
 
 \begin{itemize}
 \item La contraseña debe tener al menos 8 caracteres.

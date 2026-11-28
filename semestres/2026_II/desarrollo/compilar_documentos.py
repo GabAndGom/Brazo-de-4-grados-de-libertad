@@ -24,6 +24,8 @@ DOCUMENTOS = {f'laboratorios/{l}/informe_{l[:5]}.tex': f'laboratorios/{l}/inform
 DOCUMENTOS.update({
     'laboratorios/lab03_git_y_modelo_er/informe_cierre_fase1.tex': 'laboratorios/lab03_git_y_modelo_er/informe_cierre_fase1.pdf',
     'gemelo-digital/manual/tecnico/manual_tecnico.tex': 'gemelo-digital/manual/manual_tecnico.pdf',
+    'presentaciones/control_gemelo_28nov/documento_presentacion_control.tex':
+        'presentaciones/documento_presentacion_control_gemelo.pdf',
     'gemelo-digital/manual/guia_completa_brazo.tex': 'gemelo-digital/manual/guia_completa_brazo.pdf',
     'gemelo-digital/manual/arquitectura_gemelo_digital.tex': 'gemelo-digital/manual/arquitectura_gemelo_digital.pdf',
     'gemelo-digital/manual/manual_gemelo_digital.tex': 'gemelo-digital/manual/manual_gemelo_digital.pdf',

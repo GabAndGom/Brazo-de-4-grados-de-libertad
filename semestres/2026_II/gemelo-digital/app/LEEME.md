@@ -6,7 +6,7 @@ Una sola app, para **Linux y Windows**, con un menú de inicio de tres modos:
 |---|---|
 | **Simulación** | practicar sin brazo ni cable (PLC simulado dentro de la app) |
 | **Operación local** | ver y mandar el brazo real desde esta PC (cable USB-PPI al puerto 0 del PLC) |
-| **Operación por red local** | lo mismo, y además celulares y otras PC de la red entran con usuario y contraseña (`https://IP:8443/`) |
+| **Operación por red local** | lo mismo, y además celulares y otras PC de la red entran con usuario y contraseña (`https://IP:8443/`), o sin contraseña como **observadores libres** (solo ver) |
 
 Desde el menú también se crean los usuarios del acceso por red. El botón **Menú** de la barra del gemelo
 vuelve al menú para cambiar de modo sin cerrar la app.
@@ -20,6 +20,13 @@ vuelve al menú para cambiar de modo sin cerrar la app.
   `Gemelo digital.bat`. `Crear acceso directo.bat` lo pone en el escritorio.
 
 Para comprobar el cable sin mover nada: `python3 probar_plc.py` (Windows: `Probar conexion PLC.bat`).
+
+## Observadores libres
+
+En la tarjeta *Operación por red local* del menú, la casilla **Observadores libres** deja entrar sin usuario ni
+contraseña, solo para ver: el QR pasa a apuntar a `https://IP:8443/libre` y cada persona entra como `visita-N`.
+El servidor rechaza las órdenes y el mando de una visita; al desmarcar la casilla sus sesiones se cierran. Viene
+apagada al abrir la app (también se activa con `--observadores-libres`). Mandar el brazo sigue pidiendo un operador.
 
 ## Telemetría, dashboard, API y Modbus (laboratorios 6 a 8)
 
